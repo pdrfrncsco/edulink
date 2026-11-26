@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.management import CommandError, call_command
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from apps.accounts.models import UserProfile
+from apps.benefits.models import BenefitOffer, BenefitPartner
 from apps.directory.models import AcademicUser, Enrollment
 from apps.tenants.models import School
 
@@ -219,3 +221,25 @@ class MultiTenantAuthAndIsolationTests(TestCase):
         self.assertEqual(toggle_res.status_code, 200)
         self.school_a.refresh_from_db()
         self.assertFalse(self.school_a.is_active)
+
+    def test_bootstrap_edulink_command_is_idempotent_and_guards_production(self):
+        with override_settings(DEBUG=False):
+            with self.assertRaises(CommandError):
+                call_command('bootstrap_edulink', '--admin-email', 'prod-ops@edulink.ao')
+
+            call_command(
+                'bootstrap_edulink',
+                '--admin-email',
+                'prod-ops@edulink.ao',
+                '--admin-password',
+                'EduLinkProd#2026',
+            )
+            # Reexecução idempotente não duplica parceiros nem ofertas
+            call_command('bootstrap_edulink', '--admin-email', 'prod-ops@edulink.ao')
+
+        ops_user = get_user_model().objects.get(email='prod-ops@edulink.ao')
+        self.assertTrue(ops_user.is_superuser)
+        self.assertEqual(ops_user.edulink_profile.role, UserProfile.Role.PLATFORM_ADMIN)
+        self.assertIsNone(ops_user.edulink_profile.school)
+        self.assertEqual(BenefitPartner.objects.count(), 5)
+        self.assertEqual(BenefitOffer.objects.count(), 6)

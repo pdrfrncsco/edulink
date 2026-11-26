@@ -6,6 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from apps.core.notifications import send_parental_consent_email
 from apps.core.permissions import (
     IsPlatformAdminOrSchoolSecretary,
     TenantScopedMixin,
@@ -25,6 +26,7 @@ from .services.apd_generator import (
     render_apd_dossier_html,
     render_parental_consent_html,
 )
+from .tasks import send_parental_consent_email_task
 
 
 def _client_ip(request) -> str | None:
@@ -193,3 +195,58 @@ class ParentalConsentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         response = HttpResponse(html, content_type='text/html; charset=utf-8')
         response['Content-Disposition'] = f'inline; filename="consentimento-{consent.student.bi_or_student_id}.html"'
         return response
+
+    @action(detail=True, methods=['post'], url_path='send-email')
+    def send_email(self, request, pk=None):
+        """Envia o link do termo de consentimento parental para o e-mail do encarregado."""
+        consent = self.get_object()
+        recipient_email = (request.data.get('guardian_email') or '').strip()
+        run_async = str(request.query_params.get('async', 'false')).lower() == 'true'
+
+        if run_async:
+            target = recipient_email or consent.guardian_email or consent.student.personal_email
+            if not target:
+                return Response(
+                    {'detail': 'Indique um e-mail do Encarregado de Educação para enviar o termo.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            task = send_parental_consent_email_task.delay(str(consent.id), recipient_email)
+            return Response({'status': 'queued', 'task_id': str(task.id), 'recipient': target}, status=status.HTTP_202_ACCEPTED)
+
+        try:
+            info = send_parental_consent_email(consent, recipient_email=recipient_email or None)
+            return Response({'message': f"E-mail enviado para {info['recipient']}.", **info}, status=status.HTTP_200_OK)
+        except ValueError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], url_path='send-bulk-emails')
+    def send_bulk_emails(self, request):
+        """Envia em lote os termos pendentes que possuem e-mail de encarregado ou pessoal registado."""
+        school_id = request.data.get('school_id')
+        if not school_id:
+            return Response({'detail': 'school_id é obrigatório.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not is_platform_admin(request.user):
+            profile = get_user_profile(request.user)
+            if not profile or not profile.school_id or str(profile.school_id) != str(school_id):
+                raise PermissionDenied('Não tem permissão para enviar termos noutra escola.')
+
+        run_async = str(request.query_params.get('async', 'false')).lower() == 'true'
+        pending = ParentalConsent.objects.select_related('school', 'student').filter(
+            school_id=school_id,
+            status=ParentalConsent.Status.PENDING,
+        )
+        sent = 0
+        skipped = 0
+        for consent in pending:
+            target = (consent.guardian_email or '').strip() or (consent.student.personal_email or '').strip()
+            if not target:
+                skipped += 1
+                continue
+            if run_async:
+                send_parental_consent_email_task.delay(str(consent.id), target)
+            else:
+                send_parental_consent_email(consent, recipient_email=target)
+            sent += 1
+
+        return Response({'sent': sent, 'skipped_without_email': skipped, 'async': run_async}, status=status.HTTP_200_OK)

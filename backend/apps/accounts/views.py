@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.notifications import send_secretary_welcome_email
 from apps.core.permissions import (
     IsPlatformAdmin,
     IsPlatformAdminOrSchoolSecretary,
@@ -42,6 +43,7 @@ class RegisterSecretaryAPIView(APIView):
         serializer = RegisterSecretarySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        send_secretary_welcome_email(user)
         return Response(issue_jwt_pair_for_user(user), status=status.HTTP_201_CREATED)
 
 

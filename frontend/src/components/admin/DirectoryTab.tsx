@@ -96,6 +96,39 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
     }
   };
 
+  const handleSendActivationInvite = async (userId: string) => {
+    onFeedback(null);
+    try {
+      const res = await apiJson<{ message: string }>(`/directory/users/${userId}/send-activation-email/`, {
+        method: 'POST',
+      });
+      onFeedback({ type: 'success', message: res.message });
+    } catch (err: any) {
+      onFeedback({ type: 'error', message: err.message });
+    }
+  };
+
+  const handleBulkActivationInvites = async () => {
+    if (!schoolId) return;
+    setLoading(true);
+    onFeedback(null);
+    try {
+      const res = await apiJson<{ sent: number }>('/directory/users/send-bulk-activation-emails/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ school_id: schoolId }),
+      });
+      onFeedback({
+        type: 'success',
+        message: `Convites de ativação enviados para ${res.sent} conta(s) pendente(s).`,
+      });
+    } catch (err: any) {
+      onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
@@ -188,34 +221,44 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
               Suspender uma matrícula revoga automaticamente o acesso Google/Microsoft e invalida o Cartão Digital.
             </p>
           </div>
-          <search>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                loadUsers();
-              }}
-              className="flex gap-2"
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={!schoolId || loading}
+              onClick={handleBulkActivationInvites}
+              className="px-3.5 py-2 rounded-lg border border-teal-700 bg-white text-xs font-semibold text-teal-800 hover:bg-teal-50 disabled:opacity-50"
             >
-              <label htmlFor="directory-search" className="sr-only">
-                Pesquisar utilizador
-              </label>
-              <input
-                id="directory-search"
-                name="search"
-                type="search"
-                placeholder="Nome, e-mail ou BI..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="edulink-input px-3 py-1.5 rounded-lg border border-stone-300 text-sm"
-              />
-              <button
-                type="submit"
-                className="px-3.5 py-2 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+              Enviar Convites (.edu.ao)
+            </button>
+            <search>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  loadUsers();
+                }}
+                className="flex gap-2"
               >
-                Filtrar
-              </button>
-            </form>
-          </search>
+                <label htmlFor="directory-search" className="sr-only">
+                  Pesquisar utilizador
+                </label>
+                <input
+                  id="directory-search"
+                  name="search"
+                  type="search"
+                  placeholder="Nome, e-mail ou BI..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="edulink-input px-3 py-1.5 rounded-lg border border-stone-300 text-sm"
+                />
+                <button
+                  type="submit"
+                  className="px-3.5 py-2 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                >
+                  Filtrar
+                </button>
+              </form>
+            </search>
+          </div>
         </div>
 
         <div tabIndex={0} role="region" aria-labelledby="directory-table-caption" className="table-wrapper">
@@ -270,19 +313,28 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
                       )}
                     </td>
                     <td data-label="Ação" className="p-3">
-                      {u.active_enrollment && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {u.active_enrollment && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleEnrollmentStatus(u)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                              u.active_enrollment.status === 'ACTIVE'
+                                ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                                : 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100'
+                            }`}
+                          >
+                            {u.active_enrollment.status === 'ACTIVE' ? 'Suspender' : 'Reativar'}
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleToggleEnrollmentStatus(u)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                            u.active_enrollment.status === 'ACTIVE'
-                              ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
-                              : 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100'
-                          }`}
+                          onClick={() => handleSendActivationInvite(u.id)}
+                          className="px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-stone-50"
                         >
-                          {u.active_enrollment.status === 'ACTIVE' ? 'Suspender' : 'Reativar'}
+                          Convidar
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))

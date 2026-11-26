@@ -127,6 +127,7 @@ export interface ParentalConsent {
   guardian_full_name: string;
   guardian_bi: string;
   guardian_relationship: 'PAI_MAE' | 'TUTOR_LEGAL' | 'ENCARREGADO';
+  guardian_email?: string;
   status: 'PENDING' | 'SIGNED' | 'REVOKED';
   consent_token: string;
   signed_at: string | null;

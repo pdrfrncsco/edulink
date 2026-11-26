@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -136,3 +137,34 @@ class ComplianceAPITests(TestCase):
         consent.refresh_from_db()
         self.assertEqual(consent.status, ParentalConsent.Status.REVOKED)
         self.assertIsNotNone(consent.revoked_at)
+
+    def test_send_parental_consent_email_single_and_bulk(self):
+        self.client.post('/api/v1/compliance/consents/bulk-generate/', {'school_id': str(self.school.id)}, format='json')
+        consent = ParentalConsent.objects.get(school=self.school, student=self.student)
+
+        # Sem e-mail de encarregado nem pessoal -> 400 claro
+        no_mail_res = self.client.post(f'/api/v1/compliance/consents/{consent.id}/send-email/', {}, format='json')
+        self.assertEqual(no_mail_res.status_code, 400)
+
+        # Com e-mail de encarregado -> envia link com token e persiste guardian_email
+        mail.outbox.clear()
+        send_res = self.client.post(
+            f'/api/v1/compliance/consents/{consent.id}/send-email/',
+            {'guardian_email': 'pai.santos@gmail.com'},
+            format='json',
+        )
+        self.assertEqual(send_res.status_code, 200)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(consent.consent_token, mail.outbox[0].body)
+        consent.refresh_from_db()
+        self.assertEqual(consent.guardian_email, 'pai.santos@gmail.com')
+
+        # Envio em lote envia para o termo pendente com guardian_email
+        bulk_send = self.client.post(
+            '/api/v1/compliance/consents/send-bulk-emails/',
+            {'school_id': str(self.school.id)},
+            format='json',
+        )
+        self.assertEqual(bulk_send.status_code, 200)
+        self.assertEqual(bulk_send.json()['sent'], 1)
+        self.assertEqual(len(mail.outbox), 2)

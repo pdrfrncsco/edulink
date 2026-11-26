@@ -21,6 +21,8 @@ export default function ComplianceAPDTab({ schoolId, onFeedback, onSchoolUpdated
   const [hasMinors, setHasMinors] = useState(true);
   const [apdRefNumber, setApdRefNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailPromptId, setEmailPromptId] = useState<string | null>(null);
+  const [guardianEmailInput, setGuardianEmailInput] = useState('');
 
   const loadCompliance = async () => {
     if (!schoolId) {
@@ -165,6 +167,50 @@ export default function ComplianceAPDTab({ schoolId, onFeedback, onSchoolUpdated
       await loadCompliance();
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
+    }
+  };
+
+  const handleSendConsentEmail = async (consentId: string, overrideEmail?: string) => {
+    setLoading(true);
+    onFeedback(null);
+    try {
+      const res = await apiJson<{ message: string }>(`/compliance/consents/${consentId}/send-email/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(overrideEmail ? { guardian_email: overrideEmail.trim() } : {}),
+      });
+      setEmailPromptId(null);
+      setGuardianEmailInput('');
+      onFeedback({ type: 'success', message: res.message });
+      await loadCompliance();
+    } catch (err: any) {
+      onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkSendConsentEmails = async () => {
+    if (!schoolId) return;
+    setLoading(true);
+    onFeedback(null);
+    try {
+      const res = await apiJson<{ sent: number; skipped_without_email: number }>(
+        '/compliance/consents/send-bulk-emails/',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ school_id: schoolId }),
+        }
+      );
+      onFeedback({
+        type: 'success',
+        message: `E-mails enviados: ${res.sent} (${res.skipped_without_email} sem e-mail de encarregado definido).`,
+      });
+    } catch (err: any) {
+      onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -352,14 +398,24 @@ export default function ComplianceAPDTab({ schoolId, onFeedback, onSchoolUpdated
               Envie o link de assinatura digital ao Encarregado de Educação ou imprima o termo em HTML.
             </p>
           </div>
-          <button
-            type="button"
-            disabled={!schoolId || loading}
-            onClick={handleBulkConsents}
-            className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-xs font-semibold hover:bg-teal-800 disabled:opacity-50"
-          >
-            Gerar Termos em Lote (Estudantes)
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!schoolId || loading}
+              onClick={handleBulkConsents}
+              className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-xs font-semibold hover:bg-teal-800 disabled:opacity-50"
+            >
+              Gerar Termos em Lote (Estudantes)
+            </button>
+            <button
+              type="button"
+              disabled={!schoolId || loading || consents.length === 0}
+              onClick={handleBulkSendConsentEmails}
+              className="px-4 py-2.5 rounded-xl border border-teal-700 bg-white text-teal-800 text-xs font-semibold hover:bg-teal-50 disabled:opacity-50"
+            >
+              Enviar E-mails Pendentes
+            </button>
+          </div>
         </div>
 
         <div tabIndex={0} role="region" aria-labelledby="consents-table-caption" className="table-wrapper">
@@ -414,22 +470,64 @@ export default function ComplianceAPDTab({ schoolId, onFeedback, onSchoolUpdated
                         Abrir Formulário
                       </a>
                     </td>
-                    <td data-label="Ações" className="p-3 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openProtectedHtml(`/compliance/consents/${c.id}/download-html/`).catch((err) => onFeedback({ type: 'error', message: err.message }))}
-                        className="px-2.5 py-1 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-100"
-                      >
-                        HTML
-                      </button>
-                      {c.status !== 'REVOKED' && (
+                    <td data-label="Ações" className="p-3 space-y-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
-                          onClick={() => handleRevokeConsent(c.id)}
-                          className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-700 hover:bg-red-100"
+                          onClick={() => openProtectedHtml(`/compliance/consents/${c.id}/download-html/`).catch((err) => onFeedback({ type: 'error', message: err.message }))}
+                          className="px-2.5 py-1 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-100"
                         >
-                          Revogar
+                          HTML
                         </button>
+                        {c.status === 'PENDING' && (
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => {
+                              if (c.guardian_email) {
+                                handleSendConsentEmail(c.id);
+                              } else {
+                                setEmailPromptId(emailPromptId === c.id ? null : c.id);
+                                setGuardianEmailInput('');
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded-lg border border-teal-300 bg-teal-50 text-xs font-semibold text-teal-800 hover:bg-teal-100"
+                          >
+                            Enviar E-mail
+                          </button>
+                        )}
+                        {c.status !== 'REVOKED' && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevokeConsent(c.id)}
+                            className="px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-700 hover:bg-red-100"
+                          >
+                            Revogar
+                          </button>
+                        )}
+                      </div>
+                      {emailPromptId === c.id && (
+                        <div className="flex flex-wrap gap-1.5 items-center pt-1">
+                          <label htmlFor={`guardian-email-${c.id}`} className="sr-only">
+                            E-mail do Encarregado
+                          </label>
+                          <input
+                            id={`guardian-email-${c.id}`}
+                            type="email"
+                            placeholder="encarregado@email.ao"
+                            value={guardianEmailInput}
+                            onChange={(e) => setGuardianEmailInput(e.target.value)}
+                            className="edulink-input px-2 py-1 text-xs rounded-lg border border-stone-300"
+                          />
+                          <button
+                            type="button"
+                            disabled={loading || !guardianEmailInput.trim()}
+                            onClick={() => handleSendConsentEmail(c.id, guardianEmailInput)}
+                            className="px-2.5 py-1 rounded-lg bg-teal-700 text-white text-xs font-semibold hover:bg-teal-800 disabled:opacity-50"
+                          >
+                            Enviar
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

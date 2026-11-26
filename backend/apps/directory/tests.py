@@ -1,3 +1,4 @@
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -51,3 +52,30 @@ class DirectoryCSVImporterTests(TestCase):
             'joao.silva2@luandasul.edu.ao',
             'antonio.mukinda@luandasul.edu.ao',
         ])
+
+    def test_send_activation_email_and_bulk_invites(self):
+        student = AcademicUser.objects.create(
+            school=self.school,
+            full_name='Mariana Kiala',
+            role=AcademicUser.Role.STUDENT,
+            institutional_email='mariana.kiala@luandasul.edu.ao',
+            personal_email='mariana.pessoal@gmail.com',
+            bi_or_student_id='00778811LA099',
+        )
+        mail.outbox.clear()
+
+        single_res = self.client.post(f'/api/v1/directory/users/{student.id}/send-activation-email/')
+        self.assertEqual(single_res.status_code, 200)
+        self.assertEqual(single_res.json()['recipient'], 'mariana.pessoal@gmail.com')
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('00778811LA099', mail.outbox[0].body)
+        self.assertIn('/portal', mail.outbox[0].body)
+
+        bulk_res = self.client.post(
+            '/api/v1/directory/users/send-bulk-activation-emails/',
+            {'school_id': str(self.school.id)},
+            format='json',
+        )
+        self.assertEqual(bulk_res.status_code, 200)
+        self.assertEqual(bulk_res.json()['sent'], 1)
+        self.assertEqual(len(mail.outbox), 2)
