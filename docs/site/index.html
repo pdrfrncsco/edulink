@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Centro de Ajuda EduLink | docs.edulink.ao</title>
+  <link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/docs.js"></script>
+</head>
+<body>
+  <a href="#conteudo-principal" class="skip-link visually-hidden">Saltar para o conteúdo principal</a>
+  <div id="live-announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <button type="button" id="drawer-open" class="icon-btn menu-toggle" aria-expanded="false" aria-controls="docs-drawer" aria-label="Abrir índice da documentação" hidden>
+          <span aria-hidden="true">☰</span>
+          <span>Menu</span>
+        </button>
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span>EduLink Ajuda</span>
+        </a>
+        <span class="brand-sub">docs.edulink.ao</span>
+      </div>
+
+      <nav class="header-nav" aria-label="Principal">
+        <a href="index.html" aria-current="page">Início</a>
+        <a href="admin.html">Admin</a>
+        <a href="instituicoes.html">Instituições</a>
+        <a href="docentes.html">Docentes</a>
+        <a href="alunos.html">Alunos</a>
+        <a href="erps.html">ERPs</a>
+      </nav>
+
+      <div class="header-actions">
+        <label for="theme-select" class="visually-hidden">Tema de cores</label>
+        <select id="theme-select" class="theme-select" aria-label="Tema de cores">
+          <option value="system">Tema: Sistema</option>
+          <option value="light">Tema: Claro</option>
+          <option value="dark">Tema: Escuro</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside id="docs-drawer" class="docs-sidebar" aria-label="Navegação lateral">
+      <div class="drawer-close-row">
+        <strong>Centro de Ajuda EduLink</strong>
+        <button type="button" id="drawer-close" class="icon-btn" aria-label="Fechar índice">Fechar ✕</button>
+      </div>
+
+      <search class="search-box">
+        <label for="docs-search-input" class="search-label">Procurar ajuda</label>
+        <input id="docs-search-input" class="search-input" type="search" placeholder="Ex: cartão, CSV, senha, pais..." autocomplete="off">
+        <ul id="docs-search-results" class="search-results" aria-live="polite"></ul>
+      </search>
+
+      <nav aria-label="Guias por utilizador">
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Começar</div>
+          <ul class="sidebar-list">
+            <li><a href="index.html" aria-current="page"><span>Bem-vindo à EduLink</span></a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Guias Práticos</div>
+          <ul class="sidebar-list">
+            <li><a href="admin.html"><span>Admin da Plataforma</span><span class="role-pill">Admin</span></a></li>
+            <li><a href="instituicoes.html"><span>Instituições &amp; Secretaria</span><span class="role-pill">Escola</span></a></li>
+            <li><a href="docentes.html"><span>Docentes / Professores</span><span class="role-pill">Docente</span></a></li>
+            <li><a href="alunos.html"><span>Alunos &amp; Encarregados</span><span class="role-pill">Aluno</span></a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Para Equipas Técnicas</div>
+          <ul class="sidebar-list">
+            <li><a href="erps.html"><span>Integração com ERPs</span><span class="role-pill">Técnico</span></a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main id="conteudo-principal" class="docs-main" tabindex="-1">
+      <div class="page-badge">Guias simples e práticos • EduLink Angola</div>
+      <h1>Centro de Ajuda e Documentação EduLink</h1>
+      <p class="lead">
+        A <strong>EduLink</strong> ajuda escolas e universidades em Angola a ter o seu site oficial (<code>.edu.ao</code>), contas de e-mail escolares (Google, Microsoft e Canva), Cartão Académico Digital no telemóvel e documentos de proteção de dados em dia. Escolha abaixo o guia para o seu dia a dia.
+      </p>
+
+      <section id="perfis" tabindex="-1">
+        <h2>Escolha o seu Guia</h2>
+        <p>Cada página explica passo a passo o que fazer no ecrã, sem complicações:</p>
+
+        <div class="card-grid">
+          <article class="card">
+            <span class="card-meta">Gestão Geral</span>
+            <h3 class="card-title">Admin da Plataforma</h3>
+            <p>Como gerir várias escolas no mesmo painel, ativar ou suspender instituições e ajudar secretarias no dia a dia.</p>
+            <a class="card-link" href="admin.html">Ver guia do Admin →</a>
+          </article>
+
+          <article class="card">
+            <span class="card-meta">Direção e Secretaria</span>
+            <h3 class="card-title">Instituições &amp; Secretaria</h3>
+            <p>Como registar a escola, carregar a lista de alunos e professores, ativar e-mails, domínio e documentos para os pais.</p>
+            <a class="card-link" href="instituicoes.html">Ver guia da Escola →</a>
+          </article>
+
+          <article class="card">
+            <span class="card-meta">Professores</span>
+            <h3 class="card-title">Docentes / Professores</h3>
+            <p>Como ativar a sua conta escolar pela primeira vez, abrir o Cartão Digital no telemóvel e usar Google, Microsoft e Canva.</p>
+            <a class="card-link" href="docentes.html">Ver guia do Docente →</a>
+          </article>
+
+          <article class="card">
+            <span class="card-meta">Estudantes e Famílias</span>
+            <h3 class="card-title">Alunos &amp; Encarregados</h3>
+            <p>Como criar a palavra-passe, usar o Cartão QR Code mesmo sem internet e assinar a autorização para menores.</p>
+            <a class="card-link" href="alunos.html">Ver guia do Aluno →</a>
+          </article>
+
+          <article class="card">
+            <span class="card-meta">Documentação Técnica</span>
+            <h3 class="card-title">Integradores &amp; ERPs</h3>
+            <p>Manual técnico para programadores ligarem sistemas como KLASSE, SysPortal ou Kacennu à plataforma.</p>
+            <a class="card-link" href="erps.html">Ver manual técnico de ERPs →</a>
+          </article>
+        </div>
+      </section>
+
+      <section id="enderecos" tabindex="-1">
+        <h2>Onde Entrar? (Endereços da Plataforma)</h2>
+        <p>
+          Dependendo do seu papel, irá usar um destes endereços no navegador do computador ou telemóvel:
+        </p>
+
+        <div tabindex="0" role="region" aria-labelledby="cap-enderecos" class="table-wrapper">
+          <table class="docs-table">
+            <caption id="cap-enderecos">Portais e páginas da EduLink para cada necessidade</caption>
+            <thead>
+              <tr>
+                <th scope="col">Endereço</th>
+                <th scope="col">Quem usa</th>
+                <th scope="col">Para que serve</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><code>admin.edulink.ao</code></th>
+                <td data-label="Quem usa">Admin &amp; Secretaria Escolar</td>
+                <td data-label="Para que serve">Registar a escola, importar alunos/docentes, ativar e-mails e documentos legais.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>portal.edulink.ao</code></th>
+                <td data-label="Quem usa">Alunos &amp; Professores</td>
+                <td data-label="Para que serve">Ativar a conta escolar e mostrar o Cartão Digital com código QR.</td>
+              </tr>
+              <tr>
+                <th scope="row">Site da Escola (<code>sua-escola.edu.ao</code>)</th>
+                <td data-label="Quem usa">Pais, Alunos e Público</td>
+                <td data-label="Para que serve">Página oficial da escola com contactos, alvará e atalhos para o Portal.</td>
+              </tr>
+              <tr>
+                <th scope="row">Leitura de QR Code (<code>/verify</code>)</th>
+                <td data-label="Quem usa">Portarias, Bibliotecas e Parceiros</td>
+                <td data-label="Para que serve">Confirmar na hora se o cartão do aluno ou professor está ativo e válido.</td>
+              </tr>
+              <tr>
+                <th scope="row">Autorização Parental (<code>/consent</code>)</th>
+                <td data-label="Quem usa">Encarregados de Educação</td>
+                <td data-label="Para que serve">Assinar pelo telemóvel a autorização escolar para estudantes menores.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="o-que-oferece" tabindex="-1">
+        <h2>O que a EduLink Resolve na Prática</h2>
+        <ul>
+          <li><strong>Site oficial em minutos:</strong> Assim que a escola faz o registo, ganha uma página institucional pronta com as suas cores, contactos e número do Alvará.</li>
+          <li><strong>E-mails escolares automáticos:</strong> Basta carregar uma folha do Excel (CSV) para criar os endereços <code>nome.apelido@escola.edu.ao</code> de toda a escola sem digitar um a um.</li>
+          <li><strong>Cartão Digital no telemóvel:</strong> Alunos e docentes mostram o cartão com código QR na entrada ou em parceiros, e o cartão continua acessível mesmo sem internet.</li>
+          <li><strong>Segurança e tranquilidade legal:</strong> Gera automaticamente o dossiê exigido pela Agência de Protecção de Dados (APD) e os termos digitais para os pais assinarem.</li>
+        </ul>
+      </section>
+
+      <nav class="page-pager" aria-label="Paginação">
+        <span></span>
+        <a class="pager-link" href="admin.html">
+          <span class="pager-dir">Próximo →</span>
+          <span class="pager-title">Guia do Admin da Plataforma</span>
+        </a>
+      </nav>
+    </main>
+
+    <aside class="docs-toc" aria-label="Sumário">
+      <nav class="toc-nav" aria-label="Nesta página">
+        <div class="toc-title">Nesta página</div>
+        <ul class="toc-list">
+          <li><a href="#perfis">Escolha o seu Guia</a></li>
+          <li><a href="#enderecos">Onde Entrar</a></li>
+          <li><a href="#o-que-oferece">O que Resolve na Prática</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span><strong>EduLink Angola</strong> • Centro de Ajuda (<code>docs.edulink.ao</code>)</span>
+      <span>Identidade Académica <code>.edu.ao</code> • Proteção de Dados (Lei n.º 22/11)</span>
+    </div>
+  </footer>
+</body>
+</html>

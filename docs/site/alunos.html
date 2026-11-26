@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Guia para Alunos &amp; Encarregados | docs.edulink.ao</title>
+  <link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/docs.js"></script>
+</head>
+<body>
+  <a href="#conteudo-principal" class="skip-link visually-hidden">Saltar para o conteúdo principal</a>
+  <div id="live-announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <button type="button" id="drawer-open" class="icon-btn menu-toggle" aria-expanded="false" aria-controls="docs-drawer" aria-label="Abrir índice da documentação" hidden>
+          <span aria-hidden="true">☰</span>
+          <span>Menu</span>
+        </button>
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span>EduLink Ajuda</span>
+        </a>
+        <span class="brand-sub">docs.edulink.ao</span>
+      </div>
+
+      <nav class="header-nav" aria-label="Principal">
+        <a href="index.html">Início</a>
+        <a href="admin.html">Admin</a>
+        <a href="instituicoes.html">Instituições</a>
+        <a href="docentes.html">Docentes</a>
+        <a href="alunos.html" aria-current="page">Alunos</a>
+        <a href="erps.html">ERPs</a>
+      </nav>
+
+      <div class="header-actions">
+        <label for="theme-select" class="visually-hidden">Tema de cores</label>
+        <select id="theme-select" class="theme-select" aria-label="Tema de cores">
+          <option value="system">Tema: Sistema</option>
+          <option value="light">Tema: Claro</option>
+          <option value="dark">Tema: Escuro</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside id="docs-drawer" class="docs-sidebar" aria-label="Navegação lateral">
+      <div class="drawer-close-row">
+        <strong>Centro de Ajuda EduLink</strong>
+        <button type="button" id="drawer-close" class="icon-btn" aria-label="Fechar índice">Fechar ✕</button>
+      </div>
+
+      <search class="search-box">
+        <label for="docs-search-input" class="search-label">Procurar ajuda</label>
+        <input id="docs-search-input" class="search-input" type="search" placeholder="Ex: cartão, CSV, senha, pais..." autocomplete="off">
+        <ul id="docs-search-results" class="search-results" aria-live="polite"></ul>
+      </search>
+
+      <nav aria-label="Guias por utilizador">
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Começar</div>
+          <ul class="sidebar-list">
+            <li><a href="index.html"><span>Bem-vindo à EduLink</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Guias Práticos</div>
+          <ul class="sidebar-list">
+            <li><a href="admin.html"><span>Admin da Plataforma</span><span class="role-pill">Admin</span></a></li>
+            <li><a href="instituicoes.html"><span>Instituições &amp; Secretaria</span><span class="role-pill">Escola</span></a></li>
+            <li><a href="docentes.html"><span>Docentes / Professores</span><span class="role-pill">Docente</span></a></li>
+            <li><a href="alunos.html" aria-current="page"><span>Alunos &amp; Encarregados</span><span class="role-pill">Aluno</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Para Equipas Técnicas</div>
+          <ul class="sidebar-list">
+            <li><a href="erps.html"><span>Integração com ERPs</span><span class="role-pill">Técnico</span></a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main id="conteudo-principal" class="docs-main" tabindex="-1">
+      <nav class="breadcrumb" aria-label="Caminho">
+        <a href="index.html">Início</a>
+        <span aria-hidden="true">/</span>
+        <span>Alunos &amp; Encarregados</span>
+      </nav>
+
+      <div class="page-badge">Guia Prático • Estudantes e Encarregados de Educação</div>
+      <h1>Guia do Aluno e do Encarregado de Educação</h1>
+      <p class="lead">
+        Veja como ativar a sua conta de estudante <code>.edu.ao</code>, usar o Cartão Académico Digital no telemóvel (mesmo sem internet) e como os pais ou encarregados assinam a autorização para alunos menores.
+      </p>
+
+      <section id="ativar-aluno" tabindex="-1">
+        <h2>1. Como Ativar a Conta de Estudante</h2>
+        <p>
+          Depois de a escola fazer a sua inscrição na EduLink, recebe o seu e-mail escolar (exemplo: <code>manuel.sousa@colegio.edu.ao</code>). Para entrar pela primeira vez:
+        </p>
+        <ol>
+          <li>Abra <code>portal.edulink.ao</code> no telemóvel ou computador.</li>
+          <li>Escolha a opção para ativar conta pela primeira vez (<strong>Ativar Conta Institucional (.edu.ao)</strong>).</li>
+          <li>Preencha os 3 campos pedidos:
+            <ul>
+              <li><strong>E-mail Institucional:</strong> o endereço <code>.edu.ao</code> dado pela escola.</li>
+              <li><strong>N.º de BI / Processo:</strong> exatamente como está na sua ficha de matrícula.</li>
+              <li><strong>Palavra-passe:</strong> crie uma senha com pelo menos 8 caracteres.</li>
+            </ul>
+          </li>
+          <li>Nos próximos acessos, basta entrar diretamente com o seu e-mail e palavra-passe.</li>
+        </ol>
+      </section>
+
+      <section id="cartao-aluno" tabindex="-1">
+        <h2>2. Como Usar o Cartão Digital e o Código QR</h2>
+        <p>Assim que entra em <code>portal.edulink.ao</code>, aparece o seu Cartão Académico Digital:</p>
+        <ul>
+          <li><strong>Dados visíveis:</strong> Nome da escola, estado da matrícula (<strong>MATRÍCULA ACTIVA</strong> ou <strong>SUSPENSA</strong>), nome completo, e-mail <code>.edu.ao</code>, n.º de BI/Processo, turma e ano letivo.</li>
+          <li><strong>Funciona sem dados móveis:</strong> Depois de abrir o cartão uma vez com internet, ele fica guardado no telemóvel para poder apresentá-lo na portaria ou em lojas parceiras mesmo quando estiver offline.</li>
+          <li><strong>Guardar no ecrã inicial:</strong> No Chrome (Android) ou Safari (iPhone), toque em <strong>Adicionar ao ecrã inicial</strong> para ter um ícone direto para o seu cartão.</li>
+          <li><strong>Como funciona a verificação (<code>/verify</code>):</strong> Quando alguém lê o seu Código QR com a câmara, o ecrã mostra na hora se a sua matrícula está <strong>Ativa</strong> no ano letivo atual. Se a matrícula estiver suspensa pela escola, o verificador avisa imediatamente.</li>
+        </ul>
+      </section>
+
+      <section id="encarregados" tabindex="-1">
+        <h2>3. Para Pais e Encarregados: Autorização de Menores</h2>
+        <p>
+          Para proteger os dados de estudantes menores de idade (ao abrigo da Lei n.º 22/11 da Agência de Protecção de Dados de Angola), a escola envia ao Encarregado de Educação um link de autorização.
+        </p>
+        <ol>
+          <li>Toque no link recebido da escola (<code>/consent?token=...</code>).</li>
+          <li>Confirme o nome da escola, o nome do estudante e o e-mail escolar apresentados no topo.</li>
+          <li>Preencha os dados do Encarregado:
+            <ul>
+              <li><strong>Nome Completo</strong> e <strong>Número do Bilhete de Identidade (BI)</strong>;</li>
+              <li><strong>Grau de Parentesco</strong> (Pai/Mãe, Tutor Legal ou Encarregado de Educação);</li>
+              <li><strong>Telefone</strong> e <strong>E-mail</strong> de contacto.</li>
+            </ul>
+          </li>
+          <li>Submeta o formulário. Logo após assinar, aparece o botão <strong>Descarregar Comprovativo</strong> caso queira guardar em PDF ou imprimir.</li>
+        </ol>
+      </section>
+
+      <section id="beneficios-aluno" tabindex="-1">
+        <h2>4. Ferramentas e Benefícios para Estudantes</h2>
+        <p>
+          Com a conta institucional <code>.edu.ao</code> ativa, consoante os serviços ligados pela sua escola ou universidade, pode ter acesso a:
+        </p>
+
+        <div tabindex="0" role="region" aria-labelledby="cap-beneficios-simples" class="table-wrapper">
+          <table class="docs-table">
+            <caption id="cap-beneficios-simples">Principais ferramentas e programas disponíveis através da escola</caption>
+            <thead>
+              <tr>
+                <th scope="col">Ferramenta / Benefício</th>
+                <th scope="col">Como utilizar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Google Workspace for Education</th>
+                <td data-label="Como utilizar">Entre na conta Google com o seu e-mail <code>.edu.ao</code> para usar Classroom, Drive e Meet da turma.</td>
+              </tr>
+              <tr>
+                <th scope="row">Microsoft 365 Education</th>
+                <td data-label="Como utilizar">Entre com o seu e-mail <code>.edu.ao</code> para usar Word, Excel, PowerPoint, Teams e OneDrive escolares.</td>
+              </tr>
+              <tr>
+                <th scope="row">Canva para Educação</th>
+                <td data-label="Como utilizar">Aceda usando o login único da escola (quando ativado pela secretaria) para criar trabalhos e apresentações.</td>
+              </tr>
+              <tr>
+                <th scope="row">Descontos e Programas Globais</th>
+                <td data-label="Como utilizar">Universidades e escolas aprovadas permitem ativar o <em>GitHub Student Pack</em>, <em>Spotify Estudante</em> e descontos com o seu e-mail <code>.edu.ao</code> e cartão digital.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <nav class="page-pager" aria-label="Paginação">
+        <a class="pager-link" href="docentes.html">
+          <span class="pager-dir">← Anterior</span>
+          <span class="pager-title">Guia de Docentes / Professores</span>
+        </a>
+        <a class="pager-link" href="erps.html">
+          <span class="pager-dir">Próximo →</span>
+          <span class="pager-title">Integração com ERPs (Técnico)</span>
+        </a>
+      </nav>
+    </main>
+
+    <aside class="docs-toc" aria-label="Sumário">
+      <nav class="toc-nav" aria-label="Nesta página">
+        <div class="toc-title">Nesta página</div>
+        <ul class="toc-list">
+          <li><a href="#ativar-aluno">1. Ativar a Conta</a></li>
+          <li><a href="#cartao-aluno">2. Cartão Digital e QR</a></li>
+          <li><a href="#encarregados">3. Autorização dos Pais</a></li>
+          <li><a href="#beneficios-aluno">4. Ferramentas e Benefícios</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span><strong>EduLink Angola</strong> • Centro de Ajuda (<code>docs.edulink.ao</code>)</span>
+      <span>Identidade Académica <code>.edu.ao</code> • Proteção de Dados (Lei n.º 22/11)</span>
+    </div>
+  </footer>
+</body>
+</html>

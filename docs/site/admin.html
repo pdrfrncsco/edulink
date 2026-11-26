@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Guia do Admin | docs.edulink.ao</title>
+  <link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/docs.js"></script>
+</head>
+<body>
+  <a href="#conteudo-principal" class="skip-link visually-hidden">Saltar para o conteúdo principal</a>
+  <div id="live-announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <button type="button" id="drawer-open" class="icon-btn menu-toggle" aria-expanded="false" aria-controls="docs-drawer" aria-label="Abrir índice da documentação" hidden>
+          <span aria-hidden="true">☰</span>
+          <span>Menu</span>
+        </button>
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span>EduLink Ajuda</span>
+        </a>
+        <span class="brand-sub">docs.edulink.ao</span>
+      </div>
+
+      <nav class="header-nav" aria-label="Principal">
+        <a href="index.html">Início</a>
+        <a href="admin.html" aria-current="page">Admin</a>
+        <a href="instituicoes.html">Instituições</a>
+        <a href="docentes.html">Docentes</a>
+        <a href="alunos.html">Alunos</a>
+        <a href="erps.html">ERPs</a>
+      </nav>
+
+      <div class="header-actions">
+        <label for="theme-select" class="visually-hidden">Tema de cores</label>
+        <select id="theme-select" class="theme-select" aria-label="Tema de cores">
+          <option value="system">Tema: Sistema</option>
+          <option value="light">Tema: Claro</option>
+          <option value="dark">Tema: Escuro</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside id="docs-drawer" class="docs-sidebar" aria-label="Navegação lateral">
+      <div class="drawer-close-row">
+        <strong>Centro de Ajuda EduLink</strong>
+        <button type="button" id="drawer-close" class="icon-btn" aria-label="Fechar índice">Fechar ✕</button>
+      </div>
+
+      <search class="search-box">
+        <label for="docs-search-input" class="search-label">Procurar ajuda</label>
+        <input id="docs-search-input" class="search-input" type="search" placeholder="Ex: cartão, CSV, senha, pais..." autocomplete="off">
+        <ul id="docs-search-results" class="search-results" aria-live="polite"></ul>
+      </search>
+
+      <nav aria-label="Guias por utilizador">
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Começar</div>
+          <ul class="sidebar-list">
+            <li><a href="index.html"><span>Bem-vindo à EduLink</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Guias Práticos</div>
+          <ul class="sidebar-list">
+            <li><a href="admin.html" aria-current="page"><span>Admin da Plataforma</span><span class="role-pill">Admin</span></a></li>
+            <li><a href="instituicoes.html"><span>Instituições &amp; Secretaria</span><span class="role-pill">Escola</span></a></li>
+            <li><a href="docentes.html"><span>Docentes / Professores</span><span class="role-pill">Docente</span></a></li>
+            <li><a href="alunos.html"><span>Alunos &amp; Encarregados</span><span class="role-pill">Aluno</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Para Equipas Técnicas</div>
+          <ul class="sidebar-list">
+            <li><a href="erps.html"><span>Integração com ERPs</span><span class="role-pill">Técnico</span></a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main id="conteudo-principal" class="docs-main" tabindex="-1">
+      <nav class="breadcrumb" aria-label="Caminho">
+        <a href="index.html">Início</a>
+        <span aria-hidden="true">/</span>
+        <span>Admin da Plataforma</span>
+      </nav>
+
+      <div class="page-badge">Guia Prático • Gestão Global (admin.edulink.ao)</div>
+      <h1>Guia do Administrador da Plataforma</h1>
+      <p class="lead">
+        Este manual é para a equipa que administra a EduLink e presta apoio às escolas. Ao contrário de uma secretaria escolar (que só vê a sua própria escola), o Administrador vê e gere todas as instituições registadas na plataforma.
+      </p>
+
+      <section id="acesso-geral" tabindex="-1">
+        <h2>1. Como Entrar e Trocar de Escola no Painel</h2>
+        <ol>
+          <li>Abra o endereço <code>admin.edulink.ao</code> no seu navegador.</li>
+          <li>Inicie sessão com o seu e-mail e palavra-passe de Administrador da Plataforma.</li>
+          <li>No topo do painel, utilize a barra de seleção de escola para escolher a instituição que pretende consultar ou ajudar.</li>
+          <li>Ao mudar de escola nessa barra, os 6 separadores abaixo passam imediatamente a mostrar os dados daquela escola.</li>
+        </ol>
+
+        <div class="callout">
+          <div class="callout-title">Diferença entre Administrador e Secretaria</div>
+          <p>
+            Cada secretaria escolar acede apenas aos dados da sua instituição. O Administrador pode alternar entre todas as escolas para acompanhar o progresso do registo, rever listas de alunos e ajudar a resolver bloqueios.
+          </p>
+        </div>
+      </section>
+
+      <section id="gerir-escolas" tabindex="-1">
+        <h2>2. O que o Administrador Acompanha em Cada Escola</h2>
+        <p>
+          Depois de selecionar uma escola, pode acompanhar ou executar qualquer um dos 6 passos principais do painel:
+        </p>
+
+        <div tabindex="0" role="region" aria-labelledby="cap-passos-admin" class="table-wrapper">
+          <table class="docs-table">
+            <caption id="cap-passos-admin">Visão prática dos 6 separadores no painel admin.edulink.ao</caption>
+            <thead>
+              <tr>
+                <th scope="col">Separador no Painel</th>
+                <th scope="col">O que verificar</th>
+                <th scope="col">Quando atuar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1. Onboarding &amp; Escola</th>
+                <td data-label="O que verificar">Se o nome, NIF, Alvará MED/MESCTI e domínio <code>.edu.ao</code> estão corretos.</td>
+                <td data-label="Quando atuar">Ao cadastrar uma escola nova ou quando a escola pede alteração dos dados oficiais.</td>
+              </tr>
+              <tr>
+                <th scope="row">2. Directório &amp; CSV</th>
+                <td data-label="O que verificar">Quantos alunos e professores estão registados e se alguma matrícula foi suspensa.</td>
+                <td data-label="Quando atuar">Para ajudar uma secretaria a carregar a lista inicial ou reativar uma matrícula.</td>
+              </tr>
+              <tr>
+                <th scope="row">3. Provisionamento Cloud</th>
+                <td data-label="O que verificar">Se a ligação ao Google ou Microsoft mostra estado de sucesso ou erro.</td>
+                <td data-label="Quando atuar">Quando uma escola precisa de ajuda para testar ou reenviar contas criadas.</td>
+              </tr>
+              <tr>
+                <th scope="row">4. Domínios .edu.ao &amp; DNS</th>
+                <td data-label="O que verificar">Se os registos do domínio já foram gerados e confirmados.</td>
+                <td data-label="Quando atuar">Quando o site <code>.edu.ao</code> ou os e-mails da escola ainda não estão a abrir.</td>
+              </tr>
+              <tr>
+                <th scope="row">5. Dossiê APD &amp; Termos</th>
+                <td data-label="O que verificar">Se o dossiê de proteção de dados foi gerado e se o número de processo APD foi registado.</td>
+                <td data-label="Quando atuar">Para confirmar que a escola está em conformidade legal e com os termos dos pais prontos.</td>
+              </tr>
+              <tr>
+                <th scope="row">6. ERPs &amp; Verificadores</th>
+                <td data-label="O que verificar">Ligações com o software de gestão da escola e pacotes de benefícios (GitHub, SheerID, UNiDAYS).</td>
+                <td data-label="Quando atuar">Para testar uma ligação de ERP ou preparar a candidatura internacional da escola.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ativar ou Desativar uma Escola</h3>
+        <p>
+          Se uma instituição concluir a adesão ou precisar de ser pausada temporariamente, o Administrador pode alternar o estado da escola (<strong>Ativa</strong> / <strong>Inativa</strong>). Enquanto estiver inativa, o site público da escola fica indisponível.
+        </p>
+      </section>
+
+      <section id="ajuda-admin" tabindex="-1">
+        <h2>3. Resolver Problemas Comuns</h2>
+        <section class="accordion" aria-label="Resolução de problemas comuns para administradores">
+          <details>
+            <summary>Uma escola diz que o site .edu.ao ainda não abre</summary>
+            <div class="details-body">
+              <p>Confirme primeiro se a escola está marcada como <strong>Ativa</strong>. Depois, abra o separador <strong>4. Domínios .edu.ao &amp; DNS</strong> e clique em verificar a propagação para confirmar se o domínio já aponta corretamente para a EduLink.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Um aluno ou professor não consegue ativar o Cartão Digital</summary>
+            <div class="details-body">
+              <p>Entre no separador <strong>2. Directório &amp; CSV</strong> da escola em questão e pesquise pelo nome do utilizador. Verifique se o e-mail institucional e o n.º de BI/Processo foram gravados corretamente e se a matrícula está como <strong>Ativa</strong>.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Uma escola suspendeu um aluno por engano</summary>
+            <div class="details-body">
+              <p>No separador <strong>2. Directório &amp; CSV</strong>, localize o aluno e clique para reativar a matrícula. Assim que fica ativa novamente, o Cartão Digital volta a ser aceite nas verificações.</p>
+            </div>
+          </details>
+          <details>
+            <summary>A ligação ao Google ou Microsoft apresentou erro</summary>
+            <div class="details-body">
+              <p>Abra o separador <strong>3. Provisionamento Cloud</strong>, leia a última mensagem de erro apresentada e verifique o registo de histórico abaixo. Se precisar de confirmar se os dados de acesso estão corretos, clique no botão de testar ligação.</p>
+            </div>
+          </details>
+        </section>
+      </section>
+
+      <nav class="page-pager" aria-label="Paginação">
+        <a class="pager-link" href="index.html">
+          <span class="pager-dir">← Anterior</span>
+          <span class="pager-title">Bem-vindo à EduLink</span>
+        </a>
+        <a class="pager-link" href="instituicoes.html">
+          <span class="pager-dir">Próximo →</span>
+          <span class="pager-title">Guia de Instituições &amp; Secretaria</span>
+        </a>
+      </nav>
+    </main>
+
+    <aside class="docs-toc" aria-label="Sumário">
+      <nav class="toc-nav" aria-label="Nesta página">
+        <div class="toc-title">Nesta página</div>
+        <ul class="toc-list">
+          <li><a href="#acesso-geral">1. Entrar e Trocar de Escola</a></li>
+          <li><a href="#gerir-escolas">2. Acompanhar Cada Escola</a></li>
+          <li><a href="#ajuda-admin">3. Resolver Problemas Comuns</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span><strong>EduLink Angola</strong> • Centro de Ajuda (<code>docs.edulink.ao</code>)</span>
+      <span>Identidade Académica <code>.edu.ao</code> • Proteção de Dados (Lei n.º 22/11)</span>
+    </div>
+  </footer>
+</body>
+</html>

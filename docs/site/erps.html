@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Integradores &amp; ERPs | docs.edulink.ao</title>
+  <link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/docs.js"></script>
+</head>
+<body>
+  <a href="#conteudo-principal" class="skip-link visually-hidden">Saltar para o conteúdo principal</a>
+  <div id="live-announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <button type="button" id="drawer-open" class="icon-btn menu-toggle" aria-expanded="false" aria-controls="docs-drawer" aria-label="Abrir índice da documentação" hidden>
+          <span aria-hidden="true">☰</span>
+          <span>Menu</span>
+        </button>
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span>EduLink Ajuda</span>
+        </a>
+        <span class="brand-sub">docs.edulink.ao</span>
+      </div>
+
+      <nav class="header-nav" aria-label="Principal">
+        <a href="index.html">Início</a>
+        <a href="admin.html">Admin</a>
+        <a href="instituicoes.html">Instituições</a>
+        <a href="docentes.html">Docentes</a>
+        <a href="alunos.html">Alunos</a>
+        <a href="erps.html" aria-current="page">ERPs</a>
+      </nav>
+
+      <div class="header-actions">
+        <label for="theme-select" class="visually-hidden">Tema de cores</label>
+        <select id="theme-select" class="theme-select" aria-label="Tema de cores">
+          <option value="system">Tema: Sistema</option>
+          <option value="light">Tema: Claro</option>
+          <option value="dark">Tema: Escuro</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside id="docs-drawer" class="docs-sidebar" aria-label="Navegação lateral">
+      <div class="drawer-close-row">
+        <strong>Centro de Ajuda EduLink</strong>
+        <button type="button" id="drawer-close" class="icon-btn" aria-label="Fechar índice">Fechar ✕</button>
+      </div>
+
+      <search class="search-box">
+        <label for="docs-search-input" class="search-label">Procurar ajuda</label>
+        <input id="docs-search-input" class="search-input" type="search" placeholder="Ex: cartão, CSV, senha, pais..." autocomplete="off">
+        <ul id="docs-search-results" class="search-results" aria-live="polite"></ul>
+      </search>
+
+      <nav aria-label="Guias por utilizador">
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Começar</div>
+          <ul class="sidebar-list">
+            <li><a href="index.html"><span>Bem-vindo à EduLink</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Guias Práticos</div>
+          <ul class="sidebar-list">
+            <li><a href="admin.html"><span>Admin da Plataforma</span><span class="role-pill">Admin</span></a></li>
+            <li><a href="instituicoes.html"><span>Instituições &amp; Secretaria</span><span class="role-pill">Escola</span></a></li>
+            <li><a href="docentes.html"><span>Docentes / Professores</span><span class="role-pill">Docente</span></a></li>
+            <li><a href="alunos.html"><span>Alunos &amp; Encarregados</span><span class="role-pill">Aluno</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Para Equipas Técnicas</div>
+          <ul class="sidebar-list">
+            <li><a href="erps.html" aria-current="page"><span>Integração com ERPs</span><span class="role-pill">Técnico</span></a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main id="conteudo-principal" class="docs-main" tabindex="-1">
+      <nav class="breadcrumb" aria-label="Caminho">
+        <a href="index.html">Início</a>
+        <span aria-hidden="true">/</span>
+        <span>Integradores &amp; ERPs</span>
+      </nav>
+
+      <div class="page-badge">Integração B2B2B • Webhooks HMAC-SHA256</div>
+      <h1>Guia de Integração para ERPs Escolares</h1>
+      <p class="lead">
+        Especificação técnica para conectar ERPs administrativos angolanos — <strong>KLASSE</strong>, <strong>SysPortal</strong>, <strong>Kacennu</strong> ou qualquer sistema via <strong>Webhook Genérico JSON</strong> — à EduLink, automatizando matrículas, suspensões por propina em atraso e provisionamento cloud em tempo real.
+      </p>
+
+      <section id="arquitetura-hmac" tabindex="-1">
+        <h2>1. Arquitetura do Webhook, Segurança HMAC e Idempotência</h2>
+        <p>
+          Quando a secretaria ativa uma ligação ERP no painel <code>admin.edulink.ao</code> (separador <strong>6. ERPs &amp; Verificadores</strong>), é criado um registo <code>ERPConnection</code> com um segredo HMAC único gerado automaticamente e guardado encriptado em AES-256 (Fernet).
+        </p>
+
+        <ul>
+          <li><strong>Endpoint de Ingestão:</strong><br><code>POST https://api.edulink.ao/api/v1/erp-sync/webhook/&lt;provider&gt;/&lt;connection_id&gt;/</code></li>
+          <li><strong>Provedores Aceites (<code>&lt;provider&gt;</code>):</strong> <code>klasse</code>, <code>sysportal</code>, <code>kacennu</code> ou <code>generic</code> (case-insensitive).</li>
+          <li><strong>Assinatura Obrigatória:</strong> Calcular o digest <code>HMAC-SHA256</code> sobre o corpo bruto (<code>raw_body</code> UTF-8) usando o segredo revelado em <code>reveal-secret/</code> e enviá-lo no cabeçalho:<br><code>X-YetuEdu-Signature: sha256=&lt;hex_digest&gt;</code> (também aceita hex sem prefixo ou cabeçalho <code>X-Signature</code>).</li>
+          <li><strong>Processamento Assíncrono vs Síncrono:</strong> Por omissão o webhook responde <code>202 Accepted</code> com <code>sync_event_id</code> e <code>task_id</code> Celery. Para depuração síncrona imediata, adicione <code>?sync=true</code> (devolve <code>200 OK</code> com o estado final).</li>
+          <li><strong>Idempotência:</strong> Envie sempre um <code>event_id</code> único por transação. Se a mesma <code>connection</code> receber um <code>event_id</code> já com estado <code>PROCESSED</code>, a API devolve <code>200 OK</code> com <code>{"status": "duplicate_ignored"}</code> sem efeitos colaterais.</li>
+        </ul>
+
+        <div class="callout">
+          <div class="callout-title">Rotação de Segredo e Simulação sem Código</div>
+          <p>
+            A secretaria pode rodar o segredo HMAC a qualquer momento via <code>POST /api/v1/erp-sync/connections/&lt;id&gt;/rotate-secret/</code> e validar payloads de teste diretamente pelo botão de simulação (<code>POST /api/v1/erp-sync/connections/&lt;id&gt;/simulate-event/</code>).
+          </p>
+        </div>
+      </section>
+
+      <section id="provedores" tabindex="-1">
+        <h2>2. Mapeamento de Eventos &amp; Payloads por ERP</h2>
+        <p>
+          O adaptador em <code>apps/erp_sync/services/adapters.py</code> normaliza os diferentes esquemas JSON dos ERPs locais para 5 eventos canónicos EduLink:
+        </p>
+
+        <div tabindex="0" role="region" aria-labelledby="cap-erp-eventos" class="table-wrapper">
+          <table class="docs-table">
+            <caption id="cap-erp-eventos">Tabela de correspondência de eventos entre ERPs e EduLink</caption>
+            <thead>
+              <tr>
+                <th scope="col">Evento Canónico EduLink</th>
+                <th scope="col">KLASSE</th>
+                <th scope="col">SysPortal</th>
+                <th scope="col">Kacennu</th>
+                <th scope="col">Efeito na EduLink</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><code>STUDENT_ENROLLED</code></th>
+                <td data-label="KLASSE"><code>matricula.criada</code> / <code>matricula.renovada</code></td>
+                <td data-label="SysPortal"><code>enrollment.active</code></td>
+                <td data-label="Kacennu"><code>INSCRICAO</code></td>
+                <td data-label="Efeito">Cria/atualiza aluno, gera e-mail <code>.edu.ao</code>, ativa matrícula e provisiona cloud.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>TEACHER_ASSIGNED</code></th>
+                <td data-label="KLASSE"><code>docente.atribuido</code></td>
+                <td data-label="SysPortal"><code>teacher.assigned</code></td>
+                <td data-label="Kacennu"><code>DOCENTE</code></td>
+                <td data-label="Efeito">Cria/atualiza docente (<code>TEACHER</code>) e provisiona conta Faculty.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>TUITION_OVERDUE</code></th>
+                <td data-label="KLASSE"><code>propina.atraso</code></td>
+                <td data-label="SysPortal"><code>fee.overdue</code></td>
+                <td data-label="Kacennu"><code>BLOQUEIO_FINANCEIRO</code></td>
+                <td data-label="Efeito">Marca matrícula como <code>SUSPENDED</code>, suspende cloud e invalida QR Code.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>TUITION_SETTLED</code></th>
+                <td data-label="KLASSE"><code>propina.liquidada</code></td>
+                <td data-label="SysPortal"><code>fee.paid</code></td>
+                <td data-label="Kacennu"><code>DESBLOQUEIO_FINANCEIRO</code></td>
+                <td data-label="Efeito">Reativa matrícula (<code>ACTIVE</code>) e restaura acessos cloud e QR Code.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>ENROLLMENT_TRANSFERRED</code></th>
+                <td data-label="KLASSE"><code>matricula.transferida</code></td>
+                <td data-label="SysPortal"><code>enrollment.transferred</code></td>
+                <td data-label="Kacennu"><code>TRANSFERENCIA</code></td>
+                <td data-label="Efeito">Encerra/transfere vínculo escolar e revoga acessos do tenant.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Exemplos de Payload JSON Aceites</h3>
+        <div class="edulink-tabs">
+          <div class="edulink-tablist" role="tablist" aria-label="Payloads JSON por provedor ERP">
+            <button type="button" role="tab" id="tab-klasse" aria-selected="true">KLASSE</button>
+            <button type="button" role="tab" id="tab-sysportal" aria-selected="false">SysPortal</button>
+            <button type="button" role="tab" id="tab-kacennu" aria-selected="false">Kacennu</button>
+            <button type="button" role="tab" id="tab-generic" aria-selected="false">Generic JSON</button>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-klasse" tabindex="0">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-klasse">
+                  <span>JSON — KLASSE ERP (objeto raiz "aluno")</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-klasse" tabindex="0"><code>{
+  "event_id": "klasse-2026-000142",
+  "evento": "matricula.criada",
+  "aluno": {
+    "nome_completo": "Manuel Domingos de Sousa",
+    "bi": "008942114LA042",
+    "tipo": "ALUNO",
+    "turma": "11ª Classe - CFB",
+    "ano_letivo": "2026/2027",
+    "telemovel": "923112233",
+    "email": "manuel.personal@gmail.com"
+  }
+}</code></pre>
+              </figure>
+            </div>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-sysportal" hidden="until-found">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-sysportal">
+                  <span>JSON — SysPortal Académico (objeto raiz "student")</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-sysportal" tabindex="0"><code>{
+  "event_id": "sys-88412",
+  "event": "enrollment.active",
+  "student": {
+    "name": "Esperança Nzola Sebastião",
+    "document_id": "007812930LA031",
+    "role": "STUDENT",
+    "class_name": "11ª Classe - CFB",
+    "academic_year": "2026/2027",
+    "phone": "945223344",
+    "email": "esperanca.n@gmail.com"
+  }
+}</code></pre>
+              </figure>
+            </div>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-kacennu" hidden="until-found">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-kacennu">
+                  <span>JSON — Kacennu Gestão Escolar (objeto raiz "dados")</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-kacennu" tabindex="0"><code>{
+  "id_transacao": "kac-99031",
+  "tipo_evento": "INSCRICAO",
+  "dados": {
+    "nome": "Teresa Lukeni dos Santos",
+    "numero_processo": "003948192LA099",
+    "perfil": "ALUNO",
+    "classe": "10ª Classe - Turma A",
+    "ano_academico": "2026/2027",
+    "contacto": "917001122",
+    "email": "teresa.lukeni@gmail.com"
+  }
+}</code></pre>
+              </figure>
+            </div>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-generic" hidden="until-found">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-generic">
+                  <span>JSON — Webhook Genérico (objeto raiz "user")</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-generic" tabindex="0"><code>{
+  "event_id": "gen-10021",
+  "event_type": "TUITION_OVERDUE",
+  "user": {
+    "bi_or_student_id": "008942114LA042",
+    "full_name": "Manuel Domingos de Sousa",
+    "role": "STUDENT"
+  }
+}</code></pre>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="exemplos" tabindex="-1">
+        <h2>3. Exemplos de Assinatura e Envio (HMAC-SHA256)</h2>
+        <div class="edulink-tabs">
+          <div class="edulink-tablist" role="tablist" aria-label="Código cliente para assinar webhooks">
+            <button type="button" role="tab" id="tab-curl" aria-selected="true">cURL / OpenSSL</button>
+            <button type="button" role="tab" id="tab-python" aria-selected="false">Python</button>
+            <button type="button" role="tab" id="tab-node" aria-selected="false">Node.js</button>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-curl" tabindex="0">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-erp-curl">
+                  <span>Bash — Gerar assinatura e enviar webhook KLASSE</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-erp-curl" tabindex="0"><code>SECRET="SEU_SEGREDO_HMAC"
+BODY='{"event_id":"evt-001","evento":"matricula.criada","aluno":{"nome_completo":"João Silva","bi":"009481203LA088","turma":"11ª Classe"}}'
+SIG=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')
+
+curl -i -X POST "https://api.edulink.ao/api/v1/erp-sync/webhook/klasse/&lt;CONNECTION_UUID&gt;/?sync=true" \
+  -H "Content-Type: application/json" \
+  -H "X-YetuEdu-Signature: sha256=$SIG" \
+  -d "$BODY"</code></pre>
+              </figure>
+            </div>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-python" hidden="until-found">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-erp-python">
+                  <span>Python — Envio assinado com requests + hmac</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-erp-python" tabindex="0"><code>import hashlib, hmac, json, requests
+
+secret = "SEU_SEGREDO_HMAC"
+payload = {
+    "event_id": "evt-002",
+    "evento": "propina.atraso",
+    "aluno": {"bi": "009481203LA088"}
+}
+raw_body = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+sig = hmac.new(secret.encode("utf-8"), raw_body, hashlib.sha256).hexdigest()
+
+resp = requests.post(
+    "https://api.edulink.ao/api/v1/erp-sync/webhook/klasse/&lt;CONNECTION_UUID&gt;/",
+    data=raw_body,
+    headers={
+        "Content-Type": "application/json",
+        "X-YetuEdu-Signature": f"sha256={sig}",
+    },
+    timeout=10,
+)
+print(resp.status_code, resp.json())</code></pre>
+              </figure>
+            </div>
+          </div>
+
+          <div role="tabpanel" aria-labelledby="tab-node" hidden="until-found">
+            <div class="tab-panel-inner">
+              <figure class="code-figure">
+                <figcaption class="code-header" id="fig-erp-node">
+                  <span>Node.js — Envio assinado com crypto + fetch</span>
+                  <button type="button" class="copy-btn">Copiar</button>
+                </figcaption>
+                <pre role="region" aria-labelledby="fig-erp-node" tabindex="0"><code>import crypto from 'node:crypto';
+
+const secret = 'SEU_SEGREDO_HMAC';
+const rawBody = JSON.stringify({
+  event_id: 'evt-003',
+  event: 'fee.paid',
+  student: { document_id: '009481203LA088' }
+});
+
+const sig = crypto.createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex');
+
+const res = await fetch('https://api.edulink.ao/api/v1/erp-sync/webhook/sysportal/&lt;CONNECTION_UUID&gt;/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-YetuEdu-Signature': `sha256=${sig}`
+  },
+  body: rawBody
+});
+console.log(res.status, await res.json());</code></pre>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="page-pager" aria-label="Paginação">
+        <a class="pager-link" href="alunos.html">
+          <span class="pager-dir">← Anterior</span>
+          <span class="pager-title">Guia de Alunos / Estudantes</span>
+        </a>
+        <a class="pager-link" href="index.html">
+          <span class="pager-dir">Voltar ao início →</span>
+          <span class="pager-title">Visão Geral &amp; Arquitetura</span>
+        </a>
+      </nav>
+    </main>
+
+    <aside class="docs-toc" aria-label="Sumário">
+      <nav class="toc-nav" aria-label="Nesta página">
+        <div class="toc-title">Nesta página</div>
+        <ul class="toc-list">
+          <li><a href="#arquitetura-hmac">1. Segurança HMAC &amp; Idempotência</a></li>
+          <li><a href="#provedores">2. Eventos &amp; Payloads</a></li>
+          <li><a href="#exemplos">3. Exemplos de Código</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span><strong>EduLink Angola</strong> • Documentação Técnica &amp; Operacional (<code>docs.edulink.ao</code>)</span>
+      <span>Conformidade Lei n.º 22/11 (APD) • Infraestrutura <code>.edu.ao</code></span>
+    </div>
+  </footer>
+</body>
+</html>

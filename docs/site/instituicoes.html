@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Guia para Instituições &amp; Secretaria | docs.edulink.ao</title>
+  <link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/docs.js"></script>
+</head>
+<body>
+  <a href="#conteudo-principal" class="skip-link visually-hidden">Saltar para o conteúdo principal</a>
+  <div id="live-announcer" class="visually-hidden" role="status" aria-live="polite"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand-group">
+        <button type="button" id="drawer-open" class="icon-btn menu-toggle" aria-expanded="false" aria-controls="docs-drawer" aria-label="Abrir índice da documentação" hidden>
+          <span aria-hidden="true">☰</span>
+          <span>Menu</span>
+        </button>
+        <a href="index.html" class="brand-link">
+          <span class="brand-mark" aria-hidden="true">E</span>
+          <span>EduLink Ajuda</span>
+        </a>
+        <span class="brand-sub">docs.edulink.ao</span>
+      </div>
+
+      <nav class="header-nav" aria-label="Principal">
+        <a href="index.html">Início</a>
+        <a href="admin.html">Admin</a>
+        <a href="instituicoes.html" aria-current="page">Instituições</a>
+        <a href="docentes.html">Docentes</a>
+        <a href="alunos.html">Alunos</a>
+        <a href="erps.html">ERPs</a>
+      </nav>
+
+      <div class="header-actions">
+        <label for="theme-select" class="visually-hidden">Tema de cores</label>
+        <select id="theme-select" class="theme-select" aria-label="Tema de cores">
+          <option value="system">Tema: Sistema</option>
+          <option value="light">Tema: Claro</option>
+          <option value="dark">Tema: Escuro</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="docs-shell">
+    <aside id="docs-drawer" class="docs-sidebar" aria-label="Navegação lateral">
+      <div class="drawer-close-row">
+        <strong>Centro de Ajuda EduLink</strong>
+        <button type="button" id="drawer-close" class="icon-btn" aria-label="Fechar índice">Fechar ✕</button>
+      </div>
+
+      <search class="search-box">
+        <label for="docs-search-input" class="search-label">Procurar ajuda</label>
+        <input id="docs-search-input" class="search-input" type="search" placeholder="Ex: cartão, CSV, senha, pais..." autocomplete="off">
+        <ul id="docs-search-results" class="search-results" aria-live="polite"></ul>
+      </search>
+
+      <nav aria-label="Guias por utilizador">
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Começar</div>
+          <ul class="sidebar-list">
+            <li><a href="index.html"><span>Bem-vindo à EduLink</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Guias Práticos</div>
+          <ul class="sidebar-list">
+            <li><a href="admin.html"><span>Admin da Plataforma</span><span class="role-pill">Admin</span></a></li>
+            <li><a href="instituicoes.html" aria-current="page"><span>Instituições &amp; Secretaria</span><span class="role-pill">Escola</span></a></li>
+            <li><a href="docentes.html"><span>Docentes / Professores</span><span class="role-pill">Docente</span></a></li>
+            <li><a href="alunos.html"><span>Alunos &amp; Encarregados</span><span class="role-pill">Aluno</span></a></li>
+          </ul>
+        </div>
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Para Equipas Técnicas</div>
+          <ul class="sidebar-list">
+            <li><a href="erps.html"><span>Integração com ERPs</span><span class="role-pill">Técnico</span></a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <main id="conteudo-principal" class="docs-main" tabindex="-1">
+      <nav class="breadcrumb" aria-label="Caminho">
+        <a href="index.html">Início</a>
+        <span aria-hidden="true">/</span>
+        <span>Instituições &amp; Secretaria</span>
+      </nav>
+
+      <div class="page-badge">Guia Prático • Direção e Secretaria Escolar</div>
+      <h1>Guia para Instituições de Ensino e Secretarias</h1>
+      <p class="lead">
+        Passo a passo completo para colocar a sua escola ou universidade online na EduLink usando o painel <code>admin.edulink.ao</code>: desde o registo inicial com o Alvará até à emissão dos cartões digitais e autorização dos encarregados de educação.
+      </p>
+
+      <section id="antes-comecar" tabindex="-1">
+        <h2>Antes de Começar (O que ter em mãos)</h2>
+        <ul>
+          <li><strong>NIF da Instituição</strong> (9 ou 10 dígitos).</li>
+          <li><strong>Número do Alvará</strong> do MED ou MESCTI.</li>
+          <li><strong>Nome completo e BI do Diretor</strong> (para o documento de proteção de dados).</li>
+          <li><strong>Lista de alunos e professores</strong> em Excel/CSV (se já tiver uma).</li>
+        </ul>
+      </section>
+
+      <section id="passo-1" tabindex="-1">
+        <h2>Passo 1 — Criar Conta e Registar a Escola</h2>
+        <p>No separador <strong>1. Onboarding &amp; Escola</strong>:</p>
+        <ol>
+          <li>Aceda a <code>admin.edulink.ao</code> e clique em <strong>Criar Conta da Secretaria</strong> (informando o seu nome, e-mail e palavra-passe).</li>
+          <li>Depois de entrar, preencha os dados oficiais da instituição: Nome do Colégio/IES, NIF, Alvará MED/MESCTI, telefone, província, município e texto de apresentação.</li>
+          <li>Escolha o endereço da escola (exemplo: <code>colegio-esperanca.edu.ao</code>). Se escrever apenas o nome sem <code>.edu.ao</code>, o sistema completa automaticamente.</li>
+          <li>Ao guardar, o site institucional da sua escola fica logo pronto com as informações oficiais e o número do Alvará visíveis para consulta.</li>
+        </ol>
+      </section>
+
+      <section id="passo-2" tabindex="-1">
+        <h2>Passo 2 — Carregar Alunos e Professores (CSV)</h2>
+        <p>No separador <strong>2. Directório &amp; CSV</strong>, não precisa de cadastrar as pessoas uma por uma:</p>
+        <ol>
+          <li>Prepare ou exporte do seu programa escolar (ou Excel) uma tabela guardada no formato <strong>CSV</strong> com as colunas abaixo.</li>
+          <li>Escolha o <strong>Ano Lectivo</strong> (exemplo: <code>2026/2027</code>), selecione o ficheiro CSV e clique em enviar.</li>
+          <li>O sistema cria automaticamente os e-mails escolares no formato <code>nome.apelido@sua-escola.edu.ao</code>. Se houver dois alunos com o mesmo nome e apelido, o segundo recebe um número no fim (ex.: <code>2</code>) para não haver duplicados.</li>
+        </ol>
+
+        <figure class="code-figure">
+          <figcaption class="code-header" id="fig-csv-exemplo">
+            <span>Modelo de ficheiro CSV (pode abrir e editar no Excel)</span>
+            <button type="button" class="copy-btn">Copiar</button>
+          </figcaption>
+          <pre role="region" aria-labelledby="fig-csv-exemplo" tabindex="0"><code>nome_completo;bi_ou_processo;tipo;classe_turma;ano_lectivo;telefone;email_pessoal
+Manuel Domingos de Sousa;008942114LA042;ALUNO;11ª Classe - CFB;2026/2027;923112233;manuel.personal@gmail.com
+António Baptista Mukinda;001289456HA012;PROFESSOR;Departamento de Física;2026/2027;912887766;a.mukinda@gmail.com</code></pre>
+        </figure>
+
+        <div tabindex="0" role="region" aria-labelledby="cap-csv-simples" class="table-wrapper">
+          <table class="docs-table">
+            <caption id="cap-csv-simples">O que colocar em cada coluna do ficheiro</caption>
+            <thead>
+              <tr>
+                <th scope="col">Coluna</th>
+                <th scope="col">O que preencher</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><code>nome_completo</code></th>
+                <td data-label="O que preencher">Nome completo do estudante ou professor.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>bi_ou_processo</code></th>
+                <td data-label="O que preencher">Número do Bilhete de Identidade ou número de processo interno (o mesmo que a pessoa vai usar para ativar o cartão).</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>tipo</code></th>
+                <td data-label="O que preencher">Escreva <code>ALUNO</code> para estudantes ou <code>PROFESSOR</code> para docentes.</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>classe_turma</code></th>
+                <td data-label="O que preencher">Turma ou departamento (exemplo: <code>11ª Classe - CFB</code> ou <code>Departamento de Física</code>).</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>ano_lectivo</code></th>
+                <td data-label="O que preencher">Ano letivo (exemplo: <code>2026/2027</code>).</td>
+              </tr>
+              <tr>
+                <th scope="row"><code>telefone</code> / <code>email_pessoal</code></th>
+                <td data-label="O que preencher">Contacto telefónico e e-mail pessoal (opcional, útil para contacto).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-warn">
+          <div class="callout-title">Suspender ou Reativar uma Matrícula</div>
+          <p>
+            Na lista de utilizadores do mesmo separador, pode clicar no botão de estado para <strong>Suspender</strong> ou <strong>Reativar</strong> uma matrícula. Quando suspende um aluno, o seu Cartão Digital deixa imediatamente de ser válido e a sua conta nas plataformas ligadas (Google/Microsoft) também é bloqueada.
+          </p>
+        </div>
+      </section>
+
+      <section id="passo-3" tabindex="-1">
+        <h2>Passo 3 — Ligar Google, Microsoft e Canva</h2>
+        <p>No separador <strong>3. Provisionamento Cloud</strong>:</p>
+        <ol>
+          <li>Escolha o serviço que a escola utiliza (<strong>Google Workspace</strong> ou <strong>Microsoft 365</strong>).</li>
+          <li>Se ainda estiver em testes, deixe o <strong>Modo Sandbox</strong> ligado. Quando tiver as credenciais definitivas da escola, insira-as e guarde.</li>
+          <li>Clique em <strong>Testar Ligação</strong> para confirmar que está tudo correto.</li>
+          <li>Clique em <strong>Sincronizar Toda a Escola</strong> para criar em lote as contas de e-mail dos alunos e professores ativos.</li>
+          <li>Mais abaixo no mesmo ecrã, encontra o botão para sincronizar utilizadores com o login único da EduLink e os dados para ligar o <strong>Canva para Educação</strong>.</li>
+        </ol>
+      </section>
+
+      <section id="passo-4" tabindex="-1">
+        <h2>Passo 4 — Ativar o Endereço <code>.edu.ao</code></h2>
+        <p>No separador <strong>4. Domínios .edu.ao &amp; DNS</strong>:</p>
+        <ol>
+          <li>Preencha os códigos de verificação que o Google ou a Microsoft forneceram para provar que a escola é dona do domínio (se já os tiver) e guarde.</li>
+          <li>Clique em <strong>Gerar Registos</strong> para o sistema preparar automaticamente as configurações de site e e-mail.</li>
+          <li>Clique em <strong>Sincronizar</strong> e depois em <strong>Verificar Propagação</strong> para confirmar se o domínio já está ativo na internet.</li>
+          <li>Pode também clicar para ver o resumo técnico de apoio ao registo junto da entidade gestora do <code>.edu.ao</code>.</li>
+        </ol>
+      </section>
+
+      <section id="passo-5" tabindex="-1">
+        <h2>Passo 5 — Proteção de Dados (APD) e Autorização dos Pais</h2>
+        <p>No separador <strong>5. Dossiê APD &amp; Termos</strong>, a escola cumpre a Lei n.º 22/11 de Angola com poucos cliques:</p>
+        <ol>
+          <li>Preencha o nome completo e BI do <strong>Diretor</strong>, o responsável de privacidade e indique se a escola tem alunos menores de idade. Guarde os dados.</li>
+          <li>Clique em <strong>Gerar Dossiê APD</strong>. O sistema prepara o documento completo com todos os dados exigidos pela lei.</li>
+          <li>Clique em <strong>Descarregar / Imprimir HTML</strong> para guardar ou imprimir o processo pronto a entregar na APD.</li>
+          <li>Quando receber o número do protocolo oficial da APD, escreva-o no campo correspondente e confirme — o selo de conformidade passa a aparecer no perfil da escola.</li>
+          <li>Na secção dos <strong>Termos de Consentimento Parental</strong>, clique para gerar os termos em lote para os alunos. Copie o link de cada aluno e envie aos Encarregados de Educação (por WhatsApp ou e-mail) para que assinem pelo telemóvel.</li>
+        </ol>
+      </section>
+
+      <section id="passo-6" tabindex="-1">
+        <h2>Passo 6 — Software da Escola (ERP) e Benefícios Globais</h2>
+        <p>No separador <strong>6. ERPs &amp; Verificadores</strong>:</p>
+        <ul>
+          <li><strong>Ligar o software de gestão da escola:</strong> Se a escola usa <strong>KLASSE</strong>, <strong>SysPortal</strong>, <strong>Kacennu</strong> ou outro ERP, selecione-o na lista para criar a ligação. Pode revelar a chave secreta para entregar à equipa técnica do seu ERP (que deve consultar o <a href="erps.html">Guia de Integradores</a>) ou usar o botão de simulação para testar logo no painel.</li>
+          <li><strong>Benefícios Internacionais (GitHub Education, SheerID, UNiDAYS):</strong> Crie a candidatura da sua escola ou universidade e clique em preparar pacote. O sistema verifica automaticamente se o domínio <code>.edu.ao</code>, o Alvará, o DNS, a APD e a lista de alunos já estão prontos para submissão.</li>
+        </ul>
+      </section>
+
+      <nav class="page-pager" aria-label="Paginação">
+        <a class="pager-link" href="admin.html">
+          <span class="pager-dir">← Anterior</span>
+          <span class="pager-title">Guia do Admin da Plataforma</span>
+        </a>
+        <a class="pager-link" href="docentes.html">
+          <span class="pager-dir">Próximo →</span>
+          <span class="pager-title">Guia de Docentes / Professores</span>
+        </a>
+      </nav>
+    </main>
+
+    <aside class="docs-toc" aria-label="Sumário">
+      <nav class="toc-nav" aria-label="Nesta página">
+        <div class="toc-title">Nesta página</div>
+        <ul class="toc-list">
+          <li><a href="#antes-comecar">Antes de Começar</a></li>
+          <li><a href="#passo-1">Passo 1 — Registar Escola</a></li>
+          <li><a href="#passo-2">Passo 2 — Carregar Lista CSV</a></li>
+          <li><a href="#passo-3">Passo 3 — Google, MS e Canva</a></li>
+          <li><a href="#passo-4">Passo 4 — Ativar .edu.ao</a></li>
+          <li><a href="#passo-5">Passo 5 — APD e Pais</a></li>
+          <li><a href="#passo-6">Passo 6 — ERP e Benefícios</a></li>
+        </ul>
+      </nav>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span><strong>EduLink Angola</strong> • Centro de Ajuda (<code>docs.edulink.ao</code>)</span>
+      <span>Identidade Académica <code>.edu.ao</code> • Proteção de Dados (Lei n.º 22/11)</span>
+    </div>
+  </footer>
+</body>
+</html>
