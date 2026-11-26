@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     'apps.compliance',
     'apps.accounts',
     'apps.erp_sync',
+    'apps.benefits',
+    'apps.billing',
 ]
 
 MIDDLEWARE = [

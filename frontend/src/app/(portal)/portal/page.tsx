@@ -28,6 +28,16 @@ interface PassportData {
   verificationUrl: string;
 }
 
+interface CatalogOffer {
+  id: string;
+  partner_name: string;
+  partner_category: string;
+  partner_discount: string;
+  title: string;
+  promo_code: string;
+  price_aoa: string;
+}
+
 export default function PortalStudentPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -36,6 +46,10 @@ export default function PortalStudentPage() {
   const [isOfflineCache, setIsOfflineCache] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [offers, setOffers] = useState<CatalogOffer[]>([]);
+  const [benefitNotice, setBenefitNotice] = useState('');
+  const [benefitError, setBenefitError] = useState('');
+  const [redeemingId, setRedeemingId] = useState<string | null>(null);
 
   const renderQrFromUrl = async (verifyUrl: string) => {
     try {
@@ -91,6 +105,7 @@ export default function PortalStudentPage() {
       setPassport(card);
       localStorage.setItem(OFFLINE_PASSPORT_KEY, JSON.stringify(card));
       await renderQrFromUrl(fullVerifyUrl);
+      loadBenefitCatalog();
     } catch (err: any) {
       const cachedRaw = localStorage.getItem(OFFLINE_PASSPORT_KEY);
       if (cachedRaw) {
@@ -156,6 +171,56 @@ export default function PortalStudentPage() {
     setAuthUser(null);
     setPassport(null);
     setQrDataUrl('');
+  };
+
+  const loadBenefitCatalog = async () => {
+    try {
+      const res = await authFetch('/benefits/catalog/');
+      if (!res.ok) return;
+      const data = await res.json();
+      setOffers(Array.isArray(data) ? data : data.results || []);
+    } catch {
+      // Offline mode: manter catálogo vazio sem quebrar o cartão
+    }
+  };
+
+  const handleRedeemOffer = async (offer: CatalogOffer) => {
+    setRedeemingId(offer.id);
+    setBenefitError('');
+    setBenefitNotice('');
+    try {
+      const price = parseFloat(offer.price_aoa || '0');
+      if (price > 0) {
+        const payRes = await authFetch('/billing/payments/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            benefit_offer: offer.id,
+            payment_method: 'MULTICAIXA_EXPRESS',
+          }),
+        });
+        const payData = await payRes.json();
+        if (!payRes.ok) throw new Error(payData.detail || 'Erro ao iniciar pagamento Multicaixa.');
+        setBenefitNotice(
+          `Referência Multicaixa Express ${payData.reference} gerada (${offer.price_aoa} AOA) para ${offer.partner_name}.`
+        );
+      } else {
+        const redeemRes = await authFetch('/benefits/redeem/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offer_id: offer.id }),
+        });
+        const redeemData = await redeemRes.json();
+        if (!redeemRes.ok) throw new Error(redeemData.detail || 'Erro ao resgatar benefício.');
+        setBenefitNotice(
+          `Voucher ${redeemData.voucher_code} emitido para ${offer.partner_name} (${offer.title}).`
+        );
+      }
+    } catch (err: any) {
+      setBenefitError(err.message || 'Falha ao processar vantagem.');
+    } finally {
+      setRedeemingId(null);
+    }
   };
 
   const handleCopyLink = () => {
@@ -284,6 +349,60 @@ export default function PortalStudentPage() {
               Sair
             </button>
           </div>
+
+          <section aria-labelledby="club-heading" className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 id="club-heading" className="text-xs font-bold uppercase tracking-wider text-stone-700">
+                Clube de Benefícios Angola
+              </h2>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                {offers.length} vantagem(ns)
+              </span>
+            </div>
+
+            {benefitNotice && (
+              <div role="status" className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-medium">
+                {benefitNotice}
+              </div>
+            )}
+            {benefitError && (
+              <div role="alert" className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 font-medium">
+                {benefitError}
+              </div>
+            )}
+
+            {offers.length === 0 ? (
+              <p className="text-xs text-stone-500">
+                Sem ofertas ativas de parceiros neste momento. Apresente o QR Code acima em estabelecimentos parceiros.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {offers.map((offer) => {
+                  const isPaid = parseFloat(offer.price_aoa || '0') > 0;
+                  return (
+                    <li key={offer.id} className="rounded-xl border border-stone-200 p-3 flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-stone-900 truncate">{offer.partner_name}</p>
+                        <p className="text-[11px] text-stone-600 truncate">{offer.title} · {offer.partner_discount}</p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={redeemingId === offer.id || isSuspended}
+                        onClick={() => handleRedeemOffer(offer)}
+                        className="shrink-0 rounded-lg bg-teal-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                      >
+                        {redeemingId === offer.id
+                          ? 'A processar...'
+                          : isPaid
+                          ? `MCX ${parseFloat(offer.price_aoa).toLocaleString('pt-AO')} Kz`
+                          : 'Resgatar Voucher'}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
         </>
       )}
 

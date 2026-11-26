@@ -134,6 +134,8 @@ services:
       - INTERNAL_API_URL=http://backend:8000/api/v1
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
       - NEXT_PUBLIC_ROOT_DOMAIN=localhost:3000
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
     networks:

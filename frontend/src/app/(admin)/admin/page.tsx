@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import BillingAndBenefitsTab from '@/components/admin/BillingAndBenefitsTab';
 import ComplianceAPDTab from '@/components/admin/ComplianceAPDTab';
 import DirectoryTab from '@/components/admin/DirectoryTab';
 import DomainsDNSTab from '@/components/admin/DomainsDNSTab';
@@ -12,7 +13,14 @@ import { apiJson, FeedbackState, School } from '@/components/admin/types';
 import AuthCard from '@/components/auth/AuthCard';
 import { AuthUser, clearAuthSession, getAccessToken, getStoredUser, updateStoredUser } from '@/lib/auth';
 
-type TabKey = 'onboarding' | 'directory' | 'provisioning' | 'domains' | 'compliance' | 'erp_verifiers';
+type TabKey =
+  | 'onboarding'
+  | 'directory'
+  | 'provisioning'
+  | 'domains'
+  | 'compliance'
+  | 'erp_verifiers'
+  | 'billing_benefits';
 
 const TABS: { id: TabKey; label: string }[] = [
   { id: 'onboarding', label: '1. Onboarding & Escola' },
@@ -21,6 +29,7 @@ const TABS: { id: TabKey; label: string }[] = [
   { id: 'domains', label: '4. Domínios .edu.ao & DNS' },
   { id: 'compliance', label: '5. Dossiê APD & Termos' },
   { id: 'erp_verifiers', label: '6. ERPs & Verificadores' },
+  { id: 'billing_benefits', label: '7. Planos, Kwanzas & AGT' },
 ];
 
 export default function AdminPage() {
@@ -37,6 +46,7 @@ export default function AdminPage() {
     domains: null,
     compliance: null,
     erp_verifiers: null,
+    billing_benefits: null,
   });
 
   const loadSchools = async (preferSchoolId?: string) => {
@@ -314,6 +324,10 @@ export default function AdminPage() {
           onFeedback={setFeedback}
           onDirectoryUpdated={() => loadSchools(selectedSchoolId)}
         />
+      </div>
+
+      <div role="tabpanel" aria-labelledby="tab-billing_benefits" hidden={activeTab !== 'billing_benefits'}>
+        <BillingAndBenefitsTab schoolId={selectedSchoolId} onFeedback={setFeedback} />
       </div>
     </div>
   );

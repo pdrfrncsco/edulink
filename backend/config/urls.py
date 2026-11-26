@@ -25,4 +25,6 @@ urlpatterns = [
     path('api/v1/domains/', include('apps.domains.urls', namespace='domains')),
     path('api/v1/compliance/', include('apps.compliance.urls', namespace='compliance')),
     path('api/v1/erp-sync/', include('apps.erp_sync.urls', namespace='erp_sync')),
+    path('api/v1/benefits/', include('apps.benefits.urls', namespace='benefits')),
+    path('api/v1/billing/', include('apps.billing.urls', namespace='billing')),
 ]
