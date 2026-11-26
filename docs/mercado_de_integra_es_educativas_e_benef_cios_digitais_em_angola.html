@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrações Educacionais Digitais em Angola (2026–2028)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f7f4;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 340px;
+            }
+        }
+        .tab-active {
+            border-bottom: 3px solid #0d9488;
+            color: #0f766e;
+            font-weight: 600;
+        }
+        .card-surface {
+            background-color: #ffffff;
+            border: 1px solid #e7e5e4;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-teal-100 selection:text-teal-900">
+    <!-- Chosen Palette: Warm Stone & Deep Teal (Fundo #f8f7f4, Superfícies #ffffff, Primária #0d9488, Acento Âmbar #d97706, Texto #1f2937) -->
+    <!-- Application Structure Plan: A SPA está organizada num painel temático de navegação por secções (Visão Geral & Mercado, Ecossistema & Concorrência, Benefícios & Bloqueios, Oportunidades & Simulador de Receita, Roteiro 2026-2028) para transformar um relatório denso numa ferramenta de decisão estratégica. Em vez de seguir linearmente os capítulos, agrupa primeiro a dimensão do mercado (justificando o foco no sector privado urbano), depois confronta a oferta atual de ERPs com as lacunas de integração, detalha os bloqueios regulatórios/técnicos e culmina num simulador interativo de receita e plano de execução. -->
+    <!-- Visualization & Content Choices: 
+         1. KPIs Dinâmicos (Informar) -> Cartões estruturados HTML/Tailwind para métricas-chave (Alunos, Professores, Escolas Privadas Luanda, IES Privadas).
+         2. Gráfico de Barras Comparativo Público vs Privado (Comparar) -> Chart.js Canvas ilustrando a concentração privada em Luanda e no Ensino Superior vs rede nacional.
+         3. Tabela Interativa de ERPs Locais (Organizar/Comparar) -> Tabela HTML com filtro por foco/API para demonstrar a "armadilha da secretaria" e comparação de preços anuais em Chart.js.
+         4. Matriz Interativa de Benefícios Globais & Bloqueios (Organizar/Informar) -> Cartões clicáveis com filtro de elegibilidade (Ativo com fricção, Subaproveitado, Excluído) e painel de detalhes dos 4 bloqueios (DNS.AO, Verificadores, Câmbio/EMIS, Coimas APD).
+         5. Simulador de Receita Endereçável (Relações/Projeção) -> Sliders HTML/JS que recalculam em tempo real a receita recorrente anual (AOA e USD) e atualizam um gráfico de barras dinâmico Chart.js.
+         6. Linha Temporal Interativa 2026-2028 (Mudança) -> Seletor de fases que atualiza o plano de ação, metas e catalisadores (AGT Jan 2027, TEST/ELEVATE).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="sticky top-0 z-30 bg-[#f8f7f4]/95 backdrop-blur border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between py-4 gap-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full bg-teal-100 text-teal-800">Estudo de Mercado 2026–2028</span>
+                        <span class="text-xs text-stone-500">Angola • EdTech & Identidade Digital</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-stone-900 mt-1">Integrações Educacionais e Benefícios Digitais em Angola</h1>
+                </div>
+                <nav class="flex overflow-x-auto gap-4 text-sm text-stone-600 border-t md:border-t-0 pt-2 md:pt-0" aria-label="Navegação Principal">
+                    <a href="#sec-mercado" class="hover:text-teal-700 whitespace-nowrap font-medium py-1">1. Mercado</a>
+                    <a href="#sec-erps" class="hover:text-teal-700 whitespace-nowrap font-medium py-1">2. ERPs & Lacunas</a>
+                    <a href="#sec-beneficios" class="hover:text-teal-700 whitespace-nowrap font-medium py-1">3. Benefícios & Bloqueios</a>
+                    <a href="#sec-simulador" class="hover:text-teal-700 whitespace-nowrap font-medium py-1">4. Oportunidades & Receita</a>
+                    <a href="#sec-roteiro" class="hover:text-teal-700 whitespace-nowrap font-medium py-1">5. Roteiro</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-14">
+
+        <section class="card-surface rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                <div class="lg:col-span-2 space-y-3">
+                    <h2 class="text-lg sm:text-xl font-bold text-stone-900">A Assimetria Estratégica do Sector Educativo Angolano</h2>
+                    <p class="text-stone-600 text-sm sm:text-base leading-relaxed">
+                        Angola apresenta uma procura latente massiva sustentada por cerca de <strong>10 milhões de estudantes</strong> e mais de <strong>213 mil professores</strong>, mas carece de infraestrutura institucional de identidade digital (<code class="bg-stone-100 px-1.5 py-0.5 rounded text-teal-800 font-mono text-xs">.edu.ao</code>), provisionamento em nuvem (Google Workspace, Microsoft 365, Canva) e programas estruturados de vantagens estudantis e docentes.
+                    </p>
+                    <p class="text-stone-600 text-sm sm:text-base leading-relaxed">
+                        Enquanto a rede pública enfrenta restrições infraestruturais (apenas 1% das escolas secundárias públicas têm internet e computadores), o mercado imediatamente solvente concentra-se no sector privado urbano: <strong>81,8% das escolas de Luanda</strong> e <strong>70,8% das Instituições de Ensino Superior (IES)</strong> são privadas — e enfrentam a obrigatoriedade da <strong>Facturação Electrónica da AGT a 1 de Janeiro de 2027</strong>.
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-4">
+                        <div class="text-xs font-medium text-stone-500 uppercase">Alunos (Ensino Geral)</div>
+                        <div class="text-2xl font-bold text-teal-700 mt-1">9,7M – 10,4M</div>
+                        <div class="text-xs text-stone-500 mt-1">+320 mil no Ensino Superior</div>
+                    </div>
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-4">
+                        <div class="text-xs font-medium text-stone-500 uppercase">Professores Activos</div>
+                        <div class="text-2xl font-bold text-teal-700 mt-1">213.356</div>
+                        <div class="text-xs text-stone-500 mt-1">Sem clube de benefícios</div>
+                    </div>
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-4">
+                        <div class="text-xs font-medium text-stone-500 uppercase">Colégios Privados (Luanda)</div>
+                        <div class="text-2xl font-bold text-amber-600 mt-1">3.558</div>
+                        <div class="text-xs text-stone-500 mt-1">81,8% das escolas da província</div>
+                    </div>
+                    <div class="bg-stone-50 border border-stone-200 rounded-xl p-4">
+                        <div class="text-xs font-medium text-stone-500 uppercase">IES Privadas (Nacional)</div>
+                        <div class="text-2xl font-bold text-amber-600 mt-1">75 de 106</div>
+                        <div class="text-xs text-stone-500 mt-1">70,8% do ensino superior</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-mercado" class="space-y-6">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900">1. Radiografia do Mercado: Público vs. Privado</h2>
+                <p class="text-stone-600 text-sm sm:text-base mt-1 max-w-4xl">
+                    Esta secção contrasta a distribuição institucional entre o ensino estatal e o sector privado. Utilize os botões de filtro abaixo para alternar entre o número de estabelecimentos de ensino e o volume de estudantes matriculados, evidenciando porque a estratégia de entrada deve priorizar os colégios privados de Luanda e as IES privadas antes de escalar para contratos públicos.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 card-surface rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                            <h3 class="font-bold text-stone-800">Distribuição Sectorial (Público vs. Privado)</h3>
+                            <div class="inline-flex rounded-lg bg-stone-100 p-1 text-xs">
+                                <button id="btn-chart-escolas" class="px-3 py-1.5 rounded-md bg-white shadow-sm font-semibold text-teal-800 transition">Instituições</button>
+                                <button id="btn-chart-alunos" class="px-3 py-1.5 rounded-md text-stone-600 hover:text-stone-900 transition">Alunos (Luanda)</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartMercado"></canvas>
+                        </div>
+                    </div>
+                    <p id="mercado-caption" class="text-xs text-stone-500 mt-4 pt-3 border-t border-stone-100">
+                        Fonte: Anuário Estatístico MED (2022/2023), Mapeamento Escolar (2024) e MESCTI (2024/2025). Em Luanda, os colégios privados representam mais de quatro quintos das instituições.
+                    </p>
+                </div>
+
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="card-surface rounded-2xl p-5">
+                        <h3 class="font-bold text-stone-800 text-base mb-2">Indicadores Demográficos e Digitais (2025/2026)</h3>
+                        <ul class="space-y-3 text-sm text-stone-600">
+                            <li class="flex justify-between items-center border-b border-stone-100 pb-2">
+                                <span>População total e idade mediana</span>
+                                <span class="font-semibold text-stone-900">39,3M • 16,6 anos</span>
+                            </li>
+                            <li class="flex justify-between items-center border-b border-stone-100 pb-2">
+                                <span>População abaixo dos 18 anos</span>
+                                <span class="font-semibold text-teal-700">50,8% do país</span>
+                            </li>
+                            <li class="flex justify-between items-center border-b border-stone-100 pb-2">
+                                <span>Utilizadores de Internet (Penetração)</span>
+                                <span class="font-semibold text-stone-900">17,6M (44,8%)</span>
+                            </li>
+                            <li class="flex justify-between items-center border-b border-stone-100 pb-2">
+                                <span>Velocidade mediana download fixo</span>
+                                <span class="font-semibold text-stone-900">20,39 Mbps (Ookla)</span>
+                            </li>
+                            <li class="flex justify-between items-center">
+                                <span>Concentração em 8 províncias-chave</span>
+                                <span class="font-semibold text-stone-900">80,5% dos alunos</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-teal-900 text-white rounded-2xl p-5">
+                        <div class="text-xs uppercase tracking-wider text-teal-300 font-semibold">Foco Geográfico Prioritário</div>
+                        <h4 class="font-bold text-base mt-1">Polos de Alta Literacia em Luanda</h4>
+                        <p class="text-xs text-teal-100 mt-2 leading-relaxed">
+                            O Censo 2024 confirma taxas de alfabetização jovem (15–24 anos) superiores a 94% nos municípios-alvo de entrada: <strong>Nova Vida (97,5%)</strong>, <strong>Camama (97,3%)</strong>, <strong>Talatona (96,2% / 98,1% na comuna)</strong>, <strong>Kilamba (94,4%)</strong> e <strong>Belas (215 escolas registadas para exames nacionais)</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-erps" class="space-y-6">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900">2. Ecossistema de Software Escolar e a "Armadilha da Secretaria"</h2>
+                <p class="text-stone-600 text-sm sm:text-base mt-1 max-w-4xl">
+                    Os fornecedores locais de software escolar resolveram a gestão administrativa, as propinas em Kwanzas e a certificação fiscal da AGT, mas deixaram completamente desocupada a camada pedagógica, de identidade <code class="text-xs bg-stone-200 px-1 rounded">.edu.ao</code> e de integração com nuvens educativas. Filtre os concorrentes abaixo e compare os preços praticados no mercado.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 card-surface rounded-2xl p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <h3 class="font-bold text-stone-800">Mapeamento de ERPs e EdTechs em Angola</h3>
+                        <select id="filter-erp" class="text-xs border border-stone-300 rounded-lg px-2.5 py-1.5 bg-white text-stone-700 focus:outline-none focus:border-teal-600">
+                            <option value="all">Todos os Fornecedores (7)</option>
+                            <option value="saas">SaaS Escolar Comercial</option>
+                            <option value="custom">Projectos / Corporativo</option>
+                        </select>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="border-b border-stone-200 text-stone-500 uppercase text-xs">
+                                    <th class="py-2.5 pr-3">Plataforma</th>
+                                    <th class="py-2.5 px-3">Foco Principal</th>
+                                    <th class="py-2.5 px-3">Modelo Comercial</th>
+                                    <th class="py-2.5 pl-3">Integrações Cloud / API</th>
+                                </tr>
+                            </thead>
+                            <tbody id="erp-table-body" class="divide-y divide-stone-100">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 card-surface rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-stone-800 mb-1">Referência de Preços Anuais (AOA)</h3>
+                        <p class="text-xs text-stone-500 mb-4">Comparação entre planos públicos de ERPs locais e o custo base do domínio .ao.</p>
+                        <div class="chart-container">
+                            <canvas id="chartPrecos"></canvas>
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900">
+                        <strong>Oportunidade B2B2B:</strong> Em vez de competir na facturação fiscal AGT, o Hub Integrador liga-se via API aos ERPs locais (KLASSE, SysPortal, Kacennu) para criar automaticamente e-mails <code class="font-mono">.edu.ao</code> e contas Google/Microsoft no acto da matrícula.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-beneficios" class="space-y-6">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900">3. Auditoria de Benefícios Globais e Bloqueios Estruturais</h2>
+                <p class="text-stone-600 text-sm sm:text-base mt-1 max-w-4xl">
+                    O défice de Angola nos ecossistemas digitais globais divide-se em três categorias distintas. Explore os serviços auditados e clique nos quatro bloqueios estruturais para compreender porque mesmo programas em que Angola já é elegível (como SheerID, UNiDAYS, GitHub e Spotify Estudante) permanecem subaproveitados.
+                </p>
+            </div>
+
+            <div class="card-surface rounded-2xl p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                    <h3 class="font-bold text-stone-800">Estado de Acesso às Plataformas e Benefícios em Angola</h3>
+                    <div class="flex flex-wrap gap-1.5 text-xs" id="benefit-filters">
+                        <button data-status="all" class="benefit-btn px-3 py-1.5 rounded-full bg-teal-700 text-white font-medium">Todos</button>
+                        <button data-status="elegivel" class="benefit-btn px-3 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200">Elegível com Fricção</button>
+                        <button data-status="lacuna" class="benefit-btn px-3 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200">Lacuna Institucional</button>
+                        <button data-status="excluido" class="benefit-btn px-3 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200">Excluído / Sem Cobertura</button>
+                    </div>
+                </div>
+                <div id="benefits-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-5 space-y-2.5" id="blockers-list">
+                    <h3 class="font-bold text-stone-800 mb-3">Os 4 Bloqueios Estruturais (Clique para detalhar)</h3>
+                </div>
+                <div class="lg:col-span-7 card-surface rounded-2xl p-6" id="blocker-detail-panel">
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-simulador" class="space-y-6">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900">4. Oportunidades de Negócio e Simulador de Receita</h2>
+                <p class="text-stone-600 text-sm sm:text-base mt-1 max-w-4xl">
+                    Partindo da base imediata de <strong>3.633 instituições privadas</strong> (3.558 colégios em Luanda + 75 IES privadas), ajuste os parâmetros abaixo para simular a receita recorrente anual (ARR) em Kwanzas e Dólares (câmbio de referência: 913 Kz/USD), comparando os cenários de entrada e expansão.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-6 card-surface rounded-2xl p-6 space-y-5">
+                    <h3 class="font-bold text-stone-800">Parâmetros de Simulação (Base: 3.633 Instituições)</h3>
+                    
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <label for="slider-penetracao" class="font-medium text-stone-700">Taxa de Captura de Mercado</label>
+                            <span id="val-penetracao" class="font-bold text-teal-700">10% (363 escolas)</span>
+                        </div>
+                        <input id="slider-penetracao" type="range" min="1" max="30" value="10" class="w-full accent-teal-600 cursor-pointer">
+                        <div class="flex justify-between text-xs text-stone-400 mt-1">
+                            <span>1% (36 esc.)</span>
+                            <span>10% (Conservador)</span>
+                            <span>30% (1.090 esc.)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <label for="slider-avenca" class="font-medium text-stone-700">Avença Anual Média por Escola (Kz)</label>
+                            <span id="val-avenca" class="font-bold text-teal-700">360.000 Kz/ano</span>
+                        </div>
+                        <input id="slider-avenca" type="range" min="180000" max="1400000" step="20000" value="360000" class="w-full accent-teal-600 cursor-pointer">
+                        <div class="flex justify-between text-xs text-stone-400 mt-1">
+                            <span>180k Kz (Entrada)</span>
+                            <span>360k Kz (Kacennu Elite)</span>
+                            <span>1.4M Kz (KLASSE Pro)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <label for="slider-setup" class="font-medium text-stone-700">Taxa Única de Setup / .edu.ao / APD (Kz)</label>
+                            <span id="val-setup" class="font-bold text-amber-600">150.000 Kz</span>
+                        </div>
+                        <input id="slider-setup" type="range" min="50000" max="500000" step="25000" value="150000" class="w-full accent-amber-600 cursor-pointer">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-stone-100">
+                        <div class="bg-teal-50 border border-teal-200 rounded-xl p-3.5">
+                            <div class="text-xs text-teal-800 font-medium">Receita Recorrente Anual (ARR)</div>
+                            <div id="res-arr-kz" class="text-lg sm:text-xl font-bold text-teal-950 mt-0.5">130,7M Kz</div>
+                            <div id="res-arr-usd" class="text-xs text-teal-700 mt-0.5">~US$ 143.133 / ano</div>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                            <div class="text-xs text-amber-800 font-medium">Receita Total Ano 1 (ARR + Setup)</div>
+                            <div id="res-total-kz" class="text-lg sm:text-xl font-bold text-amber-950 mt-0.5">185,1M Kz</div>
+                            <div id="res-total-usd" class="text-xs text-amber-700 mt-0.5">~US$ 202.771 no 1.º ano</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6 card-surface rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-stone-800 mb-1">Projeção Comparativa de Receita (Milhões de Kz)</h3>
+                        <p class="text-xs text-stone-500 mb-4">Comparação entre a sua simulação actual e os cenários de referência do relatório (10% de captura).</p>
+                        <div class="chart-container">
+                            <canvas id="chartSimulador"></canvas>
+                        </div>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-3">
+                        Nota: Valores ilustrativos excluindo comissões do Clube de Benefícios local, revenda de licenças pagas e contratos públicos (TEST / GIGA).
+                    </p>
+                </div>
+            </div>
+
+            <div class="card-surface rounded-2xl p-6">
+                <h3 class="font-bold text-stone-800 mb-4">As 5 Frentes Concretas de Monetização</h3>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-teal-700 block mb-1">1. Escola Digital em Caixa</span>
+                        <p class="text-stone-600">Registo <code class="font-mono">.edu.ao</code> + site + Google/MS/Canva + dossiê APD. Prazo: 3–6 meses.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-teal-700 block mb-1">2. Middleware API/SSO</span>
+                        <p class="text-stone-600">Sincronização automática de matrículas com ERPs locais (KLASSE, SysPortal, Kacennu). Prazo: 6–12 meses.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-teal-700 block mb-1">3. Passaporte Digital</span>
+                        <p class="text-stone-600">Cartão verificável para secundário, superior e 213k professores + registo SheerID/GitHub. Prazo: 9–18 meses.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-teal-700 block mb-1">4. Revenda em Kwanzas</span>
+                        <p class="text-stone-600">Liquidação via Multicaixa Express e KWiK de licenças pagas e pacotes de dados móveis.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200">
+                        <span class="font-bold text-teal-700 block mb-1">5. Consórcios Públicos</span>
+                        <p class="text-stone-600">Capacitação docente e interoperabilidade com Xilonga e projecto TEST/ELEVATE (2028+).</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sec-roteiro" class="space-y-6 pb-8">
+            <div>
+                <h2 class="text-xl sm:text-2xl font-bold text-stone-900">5. Roteiro Estratégico de Execução (2026–2028+)</h2>
+                <p class="text-stone-600 text-sm sm:text-base mt-1 max-w-4xl">
+                    Seleccione cada fase temporal para visualizar os marcos operacionais, catalisadores legais e metas de expansão geográfica recomendadas para capturar a janela regulatória da AGT e da APD.
+                </p>
+            </div>
+
+            <div class="card-surface rounded-2xl overflow-hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-3 border-b border-stone-200 bg-stone-50" id="roadmap-tabs">
+                    <button data-phase="0" class="roadmap-tab p-4 text-left tab-active bg-white transition">
+                        <div class="text-xs font-semibold text-teal-700">FASE 1 • Q4 2026 – Q2 2027</div>
+                        <div class="font-bold text-stone-900 text-sm mt-0.5">Captura da Transição AGT & APD</div>
+                    </button>
+                    <button data-phase="1" class="roadmap-tab p-4 text-left text-stone-600 hover:bg-stone-100 transition">
+                        <div class="text-xs font-semibold text-stone-500">FASE 2 • Q3 2027 – Q1 2028</div>
+                        <div class="font-bold text-stone-900 text-sm mt-0.5">Integração ERPs & Verificadores Globais</div>
+                    </button>
+                    <button data-phase="2" class="roadmap-tab p-4 text-left text-stone-600 hover:bg-stone-100 transition">
+                        <div class="text-xs font-semibold text-stone-500">FASE 3 • A partir de 2028</div>
+                        <div class="font-bold text-stone-900 text-sm mt-0.5">Clube Nacional & Consórcios Públicos</div>
+                    </button>
+                </div>
+                <div id="roadmap-content" class="p-6 sm:p-8">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-stone-200 bg-white py-6 text-center text-xs text-stone-500">
+        <div class="max-w-7xl mx-auto px-4">
+            Síntese Interativa baseada no relatório <em>"Mercado de Integrações Educativas e Benefícios Digitais em Angola (2026–2027)"</em> • Dados oficiais MED, MESCTI, INE (Censo 2024), DNS.AO, AGT e APD.
+        </div>
+    </footer>
+
+    <script>
+        const erpData = [
+            { name: "KLASSE", type: "saas", focus: "Direcção e secretaria: fecho de caixa, risco de inadimplência, documentos MED.", price: "80k – 140k Kz/mês (até 1.500 alunos)", api: "Apenas no plano Premium negociado" },
+            { name: "SysPortal (SysGest)", type: "saas", focus: "Modular acreditado ANEP e certificado AGT; Multicaixa, refeitório/POS, BI+IA.", price: "Licenciamento institucional modular", api: "Não anunciada (foco ERP fiscal/admin)" },
+            { name: "Kacennu", type: "saas", focus: "Multi-empresa com facturação electrónica AGT (FE/229/AGT/2026) e propinas.", price: "72k, 180k ou 360k Kz/ano", api: "Inexistente (API prevista para 2027)" },
+            { name: "EduX", type: "saas", focus: "+40 módulos para colégios privados, código de barras, cantina e app.", price: "Subscrição cloud sob demonstração", api: "Não anunciada (foco administrativo)" },
+            { name: "Mitra", type: "saas", focus: "Offline-first, matrículas por BI, propinas em Kz e cartões PVC.", price: "Planos SaaS emergentes", api: "Inexistente (contacto via Gmail)" },
+            { name: "Zua Developer", type: "custom", focus: "Desenvolvimento à medida certificado AGT para escolas e IES.", price: "Projecto personalizado (Kz/EUR/USD)", api: "Apenas sob desenvolvimento à medida" },
+            { name: "EDUdigital", type: "custom", focus: "eLearning corporativo e institucional (Totara LMS, ex.: Academia Unitel).", price: "Projectos B2B corporativos", api: "Capacidade SSO/LMS, mas foco corporativo" }
+        ];
+
+        const benefitsData = [
+            { title: "Google Workspace for Education", status: "lacuna", badge: "Lacuna Institucional", desc: "Gratuito para escolas acreditadas, mas uso em Angola é disperso e informal sem gestão centralizada de domínios .edu.ao." },
+            { title: "Microsoft 365 Education (A1)", status: "lacuna", badge: "Lacuna Institucional", desc: "Integradores locais focam-se no sector empresarial; faltam pacotes educacionais chave-na-mão para colégios e IES." },
+            { title: "Canva para Educação", status: "lacuna", badge: "Procura Reprimida", desc: "Sem licenciamento escolar disseminado, surgiu um mercado informal de revenda em Kz (Diskonto Online) para estudantes." },
+            { title: "SheerID & UNiDAYS", status: "elegivel", badge: "Elegível com Fricção", desc: "Angola consta oficialmente como país suportado, mas as escolas e IES angolanas não estão registadas nas bases de dados automáticas." },
+            { title: "GitHub Student Developer Pack", status: "elegivel", badge: "Elegível com Fricção", desc: "Vital para as 38.596 vagas anuais em Engenharias/TI, mas e-mails escolares são rejeitados sem registo prévio do domínio no GitHub." },
+            { title: "Spotify Premium Estudante", status: "elegivel", badge: "Ativo (US$ 1,69/mês)", desc: "Desconto de 48,6% activo em Angola (spotify.com/ao-pt), mas limitado pela facturação em USD e validação de IES elegível." },
+            { title: "Google AI Studio / AI Plus", status: "elegivel", badge: "Elegível via SheerID", desc: "Campanhas estudantis incluem Angola, mas exigem cartões de estudante padronizados com validade lectiva legível." },
+            { title: "Cartão Estudante Univ. (CEU)", status: "lacuna", badge: "Apenas Universitário", desc: "Iniciativa local (Ombala Invest/AEUPA) com descontos comerciais, mas exclui 2,59M alunos do secundário e 213 mil professores." },
+            { title: "YouTube Premium & Apple Music Student", status: "excluido", badge: "Excluído / Sem Cobertura", desc: "Angola está ausente das 95 localizações do YouTube Student e sem cobertura oficial confirmada no Apple Music Student." }
+        ];
+
+        const blockersData = [
+            {
+                id: 0,
+                title: "1. Vácuo de Identidade Digital (.edu.ao)",
+                tag: "DNS.AO / INFOSI",
+                summary: "Apenas 26.900 domínios .ao activos em toda a economia angolana.",
+                detail: "O registo oficial do DNS.AO contabiliza apenas 26.900 domínios .ao activos detidos por 9.600 titulares únicos em todo o país — apesar de campanhas promocionais de 9.900 Kz (~US$11). Confrontando esse número com mais de 14.551 instituições de ensino (12.967 escolas não superiores, 106 IES e 1.478 centros de formação), a esmagadora maioria das escolas não possui domínio .edu.ao, ficando tecnicamente impedida de activar suites educativas na nuvem."
+            },
+            {
+                id: 1,
+                title: "2. Ausência nas Bases de Verificação Global",
+                tag: "SheerID • UNiDAYS • GitHub",
+                summary: "Rejeições automáticas por falta de registo institucional prévio.",
+                detail: "Os verificadores internacionais validam o estatuto académico cruzando o domínio de e-mail ou documentos com diretórios globais de instituições acreditadas. Como a maioria das 75 IES privadas e dos milhares de colégios angolanos nunca submeteu o seu credenciamento junto da SheerID, UNiDAYS ou GitHub, os alunos enfrentam rejeições constantes mesmo quando Angola é elegível."
+            },
+            {
+                id: 2,
+                title: "3. Barreira Cambial e Pagamentos em Kwanzas",
+                tag: "EMIS • KWiK • BNA",
+                summary: "Fricção entre subscrições em USD e pagamentos locais em AOA.",
+                detail: "A economia quotidiana opera em Kwanzas (913 Kz/USD em Setembro de 2026) através do Multicaixa Express, transferências instantâneas KWiK e carteiras móveis (Unitel Money, Afrimoney). A posse limitada de cartões internacionais Visa/Mastercard e as restrições do PayPal em Angola impedem estudantes de pagar subscrições em dólares sem uma camada local de liquidação em Kwanzas."
+            },
+            {
+                id: 3,
+                title: "4. Risco Regulatório e Coimas da APD",
+                tag: "Lei n.º 22/11 • Fiscalização",
+                summary: "Coimas entre US$65.000 e US$225.000 por tratamento irregular de dados.",
+                detail: "Alojar dados de alunos e docentes em servidores cloud fora de Angola ou interligar bases de dados exige notificação ou autorização prévia da Agência de Protecção de Dados (APD). A APD aplicou coimas de US$225.000 (ENDE), US$75.000 (COSAL) e US$115.000 (Hotel Diamante, Agosto 2026), enquanto as taxas oficiais de registo custam entre 4.315 Kz e 350.450 Kz. Incluir o dossiê APD protege as escolas e diferencia a plataforma."
+            }
+        ];
+
+        const roadmapData = [
+            {
+                period: "Q4 2026 – Q2 2027",
+                title: "Fase 1: Validação e Captura da Transição AGT",
+                goal: "15 a 30 colégios privados de média/grande dimensão em Luanda (Talatona, Nova Vida, Kilamba, Camama e Belas) + 3 a 5 IES privadas.",
+                actions: [
+                    "Aproveitar a urgência legal da Facturação Electrónica obrigatória da AGT (1 de Janeiro de 2027, Decreto Presidencial n.º 71/25) para entrar na agenda de compras das direcções escolares.",
+                    "Entregar o pacote 'Escola Digital em Caixa': registo de domínio .edu.ao via registrars DNS.AO, site institucional automático e activação do Google Workspace, Microsoft 365 e Canva Educação.",
+                    "Instruir o dossiê de notificação/autorização perante a Agência de Protecção de Dados (APD) ao abrigo da Lei n.º 22/11, eliminando o risco de coimas para o colégio.",
+                    "Iniciar alinhamento institucional com a Associação Nacional do Ensino Particular (ANEP) para credenciação em escala."
+                ]
+            },
+            {
+                period: "Q3 2027 – Q1 2028",
+                title: "Fase 2: Integração com ERPs Locais e Benefícios Globais",
+                goal: "Automatizar o provisionamento de contas no acto da matrícula e expandir para as 7 províncias prioritárias fora de Luanda.",
+                actions: [
+                    "Estabelecer parcerias técnicas (API/SSO) com 2 ou 3 ERPs angolanos (KLASSE, SysPortal ou Kacennu, acompanhando a abertura de APIs prevista para 2027).",
+                    "Conduzir o registo colectivo das instituições parceiras junto da SheerID, UNiDAYS e GitHub Education, desbloqueando o GitHub Student Developer Pack, Google AI e Spotify Estudante.",
+                    "Expandir comercialmente para os polos privados de Benguela, Huíla, Huambo, Bié, Uíge, Malanje e Cuanza Sul (que concentram 80,5% dos alunos com Luanda)."
+                ]
+            },
+            {
+                period: "A partir de 2028",
+                title: "Fase 3: Escala do Clube Nacional e Consórcios Públicos",
+                goal: "Monetizar o ecossistema B2B2C em Kwanzas e integrar projectos estatais financiados por multilaterais.",
+                actions: [
+                    "Lançar o Clube Nacional de Benefícios abrangendo ensino secundário, ensino superior e os mais de 213 mil professores do país.",
+                    "Integrar cobranças recorrentes em Kwanzas via Multicaixa Express e KWiK e negociar pacotes de dados educativos com a Unitel e a Africell.",
+                    "Posicionar a plataforma como parceiro local de implementação e capacitação nos concursos do projecto TEST / ELEVATE Angola (US$500M) e interoperabilidade com a Xilonga (GOVERNO.AO 27)."
+                ]
+            }
+        ];
+
+        function wrapLabel(label, maxLen = 16) {
+            if (label.length <= maxLen) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let current = '';
+            words.forEach(w => {
+                if ((current + ' ' + w).trim().length <= maxLen) {
+                    current = (current + ' ' + w).trim();
+                } else {
+                    if (current) lines.push(current);
+                    current = w;
+                }
+            });
+            if (current) lines.push(current);
+            return lines;
+        }
+
+        const commonTooltip = {
+            callbacks: {
+                title: function(items) {
+                    const label = items[0].label;
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            }
+        };
+
+        let chartMercadoInstance = null;
+        function renderChartMercado(mode = 'escolas') {
+            const ctx = document.getElementById('chartMercado').getContext('2d');
+            if (chartMercadoInstance) chartMercadoInstance.destroy();
+
+            const isEscolas = mode === 'escolas';
+            const labels = isEscolas
+                ? ['Luanda (Escolas)', 'I Ciclo Sec. Luanda', 'Ensino Superior (IES)', 'Rede Nacional Geral']
+                : ['Luanda (2023/24)', 'I Ciclo Sec. Luanda'];
+
+            const datasetPrivado = isEscolas ? [3558, 1675, 75, 4305] : [960000, 186290];
+            const datasetPublico = isEscolas ? [790, 369, 31, 8662] : [850000, 62887];
+
+            document.getElementById('mercado-caption').textContent = isEscolas
+                ? 'Nota: Em Luanda, 3.558 colégios privados superam largamente as 587 escolas públicas e 203 público-privadas. No Ensino Superior, 75 de 106 IES são privadas (70,8%).'
+                : 'Nota: Em Luanda (dados MED 2023/2024), o ensino privado matricula mais estudantes (>960 mil) do que a rede pública (~850 mil).';
+
+            chartMercadoInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(l => wrapLabel(l, 16)),
+                    datasets: [
+                        {
+                            label: 'Sector Privado',
+                            data: datasetPrivado,
+                            backgroundColor: '#0d9488',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Sector Público / Outros',
+                            data: datasetPublico,
+                            backgroundColor: '#cbd5e1',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: commonTooltip
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderChartPrecos() {
+            const ctx = document.getElementById('chartPrecos').getContext('2d');
+            const rawLabels = [
+                'Domínio .ao (Promoção)',
+                'Kacennu Essencial',
+                'Kacennu Pro',
+                'Kacennu Elite',
+                'KLASSE Essencial (10m)',
+                'KLASSE Profissional (10m)'
+            ];
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: rawLabels.map(l => wrapLabel(l, 16)),
+                    datasets: [{
+                        label: 'Custo Anual (AOA)',
+                        data: [9900, 72000, 180000, 360000, 800000, 1400000],
+                        backgroundColor: ['#94a3b8', '#5eead4', '#14b8a6', '#0d9488', '#f59e0b', '#d97706'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: commonTooltip
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: v => (v / 1000) + 'k Kz'
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderErpTable(filter = 'all') {
+            const tbody = document.getElementById('erp-table-body');
+            const filtered = filter === 'all' ? erpData : erpData.filter(e => e.type === filter);
+            tbody.innerHTML = filtered.map(item => `
+                <tr class="hover:bg-stone-50 transition">
+                    <td class="py-3 pr-3 font-semibold text-stone-900 whitespace-nowrap">${item.name}</td>
+                    <td class="py-3 px-3 text-stone-600">${item.focus}</td>
+                    <td class="py-3 px-3 text-stone-700 font-medium">${item.price}</td>
+                    <td class="py-3 pl-3">
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-amber-50 text-amber-800 border border-amber-200">${item.api}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderBenefits(statusFilter = 'all') {
+            const grid = document.getElementById('benefits-grid');
+            const items = statusFilter === 'all' ? benefitsData : benefitsData.filter(b => b.status === statusFilter);
+            const badgeColors = {
+                elegivel: 'bg-teal-50 text-teal-800 border-teal-200',
+                lacuna: 'bg-amber-50 text-amber-800 border-amber-200',
+                excluido: 'bg-rose-50 text-rose-800 border-rose-200'
+            };
+            grid.innerHTML = items.map(b => `
+                <div class="p-4 rounded-xl border border-stone-200 bg-stone-50/60 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <h4 class="font-bold text-stone-900 text-sm">${b.title}</h4>
+                            <span class="shrink-0 px-2 py-0.5 text-[11px] font-semibold rounded-full border ${badgeColors[b.status]}">${b.badge}</span>
+                        </div>
+                        <p class="text-xs text-stone-600 leading-relaxed">${b.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBlockers(activeId = 0) {
+            const list = document.getElementById('blockers-list');
+            const detail = document.getElementById('blocker-detail-panel');
+
+            const header = `<h3 class="font-bold text-stone-800 mb-3">Os 4 Bloqueios Estruturais (Clique para detalhar)</h3>`;
+            const buttons = blockersData.map(b => {
+                const isSelected = b.id === activeId;
+                return `
+                    <button data-id="${b.id}" class="blocker-item w-full text-left p-3.5 rounded-xl border transition ${isSelected ? 'bg-teal-900 text-white border-teal-900 shadow-sm' : 'bg-white text-stone-800 border-stone-200 hover:border-teal-400'}">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-sm">${b.title}</span>
+                            <span class="text-[11px] px-2 py-0.5 rounded ${isSelected ? 'bg-teal-800 text-teal-200' : 'bg-stone-100 text-stone-500'}">${b.tag}</span>
+                        </div>
+                        <p class="text-xs mt-1 ${isSelected ? 'text-teal-100' : 'text-stone-500'}">${b.summary}</p>
+                    </button>
+                `;
+            }).join('');
+            list.innerHTML = header + buttons;
+
+            const current = blockersData.find(b => b.id === activeId);
+            detail.innerHTML = `
+                <div class="inline-block px-2.5 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-semibold mb-3">${current.tag}</div>
+                <h4 class="text-lg font-bold text-stone-900 mb-3">${current.title}</h4>
+                <p class="text-sm text-stone-600 leading-relaxed">${current.detail}</p>
+                <div class="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
+                    <span>Impacto na adopção escolar: <strong>Crítico</strong></span>
+                    <span>Solução: <strong>Hub Integrador + Conformidade Local</strong></span>
+                </div>
+            `;
+
+            document.querySelectorAll('.blocker-item').forEach(btn => {
+                btn.addEventListener('click', () => renderBlockers(Number(btn.dataset.id)));
+            });
+        }
+
+        let chartSimuladorInstance = null;
+        function updateSimulator() {
+            const totalBase = 3633;
+            const rate = Number(document.getElementById('slider-penetracao').value);
+            const avenca = Number(document.getElementById('slider-avenca').value);
+            const setup = Number(document.getElementById('slider-setup').value);
+            const fx = 913;
+
+            const escolas = Math.round(totalBase * (rate / 100));
+            const arrKz = escolas * avenca;
+            const totalYear1Kz = arrKz + (escolas * setup);
+
+            document.getElementById('val-penetracao').textContent = `${rate}% (${escolas} escolas)`;
+            document.getElementById('val-avenca').textContent = `${avenca.toLocaleString('pt-PT')} Kz/ano`;
+            document.getElementById('val-setup').textContent = `${setup.toLocaleString('pt-PT')} Kz`;
+
+            document.getElementById('res-arr-kz').textContent = `${(arrKz / 1e6).toFixed(1)}M Kz`;
+            document.getElementById('res-arr-usd').textContent = `~US$ ${Math.round(arrKz / fx).toLocaleString('pt-PT')} / ano`;
+
+            document.getElementById('res-total-kz').textContent = `${(totalYear1Kz / 1e6).toFixed(1)}M Kz`;
+            document.getElementById('res-total-usd').textContent = `~US$ ${Math.round(totalYear1Kz / fx).toLocaleString('pt-PT')} no 1.º ano`;
+
+            const ctx = document.getElementById('chartSimulador').getContext('2d');
+            if (chartSimuladorInstance) chartSimuladorInstance.destroy();
+
+            const rawLabels = [
+                'Sua Simulação (ARR)',
+                'Sua Simulação (Ano 1)',
+                'Ref. Conservadora (10% @ 360k)',
+                'Ref. Médio-Alto (10% @ 800k)',
+                'Ref. Topo (10% @ 1.4M)'
+            ];
+
+            chartSimuladorInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: rawLabels.map(l => wrapLabel(l, 16)),
+                    datasets: [{
+                        label: 'Milhões de Kwanzas (AOA)',
+                        data: [
+                            Number((arrKz / 1e6).toFixed(2)),
+                            Number((totalYear1Kz / 1e6).toFixed(2)),
+                            130.7,
+                            290.4,
+                            508.2
+                        ],
+                        backgroundColor: ['#0d9488', '#d97706', '#94a3b8', '#64748b', '#475569'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: commonTooltip
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: v => v + 'M Kz' },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderRoadmap(phaseIndex = 0) {
+            const data = roadmapData[phaseIndex];
+            document.querySelectorAll('.roadmap-tab').forEach((tab, idx) => {
+                if (idx === phaseIndex) {
+                    tab.classList.add('tab-active', 'bg-white');
+                    tab.classList.remove('text-stone-600');
+                } else {
+                    tab.classList.remove('tab-active', 'bg-white');
+                    tab.classList.add('text-stone-600');
+                }
+            });
+
+            document.getElementById('roadmap-content').innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 pb-4 border-b border-stone-100">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-teal-700">${data.period}</span>
+                        <h3 class="text-lg font-bold text-stone-900 mt-0.5">${data.title}</h3>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-900 max-w-md">
+                        <strong>Meta da Fase:</strong> ${data.goal}
+                    </div>
+                </div>
+                <ul class="mt-4 space-y-3">
+                    ${data.actions.map((act, i) => `
+                        <li class="flex items-start gap-3 text-sm text-stone-700">
+                            <span class="shrink-0 w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center mt-0.5">${i + 1}</span>
+                            <span class="leading-relaxed">${act}</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderChartMercado('escolas');
+            renderChartPrecos();
+            renderErpTable('all');
+            renderBenefits('all');
+            renderBlockers(0);
+            updateSimulator();
+            renderRoadmap(0);
+
+            document.getElementById('btn-chart-escolas').addEventListener('click', (e) => {
+                e.target.classList.add('bg-white', 'shadow-sm', 'font-semibold', 'text-teal-800');
+                document.getElementById('btn-chart-alunos').classList.remove('bg-white', 'shadow-sm', 'font-semibold', 'text-teal-800');
+                renderChartMercado('escolas');
+            });
+
+            document.getElementById('btn-chart-alunos').addEventListener('click', (e) => {
+                e.target.classList.add('bg-white', 'shadow-sm', 'font-semibold', 'text-teal-800');
+                document.getElementById('btn-chart-escolas').classList.remove('bg-white', 'shadow-sm', 'font-semibold', 'text-teal-800');
+                renderChartMercado('alunos');
+            });
+
+            document.getElementById('filter-erp').addEventListener('change', (e) => renderErpTable(e.target.value));
+
+            document.querySelectorAll('.benefit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.benefit-btn').forEach(b => {
+                        b.classList.remove('bg-teal-700', 'text-white', 'font-medium');
+                        b.classList.add('bg-stone-100', 'text-stone-700');
+                    });
+                    btn.classList.remove('bg-stone-100', 'text-stone-700');
+                    btn.classList.add('bg-teal-700', 'text-white', 'font-medium');
+                    renderBenefits(btn.dataset.status);
+                });
+            });
+
+            ['slider-penetracao', 'slider-avenca', 'slider-setup'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateSimulator);
+            });
+
+            document.querySelectorAll('.roadmap-tab').forEach(tab => {
+                tab.addEventListener('click', () => renderRoadmap(Number(tab.dataset.phase)));
+            });
+        });
+    </script>
+</body>
+</html>

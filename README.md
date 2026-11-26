@@ -1,13 +1,13 @@
-# YetuEdu — Plataforma de Identidade Académica & Benefícios Digitais (Angola)
+# EduLink — Plataforma de Identidade Académica & Benefícios Digitais (Angola)
 
-A **YetuEdu** é a infraestrutura nacional de identidade digital (`.edu.ao`), aprovação de licenças em nuvem (**Google Workspace for Education**, **Microsoft 365 A1** e **Canva**) e **Passaporte Académico Digital (QR Code/JWT)** com blindagem regulatória da **Agência de Protecção de Dados (APD - Lei n.º 22/11)** para instituições de ensino em Angola.
+A **EduLink** é a infraestrutura nacional de identidade digital (`.edu.ao`), aprovação de licenças em nuvem (**Google Workspace for Education**, **Microsoft 365 A1** e **Canva**) e **Passaporte Académico Digital (QR Code/JWT)** com blindagem regulatória da **Agência de Protecção de Dados (APD - Lei n.º 22/11)** para instituições de ensino em Angola.
 
 ---
 
 ## 1. Arquitetura da Solução (Monorepo)
 
 ```text
-yetuedu/
+edulink/
 ├── docker-compose.yml          # Orquestração: PostgreSQL 16, Redis 7, Django 5, Celery e Next.js 15
 ├── .env.example                # Variáveis de ambiente e chaves de encriptação
 ├── backend/                    # Python + Django + Django REST Framework + Celery
@@ -66,8 +66,8 @@ O Next.js interceta o cabeçalho `Host` de cada requisição HTTP para isolar a 
 
 | Domínio de Acesso / Host | Destino Interno | Papel |
 | :--- | :--- | :--- |
-| `localhost:3000` ou `admin.yetuedu.ao` | `/(admin)` | Portal da Secretaria (Onboarding e Importação CSV) |
-| `portal.yetuedu.ao` ou `/portal` | `/(portal)` | PWA do Aluno e Professor (Cartão Digital QR Code) |
+| `localhost:3000` ou `admin.edulink.ao` | `/(admin)` | Portal da Secretaria (Onboarding e Importação CSV) |
+| `portal.edulink.ao` ou `/portal` | `/(portal)` | PWA do Aluno e Professor (Cartão Digital QR Code) |
 | `*.edu.ao` (ex: `colegio-esperanca.edu.ao`) | `/(sites)/[domain]` | Site institucional dinâmico para aprovação Google / Microsoft |
 | `/verify?token=...` | `/verify` | Leitor de verificação em tempo real de matrículas |
 

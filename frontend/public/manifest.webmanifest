@@ -1,0 +1,10 @@
+{
+  "name": "EduLink Passaporte Académico",
+  "short_name": "EduLink",
+  "description": "Cartão Académico Digital verificável e acesso às plataformas educativas .edu.ao em Angola.",
+  "start_url": "/portal",
+  "display": "standalone",
+  "background_color": "#f8f7f4",
+  "theme_color": "#0f766e",
+  "lang": "pt-AO"
+}

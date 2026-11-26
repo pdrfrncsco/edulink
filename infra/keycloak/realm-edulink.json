@@ -1,0 +1,103 @@
+{
+  "realm": "edulink",
+  "enabled": true,
+  "displayName": "EduLink Identidade Académica (.edu.ao)",
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "sslRequired": "external",
+  "clients": [
+    {
+      "clientId": "edulink-portal",
+      "name": "EduLink Portais (Admin & Aluno PWA)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost/*",
+        "https://portal.edulink.ao/*",
+        "https://admin.edulink.ao/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost",
+        "https://portal.edulink.ao",
+        "https://admin.edulink.ao"
+      ]
+    },
+    {
+      "clientId": "https://www.canva.com",
+      "name": "Canva para Educação (SAML 2.0)",
+      "enabled": true,
+      "protocol": "saml",
+      "frontchannelLogout": true,
+      "attributes": {
+        "saml.authnstatement": "true",
+        "saml.server.signature": "true",
+        "saml_name_id_format": "email",
+        "saml_force_name_id_format": "true"
+      },
+      "redirectUris": [
+        "https://www.canva.com/login/saml/*"
+      ],
+      "protocolMappers": [
+        {
+          "name": "canva-email",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "email",
+            "attribute.name": "email"
+          }
+        },
+        {
+          "name": "canva-first-name",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "firstName",
+            "attribute.name": "firstName"
+          }
+        },
+        {
+          "name": "canva-last-name",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "lastName",
+            "attribute.name": "lastName"
+          }
+        },
+        {
+          "name": "edulink-school-domain",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-attribute-mapper",
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "school_domain",
+            "attribute.name": "school_domain"
+          }
+        },
+        {
+          "name": "edulink-academic-role",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-attribute-mapper",
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "academic_role",
+            "attribute.name": "academic_role"
+          }
+        }
+      ]
+    }
+  ]
+}

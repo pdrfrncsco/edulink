@@ -1,0 +1,56 @@
+{
+    email {$ACME_EMAIL:infra@edulink.ao}
+    on_demand_tls {
+        ask http://backend:8000/api/v1/tenants/tls-check/
+    }
+}
+
+# =============================================================
+# Produção HTTPS com On-Demand TLS (Domínios .edu.ao e EduLink)
+# =============================================================
+
+sso.edulink.ao {
+    reverse_proxy keycloak:8080
+}
+
+api.edulink.ao {
+    reverse_proxy backend:8000
+}
+
+https:// {
+    tls {
+        on_demand
+    }
+
+    @backend_paths path /api/* /static/* /media/* /health/*
+    handle @backend_paths {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
+
+# =============================================================
+# Desenvolvimento Local HTTP (Porta 80 sem bloqueio SSL)
+# =============================================================
+
+http://sso.localhost {
+    reverse_proxy keycloak:8080
+}
+
+http://api.localhost {
+    reverse_proxy backend:8000
+}
+
+http://localhost, http://*.localhost {
+    @backend_paths path /api/* /static/* /media/* /health/*
+    handle @backend_paths {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

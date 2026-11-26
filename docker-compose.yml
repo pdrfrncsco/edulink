@@ -1,0 +1,197 @@
+name: edulink
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: edulink_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-edulink}
+      POSTGRES_USER: ${POSTGRES_USER:-edulink_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edulink_admin} -d ${POSTGRES_DB:-edulink}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edulink_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: edulink_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edulink_net
+
+  backend:
+    image: edulink-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: edulink_backend
+    restart: unless-stopped
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-edulink-insecure-dev-key-change-in-production-2026-ao}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,web,*.edu.ao,*.localhost}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-edulink_admin}:${POSTGRES_PASSWORD:-dev_password_123}@db:5432/${POSTGRES_DB:-edulink}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      - EDULINK_FERNET_KEY=${EDULINK_FERNET_KEY:-dGhpcy1pcy1hLTMyLWJ5dGUtc2VjcmV0LWtleS1mb3ItZGV2IQ==}
+      - EDULINK_JWT_SECRET=${EDULINK_JWT_SECRET:-edulink-passport-jwt-secret-signature-2026}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID:-}
+      - EDULINK_WEB_TARGET=${EDULINK_WEB_TARGET:-sites.edulink.ao}
+      - EDULINK_PLATFORM_DOMAINS=${EDULINK_PLATFORM_DOMAINS:-edulink.ao,www.edulink.ao,admin.edulink.ao,portal.edulink.ao,sso.edulink.ao,api.edulink.ao}
+      - KEYCLOAK_INTERNAL_URL=${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}
+      - KEYCLOAK_PUBLIC_URL=${KEYCLOAK_PUBLIC_URL:-http://localhost:8080}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-edulink}
+      - KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-edulink_kc_admin_2026}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - edulink_net
+
+  celery_worker:
+    image: edulink-backend:latest
+    container_name: edulink_celery_worker
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "-l", "info"]
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-edulink-insecure-dev-key-change-in-production-2026-ao}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-edulink_admin}:${POSTGRES_PASSWORD:-dev_password_123}@db:5432/${POSTGRES_DB:-edulink}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      - EDULINK_FERNET_KEY=${EDULINK_FERNET_KEY:-dGhpcy1pcy1hLTMyLWJ5dGUtc2VjcmV0LWtleS1mb3ItZGV2IQ==}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID:-}
+      - EDULINK_WEB_TARGET=${EDULINK_WEB_TARGET:-sites.edulink.ao}
+      - EDULINK_PLATFORM_DOMAINS=${EDULINK_PLATFORM_DOMAINS:-edulink.ao,www.edulink.ao,admin.edulink.ao,portal.edulink.ao,sso.edulink.ao,api.edulink.ao}
+      - KEYCLOAK_INTERNAL_URL=${KEYCLOAK_INTERNAL_URL:-http://keycloak:8080}
+      - KEYCLOAK_PUBLIC_URL=${KEYCLOAK_PUBLIC_URL:-http://localhost:8080}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-edulink}
+      - KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-edulink_kc_admin_2026}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - edulink_net
+
+  frontend:
+    image: edulink-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edulink_frontend
+    restart: unless-stopped
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - INTERNAL_API_URL=http://backend:8000/api/v1
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - NEXT_PUBLIC_ROOT_DOMAIN=localhost:3000
+    depends_on:
+      - backend
+    networks:
+      - edulink_net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: edulink_keycloak
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/keycloak/realm-edulink.json:/opt/keycloak/data/import/realm-edulink.json:ro
+    environment:
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db:5432/${POSTGRES_DB:-edulink}
+      - KC_DB_SCHEMA=keycloak
+      - KC_DB_USERNAME=${POSTGRES_USER:-edulink_admin}
+      - KC_DB_PASSWORD=${POSTGRES_PASSWORD:-dev_password_123}
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN_USER:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-edulink_kc_admin_2026}
+      - KC_HTTP_ENABLED=true
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HOSTNAME_STRICT=false
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - edulink_net
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: edulink_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - ACME_EMAIL=${ACME_EMAIL:-infra@edulink.ao}
+    depends_on:
+      - backend
+      - frontend
+      - keycloak
+    networks:
+      - edulink_net
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  edulink_net:
+    name: edulink_net
+    driver: bridge
