@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ComplianceAPDTab from '@/components/admin/ComplianceAPDTab';
 import DirectoryTab from '@/components/admin/DirectoryTab';
 import DomainsDNSTab from '@/components/admin/DomainsDNSTab';
+import ERPAndVerifiersTab from '@/components/admin/ERPAndVerifiersTab';
 import OnboardingTab from '@/components/admin/OnboardingTab';
 import ProvisioningTab from '@/components/admin/ProvisioningTab';
 import SchoolSelectorBar from '@/components/admin/SchoolSelectorBar';
@@ -11,7 +12,7 @@ import { apiJson, FeedbackState, School } from '@/components/admin/types';
 import AuthCard from '@/components/auth/AuthCard';
 import { AuthUser, clearAuthSession, getAccessToken, getStoredUser, updateStoredUser } from '@/lib/auth';
 
-type TabKey = 'onboarding' | 'directory' | 'provisioning' | 'domains' | 'compliance';
+type TabKey = 'onboarding' | 'directory' | 'provisioning' | 'domains' | 'compliance' | 'erp_verifiers';
 
 const TABS: { id: TabKey; label: string }[] = [
   { id: 'onboarding', label: '1. Onboarding & Escola' },
@@ -19,6 +20,7 @@ const TABS: { id: TabKey; label: string }[] = [
   { id: 'provisioning', label: '3. Provisionamento Cloud' },
   { id: 'domains', label: '4. Domínios .edu.ao & DNS' },
   { id: 'compliance', label: '5. Dossiê APD & Termos' },
+  { id: 'erp_verifiers', label: '6. ERPs & Verificadores' },
 ];
 
 export default function AdminPage() {
@@ -34,6 +36,7 @@ export default function AdminPage() {
     provisioning: null,
     domains: null,
     compliance: null,
+    erp_verifiers: null,
   });
 
   const loadSchools = async (preferSchoolId?: string) => {
@@ -302,6 +305,14 @@ export default function AdminPage() {
           schoolId={selectedSchoolId}
           onFeedback={setFeedback}
           onSchoolUpdated={() => loadSchools(selectedSchoolId)}
+        />
+      </div>
+
+      <div role="tabpanel" aria-labelledby="tab-erp_verifiers" hidden={activeTab !== 'erp_verifiers'}>
+        <ERPAndVerifiersTab
+          schoolId={selectedSchoolId}
+          onFeedback={setFeedback}
+          onDirectoryUpdated={() => loadSchools(selectedSchoolId)}
         />
       </div>
     </div>

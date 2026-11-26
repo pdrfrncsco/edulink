@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/v1/provisioning/', include('apps.provisioning.urls', namespace='provisioning')),
     path('api/v1/domains/', include('apps.domains.urls', namespace='domains')),
     path('api/v1/compliance/', include('apps.compliance.urls', namespace='compliance')),
+    path('api/v1/erp-sync/', include('apps.erp_sync.urls', namespace='erp_sync')),
 ]

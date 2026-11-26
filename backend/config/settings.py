@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.domains',
     'apps.compliance',
     'apps.accounts',
+    'apps.erp_sync',
 ]
 
 MIDDLEWARE = [

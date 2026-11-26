@@ -41,9 +41,36 @@ export default async function SchoolSitePage({
   const school = await getSchoolData(domain);
 
   const brandColor = school.primary_color || '#0D9488';
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: school.name,
+    url: `https://${school.domain}`,
+    email: school.contact_email,
+    telephone: school.phone || undefined,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: school.address || undefined,
+      addressLocality: school.municipality || 'Talatona',
+      addressRegion: school.province || 'Luanda',
+      addressCountry: 'AO',
+    },
+    identifier: [
+      { '@type': 'PropertyValue', name: 'Alvará MED/MESCTI', value: school.alvara_med_mescti },
+      ...(school.apd_dossier_number
+        ? [{ '@type': 'PropertyValue', name: 'Registo APD (Lei 22/11)', value: school.apd_dossier_number }]
+        : []),
+    ],
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-between">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
+        }}
+      />
       {/* Top Header */}
       <header className="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
@@ -134,7 +161,7 @@ export default async function SchoolSitePage({
             </div>
             <h3 className="font-bold text-stone-900 text-base">Microsoft 365 Education (A1)</h3>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Acesso web a Word, Excel, PowerPoint, Teams e OneNote com licenças Faculty e Student provisionadas pela EduLink.
+              Acesso web a Word, Excel, PowerPoint, Teams e OneNote com licenças Faculty e Student provisionadas pela YetuEdu.
             </p>
           </div>
 
@@ -155,7 +182,7 @@ export default async function SchoolSitePage({
             Registo Oficial e Conformidade Regulatória (Angola)
           </h3>
           <p className="text-xs text-stone-600 leading-relaxed max-w-3xl">
-            Este portal é gerado pela infraestrutura EduLink e serve como atestado público da existência jurídica e acreditação ministerial da instituição junto dos motores de auditoria do Google, Microsoft e DNS.AO.
+            Este portal é gerado pela infraestrutura YetuEdu e serve como atestado público da existência jurídica e acreditação ministerial da instituição junto dos motores de auditoria do Google, Microsoft, SheerID, GitHub Education e DNS.AO.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -184,7 +211,7 @@ export default async function SchoolSitePage({
             {school.name} • Contacto: {school.contact_email} | Telefone: {school.phone}
           </p>
           <p className="text-stone-400">
-            Alimentado pela infraestrutura multi-tenant <span className="font-semibold text-stone-600">EduLink Angola</span>.
+            Alimentado pela infraestrutura multi-tenant <span className="font-semibold text-stone-600">YetuEdu Angola</span>.
           </p>
         </div>
       </footer>
