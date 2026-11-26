@@ -5,33 +5,46 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const currentYear = new Date().getFullYear();
+  const academicYear = `${currentYear}/${currentYear + 1}`;
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-stone-200 bg-white/95 backdrop-blur sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-700 flex items-center justify-center text-white font-bold text-xl shadow-sm">
+    <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900">
+      <header className="border-b border-stone-200 bg-white/95 backdrop-blur sticky top-0 z-30">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+          <a href="/admin" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-teal-700 flex items-center justify-center text-white font-bold text-base shadow-sm group-hover:bg-teal-800 transition">
               E
             </div>
-            <div>
-              <span className="font-bold text-lg text-stone-900 tracking-tight">EduLink</span>
-              <span className="ml-2 text-xs bg-teal-100 text-teal-800 font-semibold px-2 py-0.5 rounded-full">
-                Portal da Secretaria
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-base text-stone-900 tracking-tight">EduLink</span>
+              <span className="hidden sm:inline text-[11px] font-semibold text-stone-500">
+                Infraestrutura Educacional · Angola
               </span>
             </div>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-stone-600">
-            <span className="hidden sm:inline">Angola • Ano Lectivo 2026/2027</span>
-            <div className="h-4 w-px bg-stone-300"></div>
-            <span className="text-teal-700 font-medium">Sprint 1 (MVP)</span>
+          </a>
+
+          <div className="flex items-center gap-3 text-xs text-stone-600">
+            <span className="hidden md:inline font-medium text-stone-500">
+              Ano Lectivo {academicYear}
+            </span>
+            <span className="hidden md:inline h-3.5 w-px bg-stone-300" aria-hidden="true" />
+            <a
+              href="/portal"
+              className="rounded-lg border border-stone-200 bg-stone-50 px-2.5 py-1.5 font-semibold text-stone-700 hover:bg-stone-100 transition"
+            >
+              Portal do Aluno / Docente
+            </a>
           </div>
         </div>
       </header>
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
-      <footer className="border-t border-stone-200 bg-white py-6 text-center text-xs text-stone-500">
-        EduLink Angola © 2026 — Plataforma de Identidade Académica & Benefícios Digitais. Em conformidade com a Lei n.º 22/11 (APD).
+
+      <footer className="border-t border-stone-200 bg-white py-4 px-4 text-center text-xs text-stone-500">
+        EduLink Angola © {currentYear} — Identidade Académica &amp; Nuvem Escolar. Em conformidade com a Lei n.º 22/11 (APD).
       </footer>
     </div>
   );

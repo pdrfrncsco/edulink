@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from django.conf import settings
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -21,13 +23,21 @@ from .services.jwt_signer import generate_passport_token, verify_passport_token
 
 def build_institution_dossier(school: School) -> dict:
     dns_config = getattr(school, 'dns_config', None)
-    dns_status = dns_config.registrar_status if dns_config else 'NOT_CONFIGURED'
+    dns_status = dns_config.registrar_status if dns_config else school.dns_status
     students_count = school.academic_users.filter(role=AcademicUser.Role.STUDENT, is_active=True).count()
     teachers_count = school.academic_users.filter(role=AcademicUser.Role.TEACHER, is_active=True).count()
+    effective_host = school.effective_site_host
+    official_domain = school.domain
+
     return {
         'institution_name': school.name,
-        'domain': school.domain,
-        'official_website': f"https://{school.domain}",
+        'institution_type': school.institution_type,
+        'institution_type_label': school.get_institution_type_display(),
+        'is_canva_k12_eligible': school.is_canva_k12_eligible,
+        'domain': official_domain,
+        'preview_slug': school.preview_slug,
+        'effective_site_host': effective_host,
+        'official_website': f'https://{effective_host}',
         'country': 'AO',
         'province': school.province,
         'municipality': school.municipality,
@@ -39,15 +49,17 @@ def build_institution_dossier(school: School) -> dict:
         'dns_status': dns_status,
         'active_students': students_count,
         'active_teachers': teachers_count,
-        'email_domain_pattern': f"*@{school.domain}",
+        'email_domain_pattern': f'*@{official_domain}' if official_domain else None,
         'passport_verification_endpoint': '/api/v1/passport/verify/',
     }
 
 
 class IssuePassportTokenAPIView(APIView):
     """
-    Gera o token JWT assinado para o QR Code do Cartão Académico Digital.
+    Gera o token JWT assinado para o QR Code do Cartão Académico Digital,
+    devolvendo os metadados de identidade visual e elegibilidade da escola.
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -78,16 +90,27 @@ class IssuePassportTokenAPIView(APIView):
         if not user:
             return Response({'detail': 'Utilizador não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
+        if not user.school.is_active:
+            return Response(
+                {'detail': 'A instituição associada encontra-se inativa na plataforma EduLink.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         token = generate_passport_token(user)
         base_url = getattr(settings, 'EDULINK_PUBLIC_BASE_URL', 'http://localhost:3000').rstrip('/')
-        verification_url = f"{base_url}/verify?token={token}"
+        verification_url = f'{base_url}/verify?token={quote(token, safe="")}'
 
         return Response({
             'user_id': str(user.id),
             'full_name': user.full_name,
+            'role': user.role,
             'institutional_email': user.institutional_email,
             'school_name': user.school.name,
-            'school_domain': user.school.domain,
+            'school_domain': user.school.domain or user.school.effective_site_host,
+            'school_primary_color': user.school.primary_color,
+            'school_logo_url': user.school.logo_url,
+            'institution_type': user.school.institution_type,
+            'is_canva_k12_eligible': user.school.is_canva_k12_eligible,
             'token': token,
             'verification_url': verification_url,
             'qr_payload': token,
@@ -98,6 +121,7 @@ class VerifyPassportAPIView(APIView):
     """
     Endpoint público de verificação de QR Code para portarias, parceiros locais e SheerID.
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -118,15 +142,19 @@ class VerifyPassportAPIView(APIView):
 class InstitutionDossierPublicAPIView(APIView):
     """
     Endpoint público de transparência institucional para auditoria por SheerID,
-    UNiDAYS e GitHub Education Campus.
+    UNiDAYS e GitHub Education Campus. Aceita domínio oficial ou subdomínio de demonstração.
     """
+
     permission_classes = [AllowAny]
 
     def get(self, request):
-        domain = (request.query_params.get('domain') or '').strip().lower()
-        school = School.objects.filter(domain=domain, is_active=True).first() if domain else None
+        domain = (request.query_params.get('domain') or '').strip()
+        school = School.resolve_by_host(domain) if domain else None
         if not school:
-            return Response({'detail': 'Instituição não encontrada para este domínio.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'detail': 'Instituição não encontrada para este domínio.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         return Response(build_institution_dossier(school), status=status.HTTP_200_OK)
 
 
@@ -134,6 +162,7 @@ class GlobalVerifierApplicationViewSet(TenantScopedMixin, viewsets.ModelViewSet)
     """
     Gestão de candidaturas da instituição à SheerID, UNiDAYS e GitHub Education.
     """
+
     queryset = GlobalVerifierApplication.objects.select_related('school').all()
     serializer_class = GlobalVerifierApplicationSerializer
     permission_classes = [IsPlatformAdminOrSchoolSecretary]
@@ -145,10 +174,11 @@ class GlobalVerifierApplicationViewSet(TenantScopedMixin, viewsets.ModelViewSet)
         school = app.school
         dossier = build_institution_dossier(school)
 
+        has_official_edu_ao = bool(school.domain and school.domain.endswith('.edu.ao'))
         checks = {
-            'official_edu_ao_domain': school.domain.endswith('.edu.ao'),
+            'official_edu_ao_domain': has_official_edu_ao,
             'alvara_med_mescti_present': bool(school.alvara_med_mescti),
-            'dns_active': dossier['dns_status'] == 'ACTIVE',
+            'dns_active': dossier['dns_status'] in ('ACTIVE', 'APPROVED'),
             'apd_notified': school.apd_notified,
             'has_active_academic_users': (dossier['active_students'] + dossier['active_teachers']) > 0,
         }

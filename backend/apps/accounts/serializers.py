@@ -10,22 +10,40 @@ from apps.directory.models import AcademicUser
 User = get_user_model()
 
 
-def build_user_payload(user) -> dict:
-    profile = get_user_profile(user)
+def build_user_payload(user, profile: UserProfile | None = None) -> dict:
+    profile = profile if profile is not None else get_user_profile(user)
     school = profile.school if profile else None
     academic_user = profile.academic_user if profile else None
     latest_enrollment = (
         academic_user.enrollments.order_by('-created_at').first() if academic_user else None
     )
+
+    if profile:
+        role = profile.role
+    elif user.is_superuser:
+        role = UserProfile.Role.PLATFORM_ADMIN
+    else:
+        role = UserProfile.Role.SCHOOL_SECRETARY
+
     return {
         'id': user.id,
         'username': user.username,
         'email': user.email,
-        'full_name': f"{user.first_name} {user.last_name}".strip() or user.username,
-        'role': profile.role if profile else UserProfile.Role.SCHOOL_SECRETARY,
+        'full_name': f'{user.first_name} {user.last_name}'.strip() or user.username,
+        'role': role,
         'school_id': str(school.id) if school else None,
         'school_name': school.name if school else None,
-        'school_domain': school.domain if school else None,
+        'school_domain': (school.domain or school.effective_site_host) if school else None,
+        'school_official_domain': school.domain if school else None,
+        'school_preview_slug': school.preview_slug if school else None,
+        'school_primary_color': school.primary_color if school else '#0D9488',
+        'school_logo_url': school.logo_url if school else None,
+        'school_is_active': school.is_active if school else None,
+        'institution_type': school.institution_type if school else None,
+        'is_canva_k12_eligible': school.is_canva_k12_eligible if school else None,
+        'enable_erp_sync': school.enable_erp_sync if school else False,
+        'enable_benefits_club': school.enable_benefits_club if school else False,
+        'enable_online_payments': school.enable_online_payments if school else False,
         'academic_user': {
             'id': str(academic_user.id),
             'full_name': academic_user.full_name,
@@ -43,12 +61,17 @@ def build_user_payload(user) -> dict:
 def issue_jwt_pair_for_user(user) -> dict:
     refresh = RefreshToken.for_user(user)
     profile = get_user_profile(user)
-    refresh['role'] = profile.role if profile else 'SCHOOL_SECRETARY'
+    role = (
+        profile.role
+        if profile
+        else (UserProfile.Role.PLATFORM_ADMIN if user.is_superuser else UserProfile.Role.SCHOOL_SECRETARY)
+    )
+    refresh['role'] = role
     refresh['school_id'] = str(profile.school_id) if (profile and profile.school_id) else None
     return {
         'access': str(refresh.access_token),
         'refresh': str(refresh),
-        'user': build_user_payload(user),
+        'user': build_user_payload(user, profile=profile),
     }
 
 
@@ -125,11 +148,19 @@ class ActivateAcademicAccountSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {'detail': 'Não foi encontrado nenhum registo com este e-mail institucional e BI/Processo.'}
             )
+        if not academic_user.school.is_active:
+            raise serializers.ValidationError(
+                {'detail': 'A instituição associada encontra-se inativa. Contacte a secretaria.'}
+            )
         if not academic_user.is_active:
-            raise serializers.ValidationError({'detail': 'A sua conta académica encontra-se inativa. Contacte a secretaria.'})
+            raise serializers.ValidationError(
+                {'detail': 'A sua conta académica encontra-se inativa. Contacte a secretaria.'}
+            )
         if hasattr(academic_user, 'account_profile') and academic_user.account_profile is not None:
-            raise serializers.ValidationError({'detail': 'Esta conta académica já foi ativada. Utilize o formulário de entrada.'})
-        if User.objects.filter(username__iexact=email).exists():
+            raise serializers.ValidationError(
+                {'detail': 'Esta conta académica já foi ativada. Utilize o formulário de entrada.'}
+            )
+        if User.objects.filter(username__iexact=email).exists() or User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError({'detail': 'Já existe uma credencial associada a este e-mail.'})
 
         attrs['academic_user'] = academic_user
@@ -166,12 +197,14 @@ class ActivateAcademicAccountSerializer(serializers.Serializer):
 
 class AdminUserProfileSerializer(serializers.ModelSerializer):
     """Gestão de perfis e vínculos escola/papel exclusiva do Administrador da Plataforma."""
+
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)
     full_name = serializers.SerializerMethodField()
     user_is_active = serializers.BooleanField(source='user.is_active')
     school_name = serializers.CharField(source='school.name', read_only=True)
     school_domain = serializers.CharField(source='school.domain', read_only=True)
+    school_effective_host = serializers.CharField(source='school.effective_site_host', read_only=True)
 
     class Meta:
         model = UserProfile
@@ -184,20 +217,27 @@ class AdminUserProfileSerializer(serializers.ModelSerializer):
             'school',
             'school_name',
             'school_domain',
+            'school_effective_host',
             'user_is_active',
             'created_at',
         ]
         read_only_fields = ['id', 'username', 'email', 'full_name', 'created_at']
 
     def get_full_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
+        return f'{obj.user.first_name} {obj.user.last_name}'.strip() or obj.user.username
 
     def update(self, instance, validated_data):
+        req = self.context.get('request')
+        is_self = bool(req and req.user and req.user.id == instance.user_id)
+
+        if is_self and 'role' in validated_data and validated_data['role'] != instance.role:
+            raise serializers.ValidationError({'role': 'Não pode alterar o seu próprio papel de administrador.'})
+
         user_data = validated_data.pop('user', None)
         if user_data is not None and 'is_active' in user_data:
-            req = self.context.get('request')
-            if req and req.user and req.user.id == instance.user_id and not user_data['is_active']:
+            if is_self and not user_data['is_active']:
                 raise serializers.ValidationError({'user_is_active': 'Não pode desativar a sua própria conta.'})
             instance.user.is_active = user_data['is_active']
             instance.user.save(update_fields=['is_active'])
+
         return super().update(instance, validated_data)

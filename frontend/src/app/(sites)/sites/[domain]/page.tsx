@@ -1,34 +1,95 @@
 import React from 'react';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
-const API_BASE = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://backend:8000/api/v1';
+const API_BASE =
+  process.env.INTERNAL_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://backend:8000/api/v1';
 
-async function getSchoolData(domain: string) {
+const ROOT_DOMAIN = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'edulink.ao')
+  .toLowerCase()
+  .replace(/^www\./, '');
+
+export interface PublicSchoolData {
+  id: string;
+  name: string;
+  institution_type?: 'MED_K12' | 'MESCTI_HIGHER_ED';
+  preview_slug?: string;
+  domain?: string | null;
+  effective_site_host?: string;
+  is_canva_k12_eligible?: boolean;
+  alvara_med_mescti: string;
+  primary_color?: string;
+  logo_url?: string | null;
+  contact_email: string;
+  phone?: string;
+  province: string;
+  municipality: string;
+  address?: string;
+  about_text?: string;
+  apd_notified: boolean;
+  apd_dossier_number?: string;
+  is_active: boolean;
+}
+
+export async function getPublicSchoolData(domain: string): Promise<PublicSchoolData | null> {
   try {
-    const res = await fetch(`${API_BASE}/tenants/by-domain/?domain=${encodeURIComponent(domain)}`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `${API_BASE}/tenants/by-domain/?domain=${encodeURIComponent(domain)}`,
+      { next: { revalidate: 60 } }
+    );
+    if (res.status === 404) {
+      return null;
+    }
     if (res.ok) {
-      return await res.json();
+      return (await res.json()) as PublicSchoolData;
     }
   } catch (err) {
-    console.error('Falha ao obter dados da escola:', err);
+    console.error('Falha ao consultar escola por domínio:', err);
+  }
+  return null;
+}
+
+function getPlatformLinks(currentDomain: string) {
+  const isLocal = currentDomain.endsWith('.localhost') || currentDomain === 'localhost';
+  return {
+    portalUrl: isLocal
+      ? 'http://portal.localhost:3000'
+      : process.env.NEXT_PUBLIC_PORTAL_URL || `https://portal.${ROOT_DOMAIN}`,
+    adminUrl: isLocal
+      ? 'http://admin.localhost:3000'
+      : process.env.NEXT_PUBLIC_ADMIN_URL || `https://admin.${ROOT_DOMAIN}`,
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ domain: string }>;
+}): Promise<Metadata> {
+  const { domain } = await params;
+  const school = await getPublicSchoolData(domain);
+
+  if (!school) {
+    return {
+      title: 'Instituição não encontrada — EduLink Angola',
+      robots: { index: false, follow: false },
+    };
   }
 
-  // Fallback para visualização de desenvolvimento ou prévia
+  const host = school.effective_site_host || school.domain || domain;
+  const isDemo = !school.domain;
+
   return {
-    name: domain.split('.')[0].replace(/-/g, ' ').toUpperCase(),
-    domain: domain,
-    alvara_med_mescti: 'Alvará MED n.º 000/MED/2026',
-    primary_color: '#0D9488',
-    contact_email: `secretaria@${domain}`,
-    phone: '+244 923 000 000',
-    province: 'Luanda',
-    municipality: 'Talatona',
-    address: 'Luanda, Angola',
-    about_text: 'Instituição de ensino angolana orientada para a formação integral, rigor científico e inovação tecnológica.',
-    apd_notified: true,
-    apd_dossier_number: 'APD-2026-AO-0982',
-    is_active: true,
+    title: `${school.name} — Portal Oficial`,
+    description:
+      school.about_text ||
+      `${school.name} (${school.municipality}, ${school.province}) — Instituição de ensino acreditada em Angola (${school.alvara_med_mescti}).`,
+    alternates: {
+      canonical: `https://${host}`,
+    },
+    robots: isDemo ? { index: false, follow: false } : { index: true, follow: true },
   };
 }
 
@@ -38,14 +99,25 @@ export default async function SchoolSitePage({
   params: Promise<{ domain: string }>;
 }) {
   const { domain } = await params;
-  const school = await getSchoolData(domain);
+  const school = await getPublicSchoolData(domain);
+
+  if (!school || !school.is_active) {
+    notFound();
+  }
 
   const brandColor = school.primary_color || '#0D9488';
+  const effectiveHost = school.effective_site_host || school.domain || domain;
+  const isDemo = !school.domain;
+  const isHigherEd = school.institution_type === 'MESCTI_HIGHER_ED';
+  const isCanvaFree = school.is_canva_k12_eligible ?? !isHigherEd;
+  const { portalUrl, adminUrl } = getPlatformLinks(domain);
+
   const structuredData = {
     '@context': 'https://schema.org',
-    '@type': 'EducationalOrganization',
+    '@type': isHigherEd ? 'CollegeOrUniversity' : 'School',
     name: school.name,
-    url: `https://${school.domain}`,
+    url: `https://${effectiveHost}`,
+    logo: school.logo_url || undefined,
     email: school.contact_email,
     telephone: school.phone || undefined,
     address: {
@@ -56,53 +128,72 @@ export default async function SchoolSitePage({
       addressCountry: 'AO',
     },
     identifier: [
-      { '@type': 'PropertyValue', name: 'Alvará MED/MESCTI', value: school.alvara_med_mescti },
+      {
+        '@type': 'PropertyValue',
+        name: isHigherEd ? 'Reconhecimento MESCTI' : 'Alvará MED',
+        value: school.alvara_med_mescti,
+      },
       ...(school.apd_dossier_number
-        ? [{ '@type': 'PropertyValue', name: 'Registo APD (Lei 22/11)', value: school.apd_dossier_number }]
+        ? [{ '@type': 'PropertyValue', name: 'Registo APD (Lei n.º 22/11)', value: school.apd_dossier_number }]
         : []),
     ],
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col justify-between bg-stone-50 text-stone-900">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
         }}
       />
-      {/* Top Header */}
+
+      {isDemo && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs text-amber-950 font-medium">
+          Pré-visualização institucional em <strong>{effectiveHost}</strong> — domínio definitivo <code>.edu.ao</code> em fase de registo.
+        </div>
+      )}
+
+      {/* Header */}
       <header className="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow"
-              style={{ backgroundColor: brandColor }}
-            >
-              {school.name.charAt(0)}
-            </div>
-            <div>
-              <h1 className="font-bold text-lg sm:text-xl text-stone-900 leading-tight">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {school.logo_url ? (
+              <img
+                src={school.logo_url}
+                alt={`Logótipo de ${school.name}`}
+                className="w-12 h-12 rounded-2xl border border-stone-200 bg-white object-contain p-1 shrink-0 shadow-sm"
+              />
+            ) : (
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow shrink-0"
+                style={{ backgroundColor: brandColor }}
+              >
+                {school.name.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <h1 className="font-bold text-base sm:text-xl text-stone-900 leading-tight truncate">
                 {school.name}
               </h1>
-              <div className="flex items-center gap-2 text-xs text-stone-500">
-                <span className="font-mono text-teal-700 font-semibold">{school.domain}</span>
-                <span>•</span>
-                <span>{school.province}, Angola</span>
+              <div className="flex items-center gap-2 text-xs text-stone-500 truncate">
+                <span className="font-mono text-teal-800 font-semibold truncate">{effectiveHost}</span>
+                <span aria-hidden="true">•</span>
+                <span className="truncate">{school.municipality}, {school.province}</span>
               </div>
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <a
-              href="/portal"
-              className="px-4 py-2 rounded-xl text-xs font-semibold border border-stone-300 text-stone-700 hover:bg-stone-50 transition"
+              href={portalUrl}
+              className="px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold border border-stone-300 text-stone-700 hover:bg-stone-50 transition"
             >
-              Portal do Aluno
+              Portal PWA
             </a>
             <a
-              href="/admin"
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition"
+              href={adminUrl}
+              className="hidden sm:inline-block px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
               style={{ backgroundColor: brandColor }}
             >
               Secretaria Online
@@ -113,106 +204,162 @@ export default async function SchoolSitePage({
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-10 w-full flex-1">
-        {/* Hero Section */}
-        <div className="bg-white border border-stone-200 rounded-3xl p-8 sm:p-12 shadow-sm space-y-6">
+        {/* Hero */}
+        <section className="bg-white border border-stone-200 rounded-3xl p-7 sm:p-12 shadow-sm space-y-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Instituição Acreditada • Domínio Oficial .edu.ao
+            <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
+            {isHigherEd ? 'Ensino Superior Acreditado (MESCTI)' : 'Instituição Acreditada pelo MED'}
+            {school.domain ? ` • ${school.domain}` : ''}
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight max-w-3xl">
-            Excelência Académica, Identidade Digital e Ensino Inovador
+
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-stone-900 tracking-tight max-w-3xl">
+            {school.name} — Ensino de Qualidade e Identidade Académica Digital
           </h2>
-          <p className="text-stone-600 text-base sm:text-lg max-w-2xl leading-relaxed">
-            {school.about_text}
+
+          <p className="text-stone-600 text-sm sm:text-lg max-w-2xl leading-relaxed">
+            {school.about_text ||
+              'Instituição de ensino oficialmente acreditada em Angola, comprometida com a excelência académica, inovação pedagógica e literacia digital.'}
           </p>
 
-          <div className="pt-4 flex flex-wrap gap-4">
+          <div className="pt-2 flex flex-wrap gap-3">
             <a
-              href="/portal"
-              className="px-6 py-3.5 rounded-xl font-bold text-sm text-white shadow transition hover:opacity-95"
+              href={portalUrl}
+              className="px-6 py-3 rounded-xl font-bold text-sm text-white shadow transition hover:opacity-95"
               style={{ backgroundColor: brandColor }}
             >
-              Aceder ao Cartão Digital (PWA)
+              Aceder ao Cartão Digital &amp; Webmail
             </a>
             <a
               href="#acreditacao"
-              className="px-6 py-3.5 rounded-xl font-bold text-sm border border-stone-300 text-stone-700 hover:bg-stone-50 transition"
+              className="px-6 py-3 rounded-xl font-bold text-sm border border-stone-300 text-stone-700 hover:bg-stone-50 transition"
             >
-              Ver Alvará e Credenciais Oficiais
+              Ver Alvará e Acreditação Oficial
+            </a>
+            <a
+              href="/privacidade"
+              className="px-5 py-3 rounded-xl font-semibold text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition"
+            >
+              Privacidade (APD)
             </a>
           </div>
-        </div>
+        </section>
 
-        {/* Cloud & Digital Ecosystem Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-              G
-            </div>
-            <h3 className="font-bold text-stone-900 text-base">Google Workspace for Education</h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Contas institucionais @{school.domain} com Google Classroom, Gmail, Drive e Meet ilimitado para estudantes e docentes.
-            </p>
-          </div>
-
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center font-bold">
-              M
-            </div>
-            <h3 className="font-bold text-stone-900 text-base">Microsoft 365 Education (A1)</h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Acesso web a Word, Excel, PowerPoint, Teams e OneNote com licenças Faculty e Student provisionadas pela EduLink.
-            </p>
-          </div>
-
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
-              P
-            </div>
-            <h3 className="font-bold text-stone-900 text-base">Passaporte Digital & Benefícios</h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Cartão escolar verificável por QR Code, elegibilidade internacional no GitHub Student Pack e descontos em parceiros.
-            </p>
-          </div>
-        </div>
-
-        {/* Accreditation & Regulatory Shield (Auditoria Google / Microsoft / APD) */}
-        <div id="acreditacao" className="bg-stone-100 border border-stone-300/80 rounded-2xl p-6 sm:p-8 space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-stone-800">
-            Registo Oficial e Conformidade Regulatória (Angola)
+        {/* Ecossistema Digital */}
+        <section aria-labelledby="ecosystem-heading" className="space-y-4">
+          <h3 id="ecosystem-heading" className="text-sm font-bold uppercase tracking-wider text-stone-600">
+            Serviços Digitais para Estudantes e Docentes
           </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <article className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                G
+              </div>
+              <h4 className="font-bold text-stone-900 text-base">Google Workspace for Education</h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Contas institucionais{' '}
+                <span className="font-mono text-stone-800">@{school.domain || effectiveHost}</span> com Gmail, Google Classroom, Drive, Documentos e Meet para toda a comunidade educativa.
+              </p>
+            </article>
+
+            <article className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center font-bold">
+                M
+              </div>
+              <h4 className="font-bold text-stone-900 text-base">Microsoft 365 Education (A1)</h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Acesso web a Word, Excel, PowerPoint, OneDrive e Microsoft Teams com licenciamento académico oficial para docentes e alunos.
+              </p>
+            </article>
+
+            <article className="bg-white border border-stone-200 rounded-2xl p-6 shadow-sm space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                P
+              </div>
+              <h4 className="font-bold text-stone-900 text-base">
+                {isCanvaFree ? 'Canva Educação & Passaporte QR' : 'Passaporte Digital & Verificação Académica'}
+              </h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                {isCanvaFree
+                  ? 'Acesso gratuito ao Canva para Educação via login institucional, além de Cartão Académico verificável por QR Code.'
+                  : 'Cartão Académico Digital verificável por QR Code e elegibilidade institucional para GitHub Education, Figma e programas universitários.'}
+              </p>
+            </article>
+          </div>
+        </section>
+
+        {/* Acreditação Oficial e Conformidade APD */}
+        <section
+          id="acreditacao"
+          className="bg-stone-100 border border-stone-300/80 rounded-2xl p-6 sm:p-8 space-y-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-stone-800">
+              Acreditação Oficial e Proteção de Dados (Angola)
+            </h3>
+            <a href="/privacidade" className="text-xs font-semibold text-teal-800 hover:underline">
+              Consultar Política de Privacidade (Lei n.º 22/11) →
+            </a>
+          </div>
+
           <p className="text-xs text-stone-600 leading-relaxed max-w-3xl">
-            Este portal é gerado pela infraestrutura EduLink e serve como atestado público da existência jurídica e acreditação ministerial da instituição junto dos motores de auditoria do Google, Microsoft, SheerID, GitHub Education e DNS.AO.
+            Este portal institucional confirma o estatuto educativo oficial de <strong>{school.name}</strong>, os seus contactos administrativos e o enquadramento perante a Agência de Proteção de Dados (APD) para fins de verificação académica junto da DNS.AO, Google Workspace for Education, Microsoft 365 Education e parceiros educativos.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <div className="bg-white p-4 rounded-xl border border-stone-200">
-              <span className="block text-[11px] font-semibold uppercase text-stone-400">Reconhecimento Oficial</span>
+              <span className="block text-[11px] font-semibold uppercase text-stone-500">
+                {isHigherEd ? 'Reconhecimento MESCTI' : 'Alvará / Despacho MED'}
+              </span>
               <span className="block text-sm font-bold text-stone-900 mt-0.5">{school.alvara_med_mescti}</span>
             </div>
+
             <div className="bg-white p-4 rounded-xl border border-stone-200">
-              <span className="block text-[11px] font-semibold uppercase text-stone-400">Registo na APD (Lei n.º 22/11)</span>
-              <span className="block text-sm font-bold text-teal-700 mt-0.5">
-                {school.apd_notified ? (school.apd_dossier_number || 'Conformidade Notificada') : 'Em Processamento'}
+              <span className="block text-[11px] font-semibold uppercase text-stone-500">
+                Conformidade APD (Lei n.º 22/11)
+              </span>
+              <span className="block text-sm font-bold text-teal-800 mt-0.5">
+                {school.apd_notified
+                  ? school.apd_dossier_number || 'Notificação Submetida'
+                  : 'Em Conformidade / Processo em Curso'}
               </span>
             </div>
+
             <div className="bg-white p-4 rounded-xl border border-stone-200">
-              <span className="block text-[11px] font-semibold uppercase text-stone-400">Localização e Secretaria</span>
-              <span className="block text-sm font-bold text-stone-900 mt-0.5">{school.municipality}, {school.province}</span>
+              <span className="block text-[11px] font-semibold uppercase text-stone-500">
+                Localização e Secretaria
+              </span>
+              <span className="block text-sm font-bold text-stone-900 mt-0.5">
+                {school.municipality}, {school.province}
+              </span>
+              {school.address && (
+                <span className="block text-xs text-stone-500 mt-0.5">{school.address}</span>
+              )}
             </div>
           </div>
-        </div>
+        </section>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-stone-200 bg-white py-8 text-center text-xs text-stone-500">
-        <div className="max-w-6xl mx-auto px-4 space-y-2">
-          <p>
-            {school.name} • Contacto: {school.contact_email} | Telefone: {school.phone}
-          </p>
-          <p className="text-stone-400">
-            Alimentado pela infraestrutura multi-tenant <span className="font-semibold text-stone-600">EduLink Angola</span>.
-          </p>
+      <footer className="border-t border-stone-200 bg-white py-8 text-xs text-stone-600">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-center sm:text-left space-y-1">
+            <p className="font-semibold text-stone-800">{school.name}</p>
+            <p>
+              E-mail: <a href={`mailto:${school.contact_email}`} className="underline">{school.contact_email}</a>
+              {school.phone ? ` • Tel.: ${school.phone}` : ''}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-stone-500">
+            <a href="/privacidade" className="hover:text-stone-900 underline">
+              Política de Privacidade (APD)
+            </a>
+            <a href={portalUrl} className="hover:text-stone-900 underline">
+              Portal do Aluno
+            </a>
+            <a href={adminUrl} className="hover:text-stone-900 underline">
+              Secretaria
+            </a>
+          </div>
         </div>
       </footer>
     </div>

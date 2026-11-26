@@ -6,6 +6,9 @@ from .views import (
     SchoolPublicDetailView,
     SchoolViewSet,
     TLSDomainCheckAPIView,
+    SchoolOnboardingDocumentListCreateView,
+    SchoolOnboardingDocumentReviewView,
+    
 )
 
 app_name = 'tenants'
@@ -18,5 +21,15 @@ urlpatterns = [
     path('by-domain/', SchoolPublicDetailView.as_view(), name='school-by-domain'),
     path('tls-check/', TLSDomainCheckAPIView.as_view(), name='tls-check'),
     path('onboard/', SchoolOnboardAPIView.as_view(), name='school-onboard'),
+    path(
+    '<uuid:school_id>/documents/',
+    SchoolOnboardingDocumentListCreateView.as_view(),
+    name='school-documents',
+),
+path(
+    '<uuid:school_id>/documents/<uuid:doc_id>/review/',
+    SchoolOnboardingDocumentReviewView.as_view(),
+    name='school-document-review',
+),
     path('', include(router.urls)),
 ]
