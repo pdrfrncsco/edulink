@@ -10,7 +10,7 @@ from apps.billing.models import AGTInvoice, KwanzaPayment
 
 IVA_RATE_AO = Decimal('14.00')
 IVA_DIVISOR = Decimal('1.14')
-DEFAULT_SERIES = 'FT YE2026'
+DEFAULT_SERIES = 'FT EL2026'
 
 
 def calculate_iva_breakdown(total_aoa: Decimal) -> tuple[Decimal, Decimal, Decimal]:
@@ -68,7 +68,7 @@ def issue_agt_invoice(payment: KwanzaPayment) -> AGTInvoice:
         or '999999999'
     )
     issuer_nif = '5417098123'
-    software_cert = 'AGT-CERT-YETUEDU-2026'
+    software_cert = 'AGT-CERT-EDULINK-2026'
 
     qr_payload = (
         f"A:{issuer_nif}*B:{customer_nif}*C:AO*D:FT*E:N*"
@@ -137,7 +137,7 @@ def render_agt_invoice_html(invoice: AGTInvoice) -> str:
 <html lang="pt-AO">
 <head>
   <meta charset="utf-8" />
-  <title>Fatura {escape(invoice.invoice_number)} — YetuEdu AGT</title>
+  <title>Fatura {escape(invoice.invoice_number)} — EduLink AGT</title>
   <style>
     body {{ font-family: system-ui, -apple-system, sans-serif; color: #1c1917; max-width: 780px; margin: 32px auto; padding: 24px; line-height: 1.5; }}
     .header {{ display: flex; justify-content: space-between; border-bottom: 2px solid #0f766e; padding-bottom: 16px; margin-bottom: 20px; }}
@@ -219,7 +219,7 @@ def build_saft_export(school=None) -> dict:
         'Country': 'AO',
         'CurrencyCode': 'AOA',
         'TaxAccountingBasis': 'F',
-        'CompanyName': 'YetuEdu Tecnologia Educacional, Lda.',
+        'CompanyName': 'EduLink Tecnologia Educacional, Lda.',
         'TaxRegistrationNumber': '5417098123',
         'NumberOfEntries': len(invoices),
         'TotalGrossAOA': f"{total_gross:.2f}",

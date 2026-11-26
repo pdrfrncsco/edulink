@@ -67,7 +67,7 @@ class ERPSyncTests(TestCase):
             url,
             data=raw_enroll,
             content_type='application/json',
-            HTTP_X_YETUEDU_SIGNATURE='sha256=invalida',
+            HTTP_X_EDULINK_SIGNATURE='sha256=invalida',
         )
         self.assertEqual(bad_res.status_code, 401)
 
@@ -77,7 +77,7 @@ class ERPSyncTests(TestCase):
             url,
             data=raw_enroll,
             content_type='application/json',
-            HTTP_X_YETUEDU_SIGNATURE=sign_payload(secret, raw_enroll),
+            HTTP_X_EDULINK_SIGNATURE=sign_payload(secret, raw_enroll),
         )
         self.assertEqual(ok_res.status_code, 200)
         self.assertEqual(ok_res.json()['processing_status'], ERPSyncEvent.ProcessingStatus.PROCESSED)
@@ -92,7 +92,7 @@ class ERPSyncTests(TestCase):
             url,
             data=raw_enroll,
             content_type='application/json',
-            HTTP_X_YETUEDU_SIGNATURE=sign_payload(secret, raw_enroll),
+            HTTP_X_EDULINK_SIGNATURE=sign_payload(secret, raw_enroll),
         )
         self.assertEqual(dup_res.status_code, 200)
         self.assertEqual(dup_res.json()['status'], 'duplicate_ignored')
@@ -109,7 +109,7 @@ class ERPSyncTests(TestCase):
                 url,
                 data=raw_overdue,
                 content_type='application/json',
-                HTTP_X_YETUEDU_SIGNATURE=sign_payload(secret, raw_overdue),
+                HTTP_X_EDULINK_SIGNATURE=sign_payload(secret, raw_overdue),
             )
             self.assertEqual(ov_res.status_code, 200)
             enrollment.refresh_from_db()
@@ -128,7 +128,7 @@ class ERPSyncTests(TestCase):
                 url,
                 data=raw_settled,
                 content_type='application/json',
-                HTTP_X_YETUEDU_SIGNATURE=sign_payload(secret, raw_settled),
+                HTTP_X_EDULINK_SIGNATURE=sign_payload(secret, raw_settled),
             )
             self.assertEqual(st_res.status_code, 200)
             enrollment.refresh_from_db()

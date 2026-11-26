@@ -116,7 +116,7 @@ def _first_present(mapping: dict, keys: tuple[str, ...], default: str = '') -> s
 
 
 def verify_erp_signature(secret: str, raw_body: bytes, signature_header: str) -> bool:
-    """Valida a assinatura HMAC-SHA256 enviada no cabeçalho X-YetuEdu-Signature."""
+    """Valida a assinatura HMAC-SHA256 enviada no cabeçalho X-EduLink-Signature."""
     if not secret or not signature_header:
         return False
     provided = signature_header.strip()

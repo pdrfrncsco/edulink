@@ -75,7 +75,7 @@ class BenefitsClubTests(TestCase):
         self.offer_free = BenefitOffer.objects.create(
             partner=self.partner_books,
             title='Desconto 25% Balcão Luanda',
-            promo_code='LELLO-YETU25',
+            promo_code='LELLO-EDULINK25',
             price_aoa=Decimal('0.00'),
         )
         self.offer_teacher = BenefitOffer.objects.create(
@@ -111,7 +111,7 @@ class BenefitsClubTests(TestCase):
             format='json',
         )
         self.assertEqual(redeem_res.status_code, 201)
-        self.assertTrue(redeem_res.json()['voucher_code'].startswith('YETU-'))
+        self.assertTrue(redeem_res.json()['voucher_code'].startswith('EDULINK-'))
 
         # Parceiro valida QR Code via API Key no balcão (POS)
         anon = APIClient()
@@ -121,7 +121,7 @@ class BenefitsClubTests(TestCase):
             '/api/v1/benefits/redeem/',
             {'offer_id': str(self.offer_free.id), 'passport_token': token},
             format='json',
-            HTTP_X_PARTNER_API_KEY='yetu_partner_invalida',
+            HTTP_X_PARTNER_API_KEY='edulink_partner_invalida',
         )
         self.assertEqual(bad_key_res.status_code, 401)
 
@@ -144,3 +144,49 @@ class BenefitsClubTests(TestCase):
             format='json',
         )
         self.assertEqual(blocked_online.status_code, 403)
+
+    def test_only_platform_admin_can_manage_global_partners_offers_and_pos_keys(self):
+        sec_user = get_user_model().objects.create_user(username='sec_ben', password='Password123!')
+        UserProfile.objects.create(user=sec_user, role=UserProfile.Role.SCHOOL_SECRETARY, school=self.school)
+        sec_client = APIClient()
+        sec_client.force_authenticate(user=sec_user)
+
+        # Secretaria pode consultar parceiros/ofertas mas não criar/alterar nem gerar chaves POS
+        self.assertEqual(sec_client.get('/api/v1/benefits/partners/').status_code, 200)
+        self.assertEqual(
+            sec_client.post(
+                '/api/v1/benefits/partners/',
+                {'name': 'Africell Edu', 'category': 'TELECOM', 'discount_label': '10GB'},
+                format='json',
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            sec_client.post(
+                '/api/v1/benefits/offers/',
+                {'partner': str(self.partner_books.id), 'title': 'Invasão', 'price_aoa': '0.00'},
+                format='json',
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            sec_client.post(f'/api/v1/benefits/partners/{self.partner_books.id}/rotate-api-key/').status_code,
+            403,
+        )
+
+        # Administrador da Plataforma consegue gerir parceiros, ofertas e API keys POS
+        admin_user = get_user_model().objects.create_user(username='admin_ben', password='Password123!')
+        UserProfile.objects.create(user=admin_user, role=UserProfile.Role.PLATFORM_ADMIN)
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=admin_user)
+
+        create_partner = admin_client.post(
+            '/api/v1/benefits/partners/',
+            {'name': 'Africell Educação', 'category': 'TELECOM', 'discount_label': 'Dados Grátis'},
+            format='json',
+        )
+        self.assertEqual(create_partner.status_code, 201)
+        new_pid = create_partner.json()['id']
+        rot_res = admin_client.post(f'/api/v1/benefits/partners/{new_pid}/rotate-api-key/')
+        self.assertEqual(rot_res.status_code, 200)
+        self.assertTrue(rot_res.json()['api_key'].startswith('edulink_partner_'))

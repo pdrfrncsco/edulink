@@ -79,7 +79,7 @@ class IssuePassportTokenAPIView(APIView):
             return Response({'detail': 'Utilizador não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
         token = generate_passport_token(user)
-        base_url = getattr(settings, 'YETUEDU_PUBLIC_BASE_URL', 'http://localhost:3000').rstrip('/')
+        base_url = getattr(settings, 'EDULINK_PUBLIC_BASE_URL', 'http://localhost:3000').rstrip('/')
         verification_url = f"{base_url}/verify?token={token}"
 
         return Response({

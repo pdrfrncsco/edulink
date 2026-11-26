@@ -238,6 +238,32 @@ export default function PortalStudentPage() {
     return <AuthCard mode="academic" onAuthenticated={handleAuthenticated} />;
   }
 
+  if (authUser.role === 'PLATFORM_ADMIN' || authUser.role === 'SCHOOL_SECRETARY') {
+    return (
+      <div className="w-full max-w-md bg-white border border-stone-200 rounded-2xl p-6 text-center space-y-4 shadow-sm">
+        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
+          {authUser.role === 'PLATFORM_ADMIN' ? 'Administração da Plataforma' : 'Secretaria Escolar'}
+        </span>
+        <h1 className="text-lg font-bold text-stone-900">Acesso Administrativo</h1>
+        <p className="text-sm text-stone-600">
+          A conta <span className="font-mono">{authUser.email}</span> destina-se ao Painel Administrativo / Secretaria e não possui Passaporte de Estudante/Docente.
+        </p>
+        <div className="flex justify-center gap-3">
+          <a href="/admin" className="px-4 py-2 rounded-xl bg-teal-700 text-white text-xs font-semibold hover:bg-teal-800">
+            Ir para Painel Administrativo
+          </a>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-4 py-2 rounded-xl border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const isSuspended = passport?.status === 'SUSPENDED';
 
   return (

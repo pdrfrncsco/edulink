@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.permissions import (
+    IsPlatformAdmin,
     IsPlatformAdminOrSchoolSecretary,
     TenantScopedMixin,
     get_user_profile,
@@ -52,6 +53,22 @@ class SchoolViewSet(viewsets.ModelViewSet):
         if profile:
             profile.school = school
             profile.save(update_fields=['school'])
+
+    def get_permissions(self):
+        if self.action in ('toggle_active', 'destroy'):
+            return [IsPlatformAdmin()]
+        return [IsPlatformAdminOrSchoolSecretary()]
+
+    def perform_update(self, serializer):
+        if is_platform_admin(self.request.user):
+            serializer.save()
+            return
+        # Secretarias não podem alterar o estado de ativação global nem o selo APD via PATCH
+        serializer.save(
+            is_active=serializer.instance.is_active,
+            apd_notified=serializer.instance.apd_notified,
+            apd_dossier_number=serializer.instance.apd_dossier_number,
+        )
 
     @action(detail=True, methods=['post'])
     def toggle_active(self, request, pk=None):

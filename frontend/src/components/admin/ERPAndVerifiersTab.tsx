@@ -209,7 +209,7 @@ export default function ERPAndVerifiersTab({
               name="provider"
               value={erpProvider}
               onChange={(e) => setErpProvider(e.target.value as any)}
-              className="yetu-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm bg-white"
+              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm bg-white"
             >
               <option value="KLASSE">KLASSE ERP</option>
               <option value="SYSPORTAL">SysPortal Académico</option>
@@ -232,7 +232,7 @@ export default function ERPAndVerifiersTab({
               placeholder="https://api.erp-escola.ao/v1"
               value={apiBaseUrl}
               onChange={(e) => setApiBaseUrl(e.target.value)}
-              className="yetu-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm font-mono"
+              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm font-mono"
             />
           </div>
 
@@ -256,7 +256,7 @@ export default function ERPAndVerifiersTab({
                   </span>
                 </div>
                 <div>
-                  <span className="text-stone-500 block">Endpoint Webhook (Header: X-YetuEdu-Signature):</span>
+                  <span className="text-stone-500 block">Endpoint Webhook (Header: X-EduLink-Signature):</span>
                   <code className="block font-mono bg-white p-2 rounded border border-stone-200 break-all text-teal-800 mt-1">
                     {conn.webhook_path}
                   </code>
@@ -292,7 +292,7 @@ export default function ERPAndVerifiersTab({
         )}
 
         <div tabIndex={0} role="region" aria-labelledby="erp-events-caption" className="table-wrapper">
-          <table className="yetu-table text-xs sm:text-sm">
+          <table className="edulink-table text-xs sm:text-sm">
             <caption id="erp-events-caption" className="sr-only">
               Eventos recebidos dos ERPs locais
             </caption>
@@ -357,7 +357,7 @@ export default function ERPAndVerifiersTab({
               name="verifier"
               value={verifierType}
               onChange={(e) => setVerifierType(e.target.value as any)}
-              className="yetu-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm bg-white"
+              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm bg-white"
             >
               <option value="GITHUB_EDUCATION">GitHub Education Campus (Student Pack)</option>
               <option value="SHEERID">SheerID (Spotify Estudante, Google AI, Autodesk)</option>
@@ -374,7 +374,7 @@ export default function ERPAndVerifiersTab({
         </form>
 
         <div tabIndex={0} role="region" aria-labelledby="verifiers-table-caption" className="table-wrapper">
-          <table className="yetu-table text-xs sm:text-sm">
+          <table className="edulink-table text-xs sm:text-sm">
             <caption id="verifiers-table-caption" className="sr-only">
               Estado das candidaturas nos verificadores globais
             </caption>

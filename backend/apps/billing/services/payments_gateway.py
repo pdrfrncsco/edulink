@@ -64,7 +64,7 @@ def verify_gateway_signature(raw_body: bytes, signature_header: str) -> bool:
     """Valida assinatura HMAC-SHA256 do webhook de pagamento em Kwanzas."""
     if not signature_header:
         return False
-    secret = getattr(settings, 'KWANZA_GATEWAY_WEBHOOK_SECRET', 'yetuedu-kwanza-dev-secret')
+    secret = getattr(settings, 'KWANZA_GATEWAY_WEBHOOK_SECRET', 'edulink-kwanza-dev-secret')
     expected = hmac.new(secret.encode('utf-8'), raw_body, hashlib.sha256).hexdigest()
     provided = signature_header.replace('sha256=', '').strip()
     return hmac.compare_digest(expected, provided)

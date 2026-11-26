@@ -11,10 +11,11 @@ import {
   KwanzaPayment,
   SchoolSubscription,
 } from './types';
-import { openProtectedHtml } from '@/lib/auth';
+import { openProtectedHtml, AuthUser } from '@/lib/auth';
 
 interface BillingAndBenefitsTabProps {
   schoolId: string;
+  userRole: AuthUser['role'];
   onFeedback: (fb: FeedbackState | null) => void;
 }
 
@@ -27,7 +28,8 @@ function formatAOA(value: string | number): string {
   }).format(num) + ' Kz';
 }
 
-export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingAndBenefitsTabProps) {
+export default function BillingAndBenefitsTab({ schoolId, userRole, onFeedback }: BillingAndBenefitsTabProps) {
+  const isPlatformAdmin = userRole === 'PLATFORM_ADMIN';
   const [plans, setPlans] = useState<CommercialPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<SchoolSubscription[]>([]);
   const [payments, setPayments] = useState<KwanzaPayment[]>([]);
@@ -163,7 +165,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `saft-ao-yetuedu-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `saft-ao-edulink-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
       onFeedback({ type: 'success', message: `Exportação SAF-T (AO) gerada com ${saft.NumberOfEntries} fatura(s).` });
@@ -264,14 +266,14 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
 
         <form onSubmit={handleCreateSubscription} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end bg-stone-50 p-4 rounded-xl border border-stone-200">
           <div>
-            <label htmlFor="yetu-plan-select" className="block text-xs font-semibold text-stone-700 mb-1">
-              Plano YetuEdu (AOA)
+            <label htmlFor="edulink-plan-select" className="block text-xs font-semibold text-stone-700 mb-1">
+              Plano EduLink (AOA)
             </label>
             <select
-              id="yetu-plan-select"
+              id="edulink-plan-select"
               value={selectedPlan}
               onChange={(e) => setSelectedPlan(e.target.value as CommercialPlan['code'])}
-              className="yetu-input"
+              className="edulink-input"
             >
               {plans.length > 0 ? (
                 plans.map((p) => (
@@ -282,23 +284,23 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
               ) : (
                 <>
                   <option value="SETUP_DIGITAL">Setup Escola Digital — 150.000,00 Kz</option>
-                  <option value="ESSENCIAL">YetuEdu Essencial — 240.000,00 Kz</option>
-                  <option value="PRO">YetuEdu Pro — 480.000,00 Kz</option>
-                  <option value="CAMPUS">YetuEdu Campus — 1.200.000,00 Kz</option>
+                  <option value="ESSENCIAL">EduLink Essencial — 240.000,00 Kz</option>
+                  <option value="PRO">EduLink Pro — 480.000,00 Kz</option>
+                  <option value="CAMPUS">EduLink Campus — 1.200.000,00 Kz</option>
                 </>
               )}
             </select>
           </div>
 
           <div>
-            <label htmlFor="yetu-pay-method" className="block text-xs font-semibold text-stone-700 mb-1">
+            <label htmlFor="edulink-pay-method" className="block text-xs font-semibold text-stone-700 mb-1">
               Canal de Pagamento
             </label>
             <select
-              id="yetu-pay-method"
+              id="edulink-pay-method"
               value={payMethod}
               onChange={(e) => setPayMethod(e.target.value as any)}
-              className="yetu-input"
+              className="edulink-input"
             >
               <option value="MULTICAIXA_EXPRESS">Multicaixa Express</option>
               <option value="KWIK">KWiK (Transferência Instantânea)</option>
@@ -307,16 +309,16 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
           </div>
 
           <div>
-            <label htmlFor="yetu-pay-phone" className="block text-xs font-semibold text-stone-700 mb-1">
+            <label htmlFor="edulink-pay-phone" className="block text-xs font-semibold text-stone-700 mb-1">
               Telemóvel MCX / KWiK
             </label>
             <input
-              id="yetu-pay-phone"
+              id="edulink-pay-phone"
               type="tel"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder="+244 923 000 000"
-              className="yetu-input"
+              className="edulink-input"
             />
           </div>
 
@@ -330,7 +332,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
         </form>
 
         <div className="table-wrapper" tabIndex={0} role="region" aria-labelledby="heading-subs">
-          <table className="yetu-table">
+          <table className="edulink-table">
             <caption id="heading-subs" className="sr-only">Subscrições da escola selecionada</caption>
             <thead>
               <tr>
@@ -386,7 +388,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
 
         {payments.length > 0 && (
           <div className="table-wrapper" tabIndex={0} role="region" aria-labelledby="heading-payments">
-            <table className="yetu-table">
+            <table className="edulink-table">
               <caption id="heading-payments" className="sr-only">Pagamentos em Kwanzas</caption>
               <thead>
                 <tr>
@@ -416,14 +418,20 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                     </td>
                     <td data-label="Fatura / Simulação">
                       {pay.status === 'PENDING' ? (
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => handleSandboxConfirm(pay.id)}
-                          className="rounded-lg border border-teal-700 px-2.5 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-50"
-                        >
-                          Simular Confirmação (Sandbox)
-                        </button>
+                        isPlatformAdmin ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => handleSandboxConfirm(pay.id)}
+                            className="rounded-lg border border-teal-700 px-2.5 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-50"
+                          >
+                            Simular Confirmação (Admin / Sandbox)
+                          </button>
+                        ) : (
+                          <span className="text-xs text-amber-800 font-medium">
+                            Aguardar Liquidação MCX / Operador EduLink
+                          </span>
+                        )
                       ) : (
                         <span className="text-xs font-mono text-stone-700">{pay.invoice_number || 'Liquidado'}</span>
                       )}
@@ -455,7 +463,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
         </div>
 
         <div className="table-wrapper" tabIndex={0} role="region" aria-labelledby="heading-agt">
-          <table className="yetu-table">
+          <table className="edulink-table">
             <caption id="heading-agt" className="sr-only">Faturas Eletrónicas AGT emitidas</caption>
             <thead>
               <tr>
@@ -501,22 +509,32 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
       </section>
 
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm space-y-4">
-        <div>
-          <h2 className="text-base font-bold text-stone-900">3. Clube de Benefícios Angola (Parceiros &amp; Ofertas)</h2>
-          <p className="text-xs text-stone-600">
-            Operadoras (Unitel/Africell), livrarias e bancos com validação via Passaporte Digital QR no Portal ou POS.
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-base font-bold text-stone-900">3. Clube de Benefícios Angola (Parceiros &amp; Ofertas)</h2>
+            <p className="text-xs text-stone-600">
+              {isPlatformAdmin
+                ? 'Gestão global de operadoras (Unitel/Africell), livrarias e bancos com validação via Passaporte Digital QR.'
+                : 'Catálogo nacional de vantagens ativas disponíveis aos estudantes e docentes da instituição no Portal PWA.'}
+            </p>
+          </div>
+          {!isPlatformAdmin && (
+            <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
+              Gerido pela Administração EduLink
+            </span>
+          )}
         </div>
 
-        {generatedApiKey && (
+        {isPlatformAdmin && generatedApiKey && (
           <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
             <strong>API Key POS ({generatedApiKey.partnerName}):</strong>{' '}
             <code className="font-mono bg-white px-2 py-0.5 rounded border border-amber-200">{generatedApiKey.apiKey}</code>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <form onSubmit={handleCreatePartner} className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
+        {isPlatformAdmin && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <form onSubmit={handleCreatePartner} className="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
             <h3 className="text-xs font-bold uppercase tracking-wide text-stone-700">Novo Parceiro Comercial</h3>
             <div>
               <label htmlFor="partner-name" className="block text-xs font-semibold text-stone-700 mb-1">Nome do Parceiro</label>
@@ -526,7 +544,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
                 placeholder="Ex: Unitel Educação"
-                className="yetu-input"
+                className="edulink-input"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -536,7 +554,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                   id="partner-category"
                   value={partnerCategory}
                   onChange={(e) => setPartnerCategory(e.target.value as any)}
-                  className="yetu-input"
+                  className="edulink-input"
                 >
                   <option value="TELECOM">Telecom &amp; Dados</option>
                   <option value="BOOKSTORE">Livrarias</option>
@@ -553,7 +571,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                   value={partnerDiscount}
                   onChange={(e) => setPartnerDiscount(e.target.value)}
                   placeholder="Ex: 50% Bónus Dados"
-                  className="yetu-input"
+                  className="edulink-input"
                 />
               </div>
             </div>
@@ -574,7 +592,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                 id="offer-partner"
                 value={offerPartnerId}
                 onChange={(e) => setOfferPartnerId(e.target.value)}
-                className="yetu-input"
+                className="edulink-input"
               >
                 {partners.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
@@ -590,7 +608,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                   value={offerTitle}
                   onChange={(e) => setOfferTitle(e.target.value)}
                   placeholder="Ex: Pacote Estudante 10GB"
-                  className="yetu-input"
+                  className="edulink-input"
                 />
               </div>
               <div>
@@ -602,7 +620,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                   min="0"
                   value={offerPrice}
                   onChange={(e) => setOfferPrice(e.target.value)}
-                  className="yetu-input"
+                  className="edulink-input"
                 />
               </div>
             </div>
@@ -613,7 +631,7 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                 value={offerPromo}
                 onChange={(e) => setOfferPromo(e.target.value)}
                 placeholder="Ex: UNITEL-EDU26"
-                className="yetu-input"
+                className="edulink-input"
               />
             </div>
             <button
@@ -624,23 +642,24 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
               Publicar Oferta
             </button>
           </form>
-        </div>
+          </div>
+        )}
 
         <div className="table-wrapper" tabIndex={0} role="region" aria-labelledby="heading-partners">
-          <table className="yetu-table">
+          <table className="edulink-table">
             <caption id="heading-partners" className="sr-only">Parceiros e ofertas do Clube de Benefícios</caption>
             <thead>
               <tr>
                 <th scope="col">Parceiro</th>
                 <th scope="col">Vantagem</th>
                 <th scope="col">Ofertas Ativas</th>
-                <th scope="col">Integração POS</th>
+                {isPlatformAdmin && <th scope="col">Integração POS</th>}
               </tr>
             </thead>
             <tbody>
               {partners.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center text-xs text-stone-500 py-4">
+                  <td colSpan={isPlatformAdmin ? 4 : 3} className="text-center text-xs text-stone-500 py-4">
                     Nenhum parceiro configurado ainda.
                   </td>
                 </tr>
@@ -656,16 +675,18 @@ export default function BillingAndBenefitsTab({ schoolId, onFeedback }: BillingA
                           ? partnerOffers.map((o) => `${o.title} (${parseFloat(o.price_aoa) > 0 ? formatAOA(o.price_aoa) : 'QR Grátis'})`).join(', ')
                           : 'Sem ofertas'}
                       </td>
-                      <td data-label="Integração POS">
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => handleRotatePartnerKey(partner)}
-                          className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-800 hover:bg-stone-50"
-                        >
-                          {partner.has_api_key ? 'Rodar API Key POS' : 'Gerar API Key POS'}
-                        </button>
-                      </td>
+                      {isPlatformAdmin && (
+                        <td data-label="Integração POS">
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => handleRotatePartnerKey(partner)}
+                            className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-800 hover:bg-stone-50"
+                          >
+                            {partner.has_api_key ? 'Rodar API Key POS' : 'Gerar API Key POS'}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })

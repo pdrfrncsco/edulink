@@ -15,7 +15,7 @@ def default_eligible_roles() -> list:
 class BenefitPartner(UUIDModel, TimeStampedModel):
     """
     Parceiro comercial em Angola (operadoras, livrarias, bancos, software)
-    que oferece descontos ou pacotes educativos para titulares do Passaporte YetuEdu.
+    que oferece descontos ou pacotes educativos para titulares do Passaporte EduLink.
     """
     class Category(models.TextChoices):
         TELECOM = 'TELECOM', 'Telecomunicações & Dados Móveis'
@@ -54,7 +54,7 @@ class BenefitPartner(UUIDModel, TimeStampedModel):
         return f"{self.name} ({self.discount_label})"
 
     def generate_api_key(self) -> str:
-        raw_key = f"yetu_partner_{secrets.token_urlsafe(24)}"
+        raw_key = f"edulink_partner_{secrets.token_urlsafe(24)}"
         self.partner_api_key_hash = hashlib.sha256(raw_key.encode('utf-8')).hexdigest()
         return raw_key
 

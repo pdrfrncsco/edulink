@@ -28,7 +28,7 @@ class ERPConnectionViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             'id': str(conn.id),
             'provider': conn.provider,
             'webhook_secret': conn.get_webhook_secret(),
-            'signature_header': 'X-YetuEdu-Signature',
+            'signature_header': 'X-EduLink-Signature',
         })
 
     @action(detail=True, methods=['post'], url_path='rotate-secret')
@@ -91,7 +91,11 @@ class ERPWebhookInboundAPIView(APIView):
             return Response({'detail': 'Ligação ERP desativada.'}, status=status.HTTP_403_FORBIDDEN)
 
         raw_body = request.body or b''
-        signature = request.META.get('HTTP_X_YETUEDU_SIGNATURE') or request.META.get('HTTP_X_SIGNATURE', '')
+        signature = (
+            request.META.get('HTTP_X_EDULINK_SIGNATURE')
+            or request.META.get('HTTP_X_YETUEDU_SIGNATURE')
+            or request.META.get('HTTP_X_SIGNATURE', '')
+        )
         if not verify_erp_signature(conn.get_webhook_secret(), raw_body, signature):
             return Response({'detail': 'Assinatura HMAC inválida ou em falta.'}, status=status.HTTP_401_UNAUTHORIZED)
 

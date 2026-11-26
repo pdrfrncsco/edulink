@@ -15,19 +15,19 @@ PLAN_CATALOG = {
         'max_users': 500,
     },
     'ESSENCIAL': {
-        'label': 'YetuEdu Essencial (Anual)',
+        'label': 'EduLink Essencial (Anual)',
         'price_aoa': Decimal('240000.00'),
         'duration_days': 365,
         'max_users': 500,
     },
     'PRO': {
-        'label': 'YetuEdu Pro (Anual)',
+        'label': 'EduLink Pro (Anual)',
         'price_aoa': Decimal('480000.00'),
         'duration_days': 365,
         'max_users': 1500,
     },
     'CAMPUS': {
-        'label': 'YetuEdu Campus (Anual Ilimitado)',
+        'label': 'EduLink Campus (Anual Ilimitado)',
         'price_aoa': Decimal('1200000.00'),
         'duration_days': 365,
         'max_users': 0,
@@ -36,13 +36,13 @@ PLAN_CATALOG = {
 
 
 class SchoolSubscription(UUIDModel, TimeStampedModel):
-    """Subscrição comercial YetuEdu de uma escola em Kwanzas (AOA)."""
+    """Subscrição comercial EduLink de uma escola em Kwanzas (AOA)."""
 
     class PlanCode(models.TextChoices):
         SETUP_DIGITAL = 'SETUP_DIGITAL', 'Setup Escola Digital (150.000 Kz)'
-        ESSENCIAL = 'ESSENCIAL', 'YetuEdu Essencial (240.000 Kz/ano)'
-        PRO = 'PRO', 'YetuEdu Pro (480.000 Kz/ano)'
-        CAMPUS = 'CAMPUS', 'YetuEdu Campus (1.200.000 Kz/ano)'
+        ESSENCIAL = 'ESSENCIAL', 'EduLink Essencial (240.000 Kz/ano)'
+        PRO = 'PRO', 'EduLink Pro (480.000 Kz/ano)'
+        CAMPUS = 'CAMPUS', 'EduLink Campus (1.200.000 Kz/ano)'
 
     class Status(models.TextChoices):
         TRIAL = 'TRIAL', 'Período Experimental'
@@ -189,13 +189,13 @@ class AGTInvoice(UUIDModel, TimeStampedModel):
         related_name='agt_invoice',
         verbose_name='Pagamento Associado',
     )
-    series = models.CharField(max_length=20, default='FT YE2026', verbose_name='Série')
+    series = models.CharField(max_length=20, default='FT EL2026', verbose_name='Série')
     sequence_number = models.PositiveIntegerField(verbose_name='Número Sequencial')
     invoice_number = models.CharField(max_length=40, unique=True, verbose_name='Número da Fatura')
     issue_date = models.DateTimeField(verbose_name='Data de Emissão')
     issuer_name = models.CharField(
         max_length=255,
-        default='YetuEdu Tecnologia Educacional, Lda.',
+        default='EduLink Tecnologia Educacional, Lda.',
         verbose_name='Emitente',
     )
     issuer_nif = models.CharField(max_length=30, default='5417098123', verbose_name='NIF Emitente')
@@ -210,7 +210,7 @@ class AGTInvoice(UUIDModel, TimeStampedModel):
     hash_control = models.CharField(max_length=8, verbose_name='4 Caracteres de Controlo AGT')
     software_certificate_no = models.CharField(
         max_length=40,
-        default='AGT-CERT-YETUEDU-2026',
+        default='AGT-CERT-EDULINK-2026',
         verbose_name='Certificação Software',
     )
     qr_payload = models.TextField(verbose_name='Conteúdo QR Code AGT')

@@ -29,6 +29,14 @@ def is_platform_admin(user) -> bool:
     return bool(profile and profile.role == 'PLATFORM_ADMIN')
 
 
+class IsPlatformAdmin(BasePermission):
+    """Permite acesso apenas ao Administrador Global da Plataforma EduLink."""
+    message = 'Acesso exclusivo à Administração da Plataforma EduLink.'
+
+    def has_permission(self, request, view):
+        return is_platform_admin(request.user)
+
+
 class IsPlatformAdminOrSchoolSecretary(BasePermission):
     """
     Permite acesso apenas a PLATFORM_ADMIN ou SCHOOL_SECRETARY autenticado.

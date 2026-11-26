@@ -27,6 +27,7 @@ from apps.billing.services.payments_gateway import (
     verify_gateway_signature,
 )
 from apps.core.permissions import (
+    IsPlatformAdmin,
     IsPlatformAdminOrSchoolSecretary,
     TenantScopedMixin,
     get_user_profile,
@@ -35,7 +36,7 @@ from apps.core.permissions import (
 
 
 class PlanCatalogAPIView(APIView):
-    """Lista os planos comerciais em Kwanzas da plataforma YetuEdu."""
+    """Lista os planos comerciais em Kwanzas da plataforma EduLink."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -67,10 +68,14 @@ def _resolve_authorized_school(user, requested_school):
 
 
 class SchoolSubscriptionViewSet(TenantScopedMixin, viewsets.ModelViewSet):
-    """Gestão de subscrições comerciais por escola (com isolamento por tenant)."""
+    """Gestão de subscrições comerciais por escola (Secretaria contrata; Admin gere estados)."""
     queryset = SchoolSubscription.objects.select_related('school').all()
     serializer_class = SchoolSubscriptionSerializer
-    permission_classes = [IsPlatformAdminOrSchoolSecretary]
+
+    def get_permissions(self):
+        if self.action in ('update', 'partial_update', 'destroy'):
+            return [IsPlatformAdmin()]
+        return [IsPlatformAdminOrSchoolSecretary()]
 
     def perform_create(self, serializer):
         school = _resolve_authorized_school(
@@ -163,11 +168,11 @@ class KwanzaPaymentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='sandbox-confirm')
     def sandbox_confirm(self, request, pk=None):
-        """Confirmação manual em sandbox para secretaria/admin (emite Fatura AGT)."""
+        """Confirmação manual / sandbox exclusiva do Administrador da Plataforma (emite Fatura AGT)."""
         if not getattr(settings, 'KWANZA_SANDBOX_ENABLED', True):
             raise PermissionDenied('Confirmação sandbox desativada neste ambiente.')
-        if not IsPlatformAdminOrSchoolSecretary().has_permission(request, self):
-            raise PermissionDenied('Apenas administradores ou secretaria podem confirmar pagamentos sandbox.')
+        if not IsPlatformAdmin().has_permission(request, self):
+            raise PermissionDenied('Apenas o Administrador da Plataforma pode confirmar pagamentos manualmente / em sandbox.')
         payment = self.get_object()
         confirmed_payment, invoice = confirm_kwanza_payment(
             payment,

@@ -184,3 +184,38 @@ class MultiTenantAuthAndIsolationTests(TestCase):
             self.assertEqual(created['keycloak_id'], 'kc-u-1')
             disabled = kc.disable_user(self.student_b.institutional_email)
             self.assertEqual(disabled['status'], 'DISABLED')
+
+    def test_platform_admin_profiles_and_school_toggle_restrictions(self):
+        sec_a = get_user_model().objects.create_user(username='sec_rbac_a', password='Password123!')
+        sec_profile = UserProfile.objects.create(
+            user=sec_a, role=UserProfile.Role.SCHOOL_SECRETARY, school=self.school_a
+        )
+        sec_client = APIClient()
+        sec_client.force_authenticate(user=sec_a)
+
+        # Secretaria não acede à consola global de perfis nem pode suspender/eliminar a escola
+        self.assertEqual(sec_client.get('/api/v1/auth/profiles/').status_code, 403)
+        self.assertEqual(sec_client.post(f'/api/v1/tenants/schools/{self.school_a.id}/toggle_active/').status_code, 403)
+        self.assertEqual(sec_client.delete(f'/api/v1/tenants/schools/{self.school_a.id}/').status_code, 403)
+
+        # Admin da Plataforma lista contas, atualiza vínculo e alterna estado da escola
+        admin_user = get_user_model().objects.create_user(username='admin_rbac', password='Password123!')
+        UserProfile.objects.create(user=admin_user, role=UserProfile.Role.PLATFORM_ADMIN)
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=admin_user)
+
+        profiles_res = admin_client.get('/api/v1/auth/profiles/')
+        self.assertEqual(profiles_res.status_code, 200)
+        patch_res = admin_client.patch(
+            f'/api/v1/auth/profiles/{sec_profile.id}/',
+            {'school': str(self.school_b.id)},
+            format='json',
+        )
+        self.assertEqual(patch_res.status_code, 200)
+        sec_profile.refresh_from_db()
+        self.assertEqual(sec_profile.school_id, self.school_b.id)
+
+        toggle_res = admin_client.post(f'/api/v1/tenants/schools/{self.school_a.id}/toggle_active/')
+        self.assertEqual(toggle_res.status_code, 200)
+        self.school_a.refresh_from_db()
+        self.assertFalse(self.school_a.is_active)

@@ -161,7 +161,7 @@ export default async function SchoolSitePage({
             </div>
             <h3 className="font-bold text-stone-900 text-base">Microsoft 365 Education (A1)</h3>
             <p className="text-xs text-stone-500 leading-relaxed">
-              Acesso web a Word, Excel, PowerPoint, Teams e OneNote com licenças Faculty e Student provisionadas pela YetuEdu.
+              Acesso web a Word, Excel, PowerPoint, Teams e OneNote com licenças Faculty e Student provisionadas pela EduLink.
             </p>
           </div>
 
@@ -182,7 +182,7 @@ export default async function SchoolSitePage({
             Registo Oficial e Conformidade Regulatória (Angola)
           </h3>
           <p className="text-xs text-stone-600 leading-relaxed max-w-3xl">
-            Este portal é gerado pela infraestrutura YetuEdu e serve como atestado público da existência jurídica e acreditação ministerial da instituição junto dos motores de auditoria do Google, Microsoft, SheerID, GitHub Education e DNS.AO.
+            Este portal é gerado pela infraestrutura EduLink e serve como atestado público da existência jurídica e acreditação ministerial da instituição junto dos motores de auditoria do Google, Microsoft, SheerID, GitHub Education e DNS.AO.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
@@ -211,7 +211,7 @@ export default async function SchoolSitePage({
             {school.name} • Contacto: {school.contact_email} | Telefone: {school.phone}
           </p>
           <p className="text-stone-400">
-            Alimentado pela infraestrutura multi-tenant <span className="font-semibold text-stone-600">YetuEdu Angola</span>.
+            Alimentado pela infraestrutura multi-tenant <span className="font-semibold text-stone-600">EduLink Angola</span>.
           </p>
         </div>
       </footer>

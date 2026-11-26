@@ -16,7 +16,7 @@ from apps.tenants.models import School
 
 
 def sign_kwanza_webhook(body_bytes: bytes) -> str:
-    secret = getattr(settings, 'KWANZA_GATEWAY_WEBHOOK_SECRET', 'yetuedu-kwanza-dev-secret')
+    secret = getattr(settings, 'KWANZA_GATEWAY_WEBHOOK_SECRET', 'edulink-kwanza-dev-secret')
     digest = hmac.new(secret.encode('utf-8'), body_bytes, hashlib.sha256).hexdigest()
     return f"sha256={digest}"
 
@@ -42,6 +42,9 @@ class BillingKwanzasAndAGTTests(TestCase):
 
         self.sec_b = get_user_model().objects.create_user(username='sec_hb', password='Password123!')
         UserProfile.objects.create(user=self.sec_b, role=UserProfile.Role.SCHOOL_SECRETARY, school=self.school_b)
+
+        self.platform_admin = get_user_model().objects.create_user(username='ops_admin', password='Password123!')
+        UserProfile.objects.create(user=self.platform_admin, role=UserProfile.Role.PLATFORM_ADMIN)
 
         self.student_user = get_user_model().objects.create_user(username='aluno_ls', password='Password123!')
         self.academic_student = AcademicUser.objects.create(
@@ -110,7 +113,7 @@ class BillingKwanzasAndAGTTests(TestCase):
             HTTP_X_KWANZA_SIGNATURE=sign_kwanza_webhook(webhook_payload),
         )
         self.assertEqual(ok_wh.status_code, 200)
-        self.assertEqual(ok_wh.json()['invoice_number'], 'FT YE2026/00001')
+        self.assertEqual(ok_wh.json()['invoice_number'], 'FT EL2026/00001')
 
         sub = SchoolSubscription.objects.get(id=sub_id)
         self.assertEqual(sub.status, SchoolSubscription.Status.ACTIVE)
@@ -118,9 +121,9 @@ class BillingKwanzasAndAGTTests(TestCase):
         inv1 = AGTInvoice.objects.get(sequence_number=1)
         self.assertEqual(inv1.previous_hash, '')
         self.assertEqual(inv1.subtotal_aoa + inv1.iva_amount_aoa, Decimal('480000.00'))
-        self.assertIn('G:FT YE2026/00001', inv1.qr_payload)
+        self.assertIn('G:FT EL2026/00001', inv1.qr_payload)
 
-        # 5. Segunda escola faz pagamento e confirma via sandbox -> hash encadeado + XSS escape + isolamento
+        # 5. Segunda escola gera pagamento KWiK; Secretaria NÃO pode auto-confirmar sandbox nem alterar subscrição (403)
         client_b = APIClient()
         client_b.force_authenticate(user=self.sec_b)
         sub_b_res = client_b.post(
@@ -128,17 +131,32 @@ class BillingKwanzasAndAGTTests(TestCase):
             {'school': str(self.school_b.id), 'plan_code': 'ESSENCIAL'},
             format='json',
         )
+        sub_b_id = sub_b_res.json()['id']
+        self.assertEqual(
+            client_b.patch(f"/api/v1/billing/subscriptions/{sub_b_id}/", {'plan_code': 'CAMPUS'}, format='json').status_code,
+            403,
+        )
+
         pay_b_res = client_b.post(
             '/api/v1/billing/payments/',
-            {'subscription': sub_b_res.json()['id'], 'payment_method': 'KWIK'},
+            {'subscription': sub_b_id, 'payment_method': 'KWIK'},
             format='json',
         )
         self.assertEqual(pay_b_res.status_code, 201)
-        confirm_b = client_b.post(f"/api/v1/billing/payments/{pay_b_res.json()['id']}/sandbox-confirm/")
+        pay_b_id = pay_b_res.json()['id']
+        self.assertEqual(
+            client_b.post(f"/api/v1/billing/payments/{pay_b_id}/sandbox-confirm/").status_code,
+            403,
+        )
+
+        # Admin da Plataforma confirma manualmente / sandbox -> hash encadeado + XSS escape + isolamento
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=self.platform_admin)
+        confirm_b = admin_client.post(f"/api/v1/billing/payments/{pay_b_id}/sandbox-confirm/")
         self.assertEqual(confirm_b.status_code, 200)
 
         inv2 = AGTInvoice.objects.get(sequence_number=2)
-        self.assertEqual(inv2.invoice_number, 'FT YE2026/00002')
+        self.assertEqual(inv2.invoice_number, 'FT EL2026/00002')
         self.assertEqual(inv2.previous_hash, inv1.agt_hash)
 
         # Escola A não acede à fatura da Escola B (404 pelo TenantScopedMixin)

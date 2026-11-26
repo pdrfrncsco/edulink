@@ -162,3 +162,42 @@ class ActivateAcademicAccountSerializer(serializers.Serializer):
             academic_user=academic_user,
         )
         return user
+
+
+class AdminUserProfileSerializer(serializers.ModelSerializer):
+    """Gestão de perfis e vínculos escola/papel exclusiva do Administrador da Plataforma."""
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.EmailField(source='user.email', read_only=True)
+    full_name = serializers.SerializerMethodField()
+    user_is_active = serializers.BooleanField(source='user.is_active')
+    school_name = serializers.CharField(source='school.name', read_only=True)
+    school_domain = serializers.CharField(source='school.domain', read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            'id',
+            'username',
+            'email',
+            'full_name',
+            'role',
+            'school',
+            'school_name',
+            'school_domain',
+            'user_is_active',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'username', 'email', 'full_name', 'created_at']
+
+    def get_full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
+        if user_data is not None and 'is_active' in user_data:
+            req = self.context.get('request')
+            if req and req.user and req.user.id == instance.user_id and not user_data['is_active']:
+                raise serializers.ValidationError({'user_is_active': 'Não pode desativar a sua própria conta.'})
+            instance.user.is_active = user_data['is_active']
+            instance.user.save(update_fields=['is_active'])
+        return super().update(instance, validated_data)

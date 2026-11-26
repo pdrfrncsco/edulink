@@ -1,18 +1,21 @@
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.permissions import (
+    IsPlatformAdmin,
     IsPlatformAdminOrSchoolSecretary,
     get_user_profile,
     is_platform_admin,
 )
 from apps.directory.models import AcademicUser
 from apps.tenants.models import School
+from .models import UserProfile
 from .serializers import (
     ActivateAcademicAccountSerializer,
+    AdminUserProfileSerializer,
     LoginSerializer,
     RegisterSecretarySerializer,
     build_user_payload,
@@ -114,3 +117,13 @@ class SyncKeycloakAPIView(APIView):
             })
         except KeycloakSyncError as exc:
             return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+class AdminUserProfileViewSet(viewsets.ModelViewSet):
+    """Consola de contas e vínculos escola/papel exclusiva do Administrador da Plataforma."""
+    queryset = UserProfile.objects.select_related('user', 'school', 'academic_user').order_by('-created_at')
+    serializer_class = AdminUserProfileSerializer
+    permission_classes = [IsPlatformAdmin]
+    http_method_names = ['get', 'patch', 'head', 'options']
+    filterset_fields = ['role', 'school']
+    search_fields = ['user__email', 'user__username', 'user__first_name', 'user__last_name', 'school__name']

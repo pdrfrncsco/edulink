@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.core.permissions import IsPlatformAdminOrSchoolSecretary, get_user_profile, is_platform_admin
+from apps.core.permissions import IsPlatformAdmin, get_user_profile, is_platform_admin
 from apps.directory.models import AcademicUser, Enrollment
 from apps.passport.services.jwt_signer import verify_passport_token
 from .models import BenefitOffer, BenefitPartner, BenefitRedemption
@@ -18,7 +18,7 @@ from .serializers import (
 
 
 class BenefitPartnerViewSet(viewsets.ModelViewSet):
-    """Parceiros do Clube de Benefícios (leitura para autenticados; gestão para administração)."""
+    """Parceiros globais do Clube de Benefícios (leitura autenticada; gestão exclusiva Admin da Plataforma)."""
     queryset = BenefitPartner.objects.all()
     serializer_class = BenefitPartnerSerializer
     filterset_fields = ['category', 'is_active']
@@ -26,13 +26,11 @@ class BenefitPartnerViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
-        return [IsPlatformAdminOrSchoolSecretary()]
+        return [IsPlatformAdmin()]
 
     @action(detail=True, methods=['post'], url_path='rotate-api-key')
     def rotate_api_key(self, request, pk=None):
         """Gera uma nova chave de API do parceiro; restrito a administradores da plataforma."""
-        if not is_platform_admin(request.user) and not getattr(request.user, 'is_superuser', False):
-            raise PermissionDenied('Apenas administradores da plataforma podem gerar chaves API de parceiros.')
         partner = self.get_object()
         raw_key = partner.generate_api_key()
         partner.save(update_fields=['partner_api_key_hash'])
@@ -40,7 +38,7 @@ class BenefitPartnerViewSet(viewsets.ModelViewSet):
 
 
 class BenefitOfferViewSet(viewsets.ModelViewSet):
-    """Ofertas de benefícios e pacotes educativos em Kwanzas."""
+    """Ofertas de benefícios e pacotes educativos em Kwanzas (gestão exclusiva Admin da Plataforma)."""
     queryset = BenefitOffer.objects.select_related('partner').all()
     serializer_class = BenefitOfferSerializer
     filterset_fields = ['partner', 'is_active']
@@ -48,7 +46,7 @@ class BenefitOfferViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
-        return [IsPlatformAdminOrSchoolSecretary()]
+        return [IsPlatformAdmin()]
 
 
 class BenefitCatalogAPIView(generics.ListAPIView):
@@ -128,7 +126,7 @@ class BenefitRedeemAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        voucher_code = f"YETU-{secrets.token_hex(4).upper()}"
+        voucher_code = f"EDULINK-{secrets.token_hex(4).upper()}"
         redemption = BenefitRedemption.objects.create(
             offer=offer,
             partner=offer.partner,

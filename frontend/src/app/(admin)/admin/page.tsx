@@ -7,6 +7,7 @@ import DirectoryTab from '@/components/admin/DirectoryTab';
 import DomainsDNSTab from '@/components/admin/DomainsDNSTab';
 import ERPAndVerifiersTab from '@/components/admin/ERPAndVerifiersTab';
 import OnboardingTab from '@/components/admin/OnboardingTab';
+import PlatformOpsTab from '@/components/admin/PlatformOpsTab';
 import ProvisioningTab from '@/components/admin/ProvisioningTab';
 import SchoolSelectorBar from '@/components/admin/SchoolSelectorBar';
 import { apiJson, FeedbackState, School } from '@/components/admin/types';
@@ -14,6 +15,7 @@ import AuthCard from '@/components/auth/AuthCard';
 import { AuthUser, clearAuthSession, getAccessToken, getStoredUser, updateStoredUser } from '@/lib/auth';
 
 type TabKey =
+  | 'platform_ops'
   | 'onboarding'
   | 'directory'
   | 'provisioning'
@@ -22,14 +24,28 @@ type TabKey =
   | 'erp_verifiers'
   | 'billing_benefits';
 
-const TABS: { id: TabKey; label: string }[] = [
-  { id: 'onboarding', label: '1. Onboarding & Escola' },
+const PLATFORM_ADMIN_TABS: { id: TabKey; label: string }[] = [
+  { id: 'platform_ops', label: '0. Operação Plataforma' },
+  { id: 'onboarding', label: '1. Nova Escola' },
   { id: 'directory', label: '2. Directório & CSV' },
   { id: 'provisioning', label: '3. Provisionamento Cloud' },
   { id: 'domains', label: '4. Domínios .edu.ao & DNS' },
   { id: 'compliance', label: '5. Dossiê APD & Termos' },
   { id: 'erp_verifiers', label: '6. ERPs & Verificadores' },
   { id: 'billing_benefits', label: '7. Planos, Kwanzas & AGT' },
+];
+
+const SECRETARY_ONBOARDING_TABS: { id: TabKey; label: string }[] = [
+  { id: 'onboarding', label: '1. Registar Minha Escola' },
+];
+
+const SECRETARY_OPERATIONAL_TABS: { id: TabKey; label: string }[] = [
+  { id: 'directory', label: '1. Directório & CSV' },
+  { id: 'provisioning', label: '2. Provisionamento Cloud' },
+  { id: 'domains', label: '3. Domínios .edu.ao & DNS' },
+  { id: 'compliance', label: '4. Dossiê APD & Termos' },
+  { id: 'erp_verifiers', label: '5. ERPs & Verificadores' },
+  { id: 'billing_benefits', label: '6. Planos, Kwanzas & AGT' },
 ];
 
 export default function AdminPage() {
@@ -40,6 +56,7 @@ export default function AdminPage() {
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const tabRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
+    platform_ops: null,
     onboarding: null,
     directory: null,
     provisioning: null,
@@ -67,6 +84,16 @@ export default function AdminPage() {
     }
   };
 
+  const applyInitialTabForRole = (user: AuthUser) => {
+    if (user.role === 'PLATFORM_ADMIN') {
+      setActiveTab('platform_ops');
+    } else if (user.school_id) {
+      setActiveTab('directory');
+    } else {
+      setActiveTab('onboarding');
+    }
+  };
+
   const syncSession = async () => {
     const token = getAccessToken();
     const cached = getStoredUser();
@@ -80,6 +107,7 @@ export default function AdminPage() {
       const me = await apiJson<AuthUser>('/auth/me/');
       setAuthUser(me);
       updateStoredUser(me);
+      applyInitialTabForRole(me);
       await loadSchools(me.school_id || undefined);
     } catch {
       clearAuthSession();
@@ -97,11 +125,7 @@ export default function AdminPage() {
     setAuthUser(user);
     setFeedback(null);
     await loadSchools(user.school_id || undefined);
-    if (user.school_id) {
-      setActiveTab('directory');
-    } else {
-      setActiveTab('onboarding');
-    }
+    applyInitialTabForRole(user);
   };
 
   const handleLogout = () => {
@@ -118,19 +142,6 @@ export default function AdminPage() {
       const el = tabRefs.current[nextTab];
       el?.focus();
       el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    }
-  };
-
-  const handleTabKeyDown = (e: React.KeyboardEvent, idx: number) => {
-    let nextIdx: number | null = null;
-    if (e.key === 'ArrowRight') nextIdx = (idx + 1) % TABS.length;
-    else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + TABS.length) % TABS.length;
-    else if (e.key === 'Home') nextIdx = 0;
-    else if (e.key === 'End') nextIdx = TABS.length - 1;
-
-    if (nextIdx !== null) {
-      e.preventDefault();
-      selectTab(TABS[nextIdx].id, true);
     }
   };
 
@@ -173,25 +184,63 @@ export default function AdminPage() {
     );
   }
 
+  const isPlatformAdmin = authUser.role === 'PLATFORM_ADMIN';
+  const activeSchool = schools.find((s) => s.id === selectedSchoolId) || null;
+  const visibleTabs = isPlatformAdmin
+    ? PLATFORM_ADMIN_TABS
+    : authUser.school_id || selectedSchoolId
+    ? SECRETARY_OPERATIONAL_TABS
+    : SECRETARY_ONBOARDING_TABS;
+
+  const handleTabKeyDown = (e: React.KeyboardEvent, idx: number) => {
+    let nextIdx: number | null = null;
+    if (e.key === 'ArrowRight') nextIdx = (idx + 1) % visibleTabs.length;
+    else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + visibleTabs.length) % visibleTabs.length;
+    else if (e.key === 'Home') nextIdx = 0;
+    else if (e.key === 'End') nextIdx = visibleTabs.length - 1;
+
+    if (nextIdx !== null) {
+      e.preventDefault();
+      selectTab(visibleTabs[nextIdx].id, true);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-1.5">
-            <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800">
-              Portal Operacional da Secretaria
+            <span
+              className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                isPlatformAdmin ? 'bg-amber-100 text-amber-900' : 'bg-teal-100 text-teal-800'
+              }`}
+            >
+              {isPlatformAdmin
+                ? 'Consola do Operador EduLink • Multi-Tenant'
+                : 'Portal da Secretaria Escolar • Tenant Isolado'}
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
-              Gestão Multi-Tenant, Provisionamento & Conformidade
+              {isPlatformAdmin
+                ? 'Administração Global da Plataforma EduLink'
+                : activeSchool
+                ? activeSchool.name
+                : 'Onboarding Inicial da Instituição (.edu.ao)'}
             </h1>
             <p className="text-sm text-stone-600 max-w-2xl">
-              Controle completo do ciclo escolar: registo <code>.edu.ao</code>, importação CSV, sincronização Google/Microsoft, zona DNS Cloudflare e dossiê da APD (Lei n.º 22/11).
+              {isPlatformAdmin
+                ? 'Gestão global de escolas (.edu.ao), contas de secretaria, catálogo nacional de parceiros, pagamentos em Kwanzas e suporte multi-tenant.'
+                : 'Gestão exclusiva da sua escola: directório de estudantes/docentes, Google/Microsoft/Keycloak, DNS Cloudflare, dossiê APD, ERPs e faturação AGT.'}
             </p>
           </div>
 
           <div className="flex items-center gap-3 self-start lg:self-center bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs">
             <div>
-              <span className="font-bold text-stone-900 block">{authUser.full_name}</span>
+              <span className="font-bold text-stone-900 block">
+                {authUser.full_name}{' '}
+                <span className="font-normal text-stone-500">
+                  ({isPlatformAdmin ? 'Admin Plataforma' : 'Secretaria'})
+                </span>
+              </span>
               <span className="text-stone-500 font-mono">{authUser.email}</span>
             </div>
             <button
@@ -204,19 +253,43 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <SchoolSelectorBar
-          schools={schools}
-          selectedSchoolId={selectedSchoolId}
-          onSelectSchool={setSelectedSchoolId}
-          onRefreshSchools={() => loadSchools()}
-        />
+        {isPlatformAdmin ? (
+          <SchoolSelectorBar
+            schools={schools}
+            selectedSchoolId={selectedSchoolId}
+            onSelectSchool={setSelectedSchoolId}
+            onRefreshSchools={() => loadSchools()}
+          />
+        ) : activeSchool ? (
+          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold uppercase text-stone-600">Instituição Vinculada:</span>
+              <span className="px-2.5 py-1 rounded-full bg-white border border-stone-200 font-mono text-stone-800">
+                {activeSchool.domain}
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 font-semibold">
+                {activeSchool.total_students ?? 0} Alunos • {activeSchool.total_teachers ?? 0} Docentes
+              </span>
+              <span
+                className={`px-2.5 py-1 rounded-full font-semibold border ${
+                  activeSchool.apd_notified
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                }`}
+              >
+                {activeSchool.apd_notified ? `APD: ${activeSchool.apd_dossier_number || 'Submetido'}` : 'APD: Pendente'}
+              </span>
+            </div>
+            <span className="text-stone-500">NIF {activeSchool.nif} • {activeSchool.alvara_med_mescti}</span>
+          </div>
+        ) : null}
 
         <div
           role="tablist"
-          aria-label="Módulos do Portal da Secretaria"
+          aria-label={isPlatformAdmin ? 'Módulos de Administração da Plataforma' : 'Módulos da Secretaria Escolar'}
           className="edulink-tablist border-b border-stone-200 gap-2 sm:gap-6 text-sm"
         >
-          {TABS.map((tab, idx) => {
+          {visibleTabs.map((tab, idx) => {
             const isSelected = activeTab === tab.id;
             return (
               <button
@@ -284,15 +357,31 @@ export default function AdminPage() {
         </div>
       )}
 
-      <div role="tabpanel" aria-labelledby="tab-onboarding" hidden={activeTab !== 'onboarding'}>
-        <OnboardingTab
-          onSchoolCreated={(id) => {
-            loadSchools(id);
-            setActiveTab('directory');
-          }}
-          onFeedback={setFeedback}
-        />
-      </div>
+      {isPlatformAdmin && (
+        <div role="tabpanel" aria-labelledby="tab-platform_ops" hidden={activeTab !== 'platform_ops'}>
+          <PlatformOpsTab
+            schools={schools}
+            selectedSchoolId={selectedSchoolId}
+            onSelectSchool={setSelectedSchoolId}
+            onOperateSchool={() => setActiveTab('directory')}
+            onSchoolsUpdated={() => loadSchools(selectedSchoolId)}
+            onFeedback={setFeedback}
+          />
+        </div>
+      )}
+
+      {(isPlatformAdmin || (!authUser.school_id && !selectedSchoolId)) && (
+        <div role="tabpanel" aria-labelledby="tab-onboarding" hidden={activeTab !== 'onboarding'}>
+          <OnboardingTab
+            onSchoolCreated={async (id) => {
+              await syncSession();
+              await loadSchools(id);
+              setActiveTab('directory');
+            }}
+            onFeedback={setFeedback}
+          />
+        </div>
+      )}
 
       <div role="tabpanel" aria-labelledby="tab-directory" hidden={activeTab !== 'directory'}>
         <DirectoryTab
@@ -327,7 +416,7 @@ export default function AdminPage() {
       </div>
 
       <div role="tabpanel" aria-labelledby="tab-billing_benefits" hidden={activeTab !== 'billing_benefits'}>
-        <BillingAndBenefitsTab schoolId={selectedSchoolId} onFeedback={setFeedback} />
+        <BillingAndBenefitsTab schoolId={selectedSchoolId} userRole={authUser.role} onFeedback={setFeedback} />
       </div>
     </div>
   );
