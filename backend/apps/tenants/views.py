@@ -274,7 +274,7 @@ class CloudIntegrationViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     Gestão das credenciais encriptadas e estado de sincronização cloud, isolada por escola.
     """
 
-    queryset = CloudIntegration.objects.all()
+    queryset = CloudIntegration.objects.all().select_related('school').order_by('school__name', 'provider', 'id')
     serializer_class = CloudIntegrationSerializer
     permission_classes = [IsPlatformAdminOrSchoolSecretary]
     filterset_fields = ['school', 'provider', 'sync_enabled', 'sync_status']

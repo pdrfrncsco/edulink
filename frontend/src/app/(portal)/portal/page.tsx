@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
+import { Button, Modal } from '@/components/ui';
 import AuthCard from '@/components/auth/AuthCard';
 import {
   authFetch,
@@ -779,6 +780,7 @@ export default function PortalStudentPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <select
+                  aria-label="Canal de pagamento"
                   value={payMethod}
                   onChange={(e) => setPayMethod(e.target.value as PaymentChannel)}
                   className="rounded-lg border border-stone-300 bg-white px-2.5 py-2 text-xs"
@@ -789,6 +791,7 @@ export default function PortalStudentPage() {
                 <input
                   type="tel"
                   required
+                  aria-label="Número de telemóvel para pagamento"
                   placeholder="+244 923 000 000"
                   value={payPhone}
                   onChange={(e) => setPayPhone(e.target.value)}
@@ -916,38 +919,32 @@ export default function PortalStudentPage() {
       )}
 
       {/* MODAL QR EM ECRÃ INTEIRO (ALTO CONTRASTE) */}
-      {qrFullscreen && passport && qrDataUrl && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="QR Code do Passaporte Académico em ecrã inteiro"
-          className="fixed inset-0 z-50 bg-stone-950/90 flex items-center justify-center p-4"
-          onClick={() => setQrFullscreen(false)}
-        >
-          <div
-            className="w-full max-w-xs bg-white rounded-3xl p-6 text-center space-y-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div>
-              <p className="text-[11px] font-bold uppercase text-teal-800">{passport.schoolName}</p>
-              <p className="text-base font-extrabold text-stone-900">{passport.fullName}</p>
-              <p className="text-xs font-mono text-stone-500">{passport.biNumber}</p>
-            </div>
+      <Modal
+        open={Boolean(qrFullscreen && passport && qrDataUrl)}
+        onClose={() => setQrFullscreen(false)}
+        eyebrow={passport?.schoolName}
+        title={passport?.fullName || 'QR Code do Passaporte Académico'}
+        description={passport ? `BI / Processo: ${passport.biNumber}` : undefined}
+        size="sm"
+      >
+        {passport && qrDataUrl && (
+          <div className="text-center space-y-4">
             <img
               src={qrDataUrl}
               alt={`QR Code ampliado de ${passport.fullName}`}
-              className="w-60 h-60 mx-auto rounded-xl border border-stone-200 p-2"
+              className="w-60 h-60 mx-auto rounded-xl border border-stone-200 p-2 bg-white"
             />
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              fullWidth
               onClick={() => setQrFullscreen(false)}
-              className="w-full py-2.5 rounded-xl bg-stone-900 text-white text-xs font-semibold"
             >
               Fechar
-            </button>
+            </Button>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* BOTTOM TAB BAR MOBILE-FIRST */}
       <nav

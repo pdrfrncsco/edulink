@@ -24,10 +24,23 @@ export default function ComplianceAPDTab({ schoolId, onFeedback, onSchoolUpdated
   const [emailPromptId, setEmailPromptId] = useState<string | null>(null);
   const [guardianEmailInput, setGuardianEmailInput] = useState('');
 
+  const resetDossierFields = () => {
+    setDirectorName('');
+    setDirectorBi('');
+    setDpoName('');
+    setDpoEmail('');
+    setInstitutionType('PRIMARY_SECONDARY');
+    setHasMinors(true);
+    setApdRefNumber('');
+    setEmailPromptId(null);
+    setGuardianEmailInput('');
+  };
+
   const loadCompliance = async () => {
     if (!schoolId) {
       setDossier(null);
       setConsents([]);
+      resetDossierFields();
       return;
     }
     try {
@@ -45,6 +58,10 @@ export default function ComplianceAPDTab({ schoolId, onFeedback, onSchoolUpdated
         setInstitutionType(first.institution_type);
         setHasMinors(first.has_minors);
         setApdRefNumber(first.apd_reference_number || '');
+        setEmailPromptId(null);
+        setGuardianEmailInput('');
+      } else {
+        resetDossierFields();
       }
       setConsents(conData.results || []);
     } catch (err: any) {

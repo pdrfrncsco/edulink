@@ -51,6 +51,8 @@ export default function ERPAndVerifiersTab({
   };
 
   useEffect(() => {
+    setRevealedSecrets({});
+    setApiBaseUrl('');
     loadAll();
   }, [schoolId]);
 

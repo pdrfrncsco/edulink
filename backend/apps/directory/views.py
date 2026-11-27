@@ -24,7 +24,7 @@ from .tasks import send_academic_activation_email_task
 
 class AcademicUserViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     """Directório completo de estudantes e professores isolado por escola."""
-    queryset = AcademicUser.objects.all().select_related('school')
+    queryset = AcademicUser.objects.all().select_related('school').order_by('full_name', 'id')
     serializer_class = AcademicUserSerializer
     permission_classes = [IsPlatformAdminOrSchoolSecretary]
     search_fields = ['full_name', 'institutional_email', 'bi_or_student_id']
@@ -82,7 +82,7 @@ class AcademicUserViewSet(TenantScopedMixin, viewsets.ModelViewSet):
 
 class EnrollmentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     """Gestão de matrículas e turmas por ano lectivo isolada por escola."""
-    queryset = Enrollment.objects.all().select_related('user', 'school')
+    queryset = Enrollment.objects.all().select_related('user', 'school').order_by('-academic_year', 'user__full_name', 'id')
     serializer_class = EnrollmentSerializer
     permission_classes = [IsPlatformAdminOrSchoolSecretary]
     search_fields = ['user__full_name', 'user__institutional_email', 'grade_class']

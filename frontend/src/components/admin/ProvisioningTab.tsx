@@ -43,6 +43,11 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
   };
 
   useEffect(() => {
+    setGoogleJson('');
+    setDelegatedAdmin('');
+    setMsTenantId('');
+    setMsClientId('');
+    setMsClientSecret('');
     loadData();
   }, [schoolId]);
 

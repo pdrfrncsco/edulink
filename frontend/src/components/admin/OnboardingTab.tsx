@@ -46,7 +46,6 @@ const ANGOLA_PROVINCES: Record<string, string[]> = {
   Uíge: ['Uíge', 'Negage', 'Maquela do Zombo'],
   Malanje: ['Malanje', 'Cacuso', 'Calandula'],
   Namibe: ['Moçâmedes', 'Tômbwa', 'Bibala'],
-  Huíla_Outras: [],
   Bengo: ['Caxito', 'Dande', 'Ambriz'],
   Cunene: ['Ondjiva', 'Cuanhama', 'Ombadja'],
   'Lunda Norte': ['Dundo', 'Chitato', 'Lucapa'],
@@ -56,7 +55,7 @@ const ANGOLA_PROVINCES: Record<string, string[]> = {
   Zaire: ['Mbanza Kongo', 'Soyo', 'Nzeto'],
 };
 
-const PROVINCE_LIST = Object.keys(ANGOLA_PROVINCES).filter((p) => p !== 'Huíla_Outras');
+const PROVINCE_LIST = Object.keys(ANGOLA_PROVINCES);
 
 const BRAND_COLORS = [
   { label: 'Verde EduLink', hex: '#0D9488' },

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { AlertBanner, ConfirmModal, CopyButton } from '@/components/ui';
 import {
   AGTInvoice,
   apiJson,
@@ -80,7 +81,7 @@ export default function BillingAndBenefitsTab({
   const [partnerCategory, setPartnerCategory] = useState<BenefitPartner['category']>('TELECOM');
   const [partnerDiscount, setPartnerDiscount] = useState('');
   const [generatedApiKey, setGeneratedApiKey] = useState<{ partnerName: string; apiKey: string } | null>(null);
-  const [copiedKey, setCopiedKey] = useState(false);
+  const [sandboxConfirmPayment, setSandboxConfirmPayment] = useState<ExtendedPayment | null>(null);
 
   const [offerPartnerId, setOfferPartnerId] = useState('');
   const [offerTitle, setOfferTitle] = useState('');
@@ -190,22 +191,20 @@ export default function BillingAndBenefitsTab({
     }
   };
 
-  const handleSandboxConfirm = async (payment: ExtendedPayment) => {
-    const confirmed = window.confirm(
-      `Confirmar liquidação em modo Sandbox da referência ${payment.reference} (${formatAOA(payment.amount_aoa)})?\n\nEsta ação ativa a subscrição e emite uma Fatura Eletrónica AGT sequencial irreversível.`
-    );
-    if (!confirmed) return;
-
+  const executeSandboxConfirm = async () => {
+    if (!sandboxConfirmPayment) return;
     setBusy(true);
     onFeedback(null);
     try {
-      const res = await apiJson<{ invoice: AGTInvoice }>(`/billing/payments/${payment.id}/sandbox-confirm/`, {
-        method: 'POST',
-      });
+      const res = await apiJson<{ invoice: AGTInvoice }>(
+        `/billing/payments/${sandboxConfirmPayment.id}/sandbox-confirm/`,
+        { method: 'POST' }
+      );
       onFeedback({
         type: 'success',
         message: `Pagamento confirmado em Sandbox! Subscrição ativada e Fatura AGT ${res.invoice.invoice_number} emitida.`,
       });
+      setSandboxConfirmPayment(null);
       await loadSchoolBilling();
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
@@ -290,7 +289,6 @@ export default function BillingAndBenefitsTab({
         method: 'POST',
       });
       setGeneratedApiKey({ partnerName: partner.name, apiKey: res.api_key });
-      setCopiedKey(false);
       onFeedback({
         type: 'success',
         message: `Nova API Key POS gerada para ${partner.name}. Copie-a agora (não voltará a ser exibida).`,
@@ -300,17 +298,6 @@ export default function BillingAndBenefitsTab({
       onFeedback({ type: 'error', message: err.message });
     } finally {
       setBusy(false);
-    }
-  };
-
-  const handleCopyApiKey = async () => {
-    if (!generatedApiKey) return;
-    try {
-      await navigator.clipboard.writeText(generatedApiKey.apiKey);
-      setCopiedKey(true);
-      setTimeout(() => setCopiedKey(false), 2000);
-    } catch {
-      onFeedback({ type: 'error', message: 'Não foi possível copiar automaticamente. Selecione e copie a chave manualmente.' });
     }
   };
 
@@ -569,7 +556,7 @@ export default function BillingAndBenefitsTab({
                             <button
                               type="button"
                               disabled={busy}
-                              onClick={() => handleSandboxConfirm(pay)}
+                              onClick={() => setSandboxConfirmPayment(pay)}
                               className="rounded-lg border border-teal-700 px-2.5 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-50 disabled:opacity-50"
                             >
                               Confirmar (Sandbox)
@@ -691,30 +678,30 @@ export default function BillingAndBenefitsTab({
           </div>
 
           {isPlatformAdmin && generatedApiKey && (
-            <div role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-950 flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0">
-                <strong className="block mb-1">API Key POS — {generatedApiKey.partnerName} (exibição única):</strong>
-                <code className="font-mono bg-white px-2 py-1 rounded border border-amber-200 break-all inline-block">
-                  {generatedApiKey.apiKey}
-                </code>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleCopyApiKey}
-                  className="rounded-lg bg-amber-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-950"
-                >
-                  {copiedKey ? 'Copiada!' : 'Copiar Key'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGeneratedApiKey(null)}
-                  className="rounded-lg border border-amber-400 px-2.5 py-1.5 text-xs font-semibold text-amber-950 hover:bg-amber-100"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
+            <AlertBanner
+              tone="warning"
+              title={`API Key POS — ${generatedApiKey.partnerName} (exibição única)`}
+              onDismiss={() => setGeneratedApiKey(null)}
+              dismissLabel="Fechar aviso da API Key"
+              action={
+                <CopyButton
+                  key={generatedApiKey.apiKey}
+                  value={generatedApiKey.apiKey}
+                  label="Copiar Key"
+                  copiedLabel="Copiada!"
+                  onCopyError={() =>
+                    onFeedback({
+                      type: 'error',
+                      message: 'Não foi possível copiar automaticamente. Selecione e copie a chave manualmente.',
+                    })
+                  }
+                />
+              }
+            >
+              <code className="font-mono bg-white px-2 py-1 rounded border border-amber-200 break-all inline-block text-xs">
+                {generatedApiKey.apiKey}
+              </code>
+            </AlertBanner>
           )}
 
           {isPlatformAdmin && (
@@ -883,6 +870,20 @@ export default function BillingAndBenefitsTab({
           </div>
         </section>
       )}
+
+      <ConfirmModal
+        open={Boolean(sandboxConfirmPayment)}
+        onClose={() => setSandboxConfirmPayment(null)}
+        onConfirm={executeSandboxConfirm}
+        loading={busy}
+        title="Confirmar liquidação em modo Sandbox?"
+        description={
+          sandboxConfirmPayment
+            ? `Referência ${sandboxConfirmPayment.reference} (${formatAOA(sandboxConfirmPayment.amount_aoa)}). Esta ação ativa a subscrição e emite uma Fatura Eletrónica AGT sequencial irreversível.`
+            : ''
+        }
+        confirmLabel="Confirmar e Emitir Fatura AGT"
+      />
     </div>
   );
 }

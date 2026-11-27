@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { AlertBanner, StatusBadge } from '@/components/ui';
 import { apiJson, DomainConfig, FeedbackState } from './types';
 
 interface DomainsDNSTabProps {
@@ -20,10 +21,20 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
   const [cfAccountId, setCfAccountId] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const resetFormFields = () => {
+    setDossier(null);
+    setGoogleToken('');
+    setMsToken('');
+    setDkimSelector('google');
+    setDkimKey('');
+    setWebTarget('sites.edulink.ao');
+    setCfAccountId('');
+  };
+
   const loadConfig = async () => {
     if (!schoolId) {
       setConfig(null);
-      setDossier(null);
+      resetFormFields();
       return;
     }
     try {
@@ -31,12 +42,15 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
       const first = (data.results || [])[0] || null;
       setConfig(first);
       if (first) {
+        setDossier(null);
         setGoogleToken(first.google_verification_token || '');
         setMsToken(first.microsoft_verification_token || '');
         setDkimSelector(first.dkim_selector || 'google');
         setDkimKey(first.dkim_public_key || '');
         setWebTarget(first.target_web_ip_or_cname || 'sites.edulink.ao');
         setCfAccountId(first.cloudflare_account_id || '');
+      } else {
+        resetFormFields();
       }
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
@@ -111,9 +125,9 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
   return (
     <div className="space-y-6">
       {!hasOfficialDomain && (
-        <div role="status" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
+        <AlertBanner tone="warning">
           <strong>Modo Demonstração ativo:</strong> esta escola ainda utiliza o endereço provisório <code>.edulink.ao</code> e não tem domínio definitivo (<code>.edu.ao</code>) atribuído. Defina o domínio oficial na consola de Operação EduLink antes de gerar ou sincronizar registos DNS na Cloudflare.
-        </div>
+        </AlertBanner>
       )}
       <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-100 pb-4">
@@ -126,9 +140,9 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
             </p>
           </div>
           {config && (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200 self-start">
+            <StatusBadge tone="brand" size="md" className="self-start">
               Estado: {config.registrar_status}
-            </span>
+            </StatusBadge>
           )}
         </div>
 

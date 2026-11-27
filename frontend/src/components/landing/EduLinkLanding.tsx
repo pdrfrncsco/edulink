@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { Modal } from '@/components/ui';
 import { getDisplayRootDomain } from '@/lib/siteUrls';
 
 type TutelaType = 'MED_K12' | 'MESCTI_HIGHER_ED';
@@ -1051,137 +1052,113 @@ export default function EduLinkLanding() {
       </footer>
 
       {/* MODAL DE PEDIDO DE DEMONSTRAÇÃO */}
-      {demoModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="demo-modal-title"
-          className="fixed inset-0 z-50 bg-stone-950/75 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setDemoModalOpen(false)}
-        >
-          <div
-            className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700">
-                  Demonstração Comercial · Angola
-                </span>
-                <h3 id="demo-modal-title" className="text-lg font-extrabold text-stone-900">
-                  Veja o site da sua escola pronto em 5 minutos
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDemoModalOpen(false)}
-                className="rounded-lg border border-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-500 hover:text-stone-900"
-              >
-                Fechar
-              </button>
+      <Modal
+        open={demoModalOpen}
+        onClose={() => setDemoModalOpen(false)}
+        eyebrow="Demonstração Comercial · Angola"
+        title="Veja o site da sua escola pronto em 5 minutos"
+        size="md"
+      >
+        {!demoSubmitted ? (
+          <form onSubmit={handleDemoSubmit} className="space-y-3.5">
+            <div>
+              <label htmlFor="demo-director" className="block text-xs font-semibold text-stone-700 mb-1">
+                Seu Nome e Cargo *
+              </label>
+              <input
+                id="demo-director"
+                required
+                autoFocus
+                value={demoDirector}
+                onChange={(e) => setDemoDirector(e.target.value)}
+                placeholder="Ex.: Dr. Carlos Mendes — Diretor Pedagógico"
+                className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs"
+              />
             </div>
-
-            {!demoSubmitted ? (
-              <form onSubmit={handleDemoSubmit} className="space-y-3.5">
-                <div>
-                  <label htmlFor="demo-director" className="block text-xs font-semibold text-stone-700 mb-1">
-                    Seu Nome e Cargo *
-                  </label>
-                  <input
-                    id="demo-director"
-                    required
-                    value={demoDirector}
-                    onChange={(e) => setDemoDirector(e.target.value)}
-                    placeholder="Ex.: Dr. Carlos Mendes — Diretor Pedagógico"
-                    className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="demo-school" className="block text-xs font-semibold text-stone-700 mb-1">
-                    Nome do Colégio / IES *
-                  </label>
-                  <input
-                    id="demo-school"
-                    required
-                    value={demoSchool}
-                    onChange={(e) => setDemoSchool(e.target.value)}
-                    placeholder="Ex.: Colégio Esperança de Luanda"
-                    className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="demo-phone" className="block text-xs font-semibold text-stone-700 mb-1">
-                      WhatsApp / Telefone *
-                    </label>
-                    <input
-                      id="demo-phone"
-                      type="tel"
-                      required
-                      value={demoPhone}
-                      onChange={(e) => setDemoPhone(e.target.value)}
-                      placeholder="+244 923 000 000"
-                      className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="demo-province" className="block text-xs font-semibold text-stone-700 mb-1">
-                      Província
-                    </label>
-                    <select
-                      id="demo-province"
-                      value={demoProvince}
-                      onChange={(e) => setDemoProvince(e.target.value)}
-                      className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-xs bg-white"
-                    >
-                      <option value="Luanda">Luanda</option>
-                      <option value="Benguela">Benguela</option>
-                      <option value="Huíla">Huíla</option>
-                      <option value="Huambo">Huambo</option>
-                      <option value="Cabinda">Cabinda</option>
-                      <option value="Outra Província">Outra Província</option>
-                    </select>
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full py-3 rounded-xl bg-teal-700 text-white text-xs font-bold hover:bg-teal-800 transition"
-                >
-                  Preparar Contacto e Demonstração
-                </button>
-              </form>
-            ) : (
-              <div className="space-y-4">
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-950 space-y-1">
-                  <p className="font-bold">Resumo pronto para a equipa comercial EduLink!</p>
-                  <p>
-                    Instituição: <strong>{demoSchool}</strong> ({demoProvince})
-                  </p>
-                  <p>
-                    Pré-visualização sugerida: <strong className="font-mono">{slugifySchool(demoSchool)}.{ROOT_DOMAIN}</strong>
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-center py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition"
-                  >
-                    Enviar Pedido via WhatsApp Agora
-                  </a>
-                  <a
-                    href={ADMIN_URL}
-                    className="block w-full text-center py-3 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition"
-                  >
-                    Ou Criar Conta e Testar Já o Onboarding →
-                  </a>
-                </div>
+            <div>
+              <label htmlFor="demo-school" className="block text-xs font-semibold text-stone-700 mb-1">
+                Nome do Colégio / IES *
+              </label>
+              <input
+                id="demo-school"
+                required
+                value={demoSchool}
+                onChange={(e) => setDemoSchool(e.target.value)}
+                placeholder="Ex.: Colégio Esperança de Luanda"
+                className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="demo-phone" className="block text-xs font-semibold text-stone-700 mb-1">
+                  WhatsApp / Telefone *
+                </label>
+                <input
+                  id="demo-phone"
+                  type="tel"
+                  required
+                  value={demoPhone}
+                  onChange={(e) => setDemoPhone(e.target.value)}
+                  placeholder="+244 923 000 000"
+                  className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs"
+                />
               </div>
-            )}
+              <div>
+                <label htmlFor="demo-province" className="block text-xs font-semibold text-stone-700 mb-1">
+                  Província
+                </label>
+                <select
+                  id="demo-province"
+                  value={demoProvince}
+                  onChange={(e) => setDemoProvince(e.target.value)}
+                  className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-xs bg-white"
+                >
+                  <option value="Luanda">Luanda</option>
+                  <option value="Benguela">Benguela</option>
+                  <option value="Huíla">Huíla</option>
+                  <option value="Huambo">Huambo</option>
+                  <option value="Cabinda">Cabinda</option>
+                  <option value="Outra Província">Outra Província</option>
+                </select>
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-teal-700 text-white text-xs font-bold hover:bg-teal-800 transition"
+            >
+              Preparar Contacto e Demonstração
+            </button>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-xs text-emerald-950 space-y-1">
+              <p className="font-bold">Resumo pronto para a equipa comercial EduLink!</p>
+              <p>
+                Instituição: <strong>{demoSchool}</strong> ({demoProvince})
+              </p>
+              <p>
+                Pré-visualização sugerida: <strong className="font-mono">{slugifySchool(demoSchool)}.{ROOT_DOMAIN}</strong>
+              </p>
+            </div>
+            <div className="space-y-2">
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full text-center py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition"
+              >
+                Enviar Pedido via WhatsApp Agora
+              </a>
+              <a
+                href={ADMIN_URL}
+                className="block w-full text-center py-3 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition"
+              >
+                Ou Criar Conta e Testar Já o Onboarding →
+              </a>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }
