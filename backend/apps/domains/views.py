@@ -25,6 +25,11 @@ class DomainConfigurationViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='generate-blueprint')
     def generate_blueprint(self, request, pk=None):
         domain_config = self.get_object()
+        if not domain_config.school.domain:
+            return Response(
+                {'detail': 'Defina primeiro o domínio definitivo (.edu.ao) da escola antes de gerar registos DNS.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         providers = request.data.get('providers')
         if isinstance(providers, str):
             providers = [p.strip().upper() for p in providers.split(',') if p.strip()]
@@ -40,6 +45,11 @@ class DomainConfigurationViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='sync-cloudflare')
     def sync_cloudflare(self, request, pk=None):
         domain_config = self.get_object()
+        if not domain_config.school.domain:
+            return Response(
+                {'detail': 'Defina primeiro o domínio definitivo (.edu.ao) da escola antes de sincronizar com a Cloudflare.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         run_async = str(request.query_params.get('async', 'false')).lower() == 'true'
 
         if run_async:
@@ -68,6 +78,11 @@ class DomainConfigurationViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='verify-propagation')
     def verify_propagation(self, request, pk=None):
         domain_config = self.get_object()
+        if not domain_config.school.domain:
+            return Response(
+                {'detail': 'Defina primeiro o domínio definitivo (.edu.ao) da escola para verificar propagação DNS.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         report = check_domain_propagation(domain_config)
         return Response(report, status=status.HTTP_200_OK)
 

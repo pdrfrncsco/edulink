@@ -43,16 +43,32 @@ export function getDisplayRootDomain(): string {
   return cleaned;
 }
 
+export function isAllowedAppHost(rawHost?: string | null): boolean {
+  if (!rawHost) return false;
+  const host = stripHostPort(rawHost);
+  if (isLocalHost(host)) return true;
+  const root = getDisplayRootDomain();
+  return host === root || host === `www.${root}`;
+}
+
 /**
  * Constrói o link clicável para pré-visualizar/abrir o site institucional de uma escola:
  * - Em localhost/127.0.0.1 usa a rota interna `/sites/{host}` (evita abrir *.edulink.ao na Internet).
  * - Em produção usa `https://{host}`.
  */
-export function buildSchoolSiteHref(effectiveHost: string, requestHost?: string | null): string {
+export function buildSchoolSiteHref(
+  effectiveHost: string,
+  localOrRequestHost?: boolean | string | null
+): string {
   const cleanHost = (effectiveHost || '').trim().replace(/^https?:\/\//, '').replace(/\/+$/, '');
   if (!cleanHost) return '#';
 
-  const local = requestHost ? isLocalHost(requestHost) : isClientLocalHost();
+  const local =
+    typeof localOrRequestHost === 'boolean'
+      ? localOrRequestHost
+      : localOrRequestHost
+      ? isLocalHost(localOrRequestHost)
+      : isClientLocalHost();
   if (local) {
     return `/sites/${encodeURIComponent(cleanHost)}`;
   }
@@ -60,14 +76,20 @@ export function buildSchoolSiteHref(effectiveHost: string, requestHost?: string 
 }
 
 /**
- * Constrói a origem canónica da aplicação consoante o host atual.
+ * Constrói a origem canónica da aplicação validada contra allowlist de hosts.
  */
 export function buildAppOrigin(requestHost?: string | null): string {
   const explicitOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN;
-  if (explicitOrigin) return explicitOrigin.replace(/\/+$/, '');
+  if (explicitOrigin && isAllowedAppHost(explicitOrigin)) {
+    return explicitOrigin.replace(/\/+$/, '');
+  }
 
-  if (requestHost && isLocalHost(requestHost)) {
-    return `http://${requestHost}`;
+  if (requestHost && isAllowedAppHost(requestHost)) {
+    if (isLocalHost(requestHost)) {
+      const clean = requestHost.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0];
+      return `http://${clean}`;
+    }
+    return `https://${getDisplayRootDomain()}`;
   }
   return `https://${getDisplayRootDomain()}`;
 }

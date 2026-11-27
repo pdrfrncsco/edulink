@@ -138,7 +138,7 @@ class KeycloakAdminService:
         realm_base = f"{self.public_url}/realms/{self.realm}"
         return {
             'realm': self.realm,
-            'school_domain': school.domain,
+            'school_domain': school.domain or school.effective_site_host,
             'oidc_discovery_url': f"{realm_base}/.well-known/openid-configuration",
             'oidc_portal_client_id': 'edulink-portal',
             'saml_idp_metadata_url': f"{realm_base}/protocol/saml/descriptor",

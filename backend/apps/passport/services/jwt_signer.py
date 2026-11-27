@@ -141,6 +141,7 @@ def verify_passport_token(token_str: str) -> dict:
             'institution_type': school.institution_type,
             'is_canva_k12_eligible': school.is_canva_k12_eligible,
             'apd_notified': school.apd_notified,
+            'apd_dossier_number': school.apd_dossier_number,
             'academic_year': latest_enrollment.academic_year if latest_enrollment else payload.get('academic_year'),
             'grade_class': latest_enrollment.grade_class if latest_enrollment else payload.get('grade_class'),
             'status': latest_enrollment.status if latest_enrollment else 'ACTIVE',

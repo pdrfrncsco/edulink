@@ -1,0 +1,26 @@
+{
+    auto_https off
+}
+
+# =============================================================
+# Desenvolvimento Local HTTP (Sem chamadas ACME para .edu.ao / edulink.ao)
+# =============================================================
+
+http://sso.localhost {
+    reverse_proxy keycloak:8080
+}
+
+http://api.localhost {
+    reverse_proxy backend:8000
+}
+
+http://localhost, http://127.0.0.1, http://*.localhost, :80 {
+    @backend_paths path /api/* /static/* /media/* /health/*
+    handle @backend_paths {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

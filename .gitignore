@@ -5,14 +5,14 @@ __pycache__/
 *.so
 .Python
 env/
+.venv/
+venv/
 build/
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -26,6 +26,11 @@ local_settings.py
 db.sqlite3
 media/
 staticfiles/
+/backend/lib/
+/backend/lib64/
+!frontend/src/lib/
+!frontend/src/lib/**
+docs/*.pdf
 
 # Node & Next.js
 frontend/node_modules/

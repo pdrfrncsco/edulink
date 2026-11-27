@@ -176,7 +176,8 @@ class CSVImporterService:
                     user.save()
                     stats['updated_users'] += 1
                 else:
-                    inst_email = generate_institutional_email(full_name, school.domain, school)
+                    email_domain = school.domain or school.effective_site_host
+                    inst_email = generate_institutional_email(full_name, email_domain, school)
                     user = AcademicUser.objects.create(
                         school=school,
                         full_name=full_name,

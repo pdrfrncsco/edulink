@@ -52,11 +52,31 @@ cp .env.example .env
 docker compose up --build
 ```
 
-3. Aplicar as migrações da base de dados e criar superadministrador:
+3. Aplicar as migrações da base de dados e inicializar o operador da plataforma:
 ```bash
 docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py bootstrap_edulink --admin-email admin@edulink.ao --generate-password
 ```
+
+### Execução Local Fora do Docker (SQLite + Celery EAGER)
+
+```bash
+# Terminal 1 — Backend Django (SQLite + Celery síncrono sem Redis)
+cd backend
+python -m venv .venv && .venv\Scripts\activate
+pip install -r requirements.txt
+set DJANGO_SETTINGS_MODULE=config.settings_local
+python manage.py migrate
+python manage.py bootstrap_edulink --admin-email admin@edulink.ao --generate-password
+python manage.py runserver 0.0.0.0:8000
+
+# Terminal 2 — Frontend Next.js
+cd frontend
+npm install
+npm run dev
+```
+
+> Para ligar PostgreSQL ou Redis locais no modo fora do Docker, defina `USE_LOCAL_POSTGRES=True` e/ou `USE_LOCAL_REDIS=True` e `BACKEND_INTERNAL_URL=http://127.0.0.1:8000`.
 
 ---
 

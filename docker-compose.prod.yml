@@ -1,0 +1,38 @@
+# Overlay de Produção EduLink (respeita references/server-topology.md)
+# Uso no VPS: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  db:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  backend:
+    ports: !reset []
+    environment:
+      - DEBUG=False
+
+  celery_worker:
+    command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency=2"]
+    environment:
+      - DEBUG=False
+
+  frontend:
+    ports: !reset []
+    command: ["npm", "run", "start"]
+    volumes: !reset []
+
+  keycloak:
+    ports: !reset []
+    command: ["start", "--import-realm"]
+    mem_limit: 900m
+
+  caddy:
+    ports: !override
+      - "127.0.0.1:8085:80"
+      - "127.0.0.1:8445:443"
+    volumes: !override
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config

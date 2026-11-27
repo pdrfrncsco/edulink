@@ -12,6 +12,13 @@ interface DirectoryTabProps {
 
 export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated }: DirectoryTabProps) {
   const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvPreview, setCsvPreview] = useState<{
+    delimiter: string;
+    headers: string[];
+    rowCount: number;
+    sampleRows: string[][];
+    hasNameColumn: boolean;
+  } | null>(null);
   const [academicYear, setAcademicYear] = useState('2026/2027');
   const [csvStats, setCsvStats] = useState<any | null>(null);
   const [users, setUsers] = useState<AcademicUser[]>([]);
@@ -36,6 +43,50 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
   useEffect(() => {
     loadUsers();
   }, [schoolId]);
+
+  const handleDownloadSampleCsv = () => {
+    const sample = [
+      'nome_completo;bi_ou_processo;tipo;classe_turma;ano_lectivo;telefone;email_pessoal',
+      'Manuel Domingos de Sousa;008942114LA042;ALUNO;11ª Classe - CFB;2026/2027;923112233;manuel.personal@gmail.com',
+      'Esperança Nzola Sebastião;007812930LA031;ALUNO;11ª Classe - CFB;2026/2027;945223344;esperanca.n@gmail.com',
+      'António Baptista Mukinda;001289456HA012;PROFESSOR;Departamento de Física;2026/2027;912887766;a.mukinda@gmail.com',
+    ].join('\n');
+    const blob = new Blob(['\ufeff' + sample], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'turma_exemplo_angola.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleFileSelected = async (file: File | null) => {
+    setCsvFile(file);
+    setCsvPreview(null);
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (lines.length === 0) return;
+      const headerLine = lines[0];
+      const delimiter = headerLine.split(';').length > headerLine.split(',').length ? ';' : ',';
+      const headers = headerLine.split(delimiter).map((h) => h.trim());
+      const normalized = headers.map((h) => h.toLowerCase());
+      const hasNameColumn = normalized.some((h) =>
+        ['nome_completo', 'nome', 'estudante', 'aluno', 'professor'].includes(h)
+      );
+      const sampleRows = lines.slice(1, 5).map((line) => line.split(delimiter).map((c) => c.trim()));
+      setCsvPreview({
+        delimiter,
+        headers,
+        rowCount: Math.max(0, lines.length - 1),
+        sampleRows,
+        hasNameColumn,
+      });
+    } catch {
+      setCsvPreview(null);
+    }
+  };
 
   const handleCsvUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,13 +183,22 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
   return (
     <div className="space-y-6">
       <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
-        <div className="border-b border-stone-100 pb-4">
-          <h2 id="csv-form-heading" className="text-lg font-bold text-stone-900">
-            Importação em Lote da Secretaria (CSV)
-          </h2>
-          <p className="text-xs sm:text-sm text-stone-500">
-            Carregue a listagem exportada do Kacennu, KLASSE, SysPortal ou Excel para gerar contas institucionais <code>.edu.ao</code>.
-          </p>
+        <div className="border-b border-stone-100 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 id="csv-form-heading" className="text-lg font-bold text-stone-900">
+              Importação em Lote da Secretaria (CSV)
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-500">
+              Carregue a listagem exportada do Kacennu, KLASSE, SysPortal ou Excel para gerar contas institucionais <code>.edu.ao</code>.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleDownloadSampleCsv}
+            className="shrink-0 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 px-3.5 py-2 rounded-lg text-xs font-bold transition-colors min-h-[40px]"
+          >
+            Descarregar Modelo CSV
+          </button>
         </div>
 
         <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs text-stone-600">
@@ -174,7 +234,7 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
               type="file"
               accept=".csv,text/csv"
               required
-              onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
+              onChange={(e) => handleFileSelected(e.target.files ? e.target.files[0] : null)}
               className="edulink-input w-full px-3 py-2 rounded-xl border border-stone-300 text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700"
             />
           </div>
@@ -187,6 +247,31 @@ export default function DirectoryTab({ schoolId, onFeedback, onDirectoryUpdated 
             {loading ? 'Processando...' : 'Importar Alunos e Docentes'}
           </button>
         </form>
+
+        {csvPreview && (
+          <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-2 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-bold text-stone-800">
+                Pré-validação CSV: {csvPreview.rowCount} linha(s) · Separador{' '}
+                <code>{csvPreview.delimiter}</code>
+              </span>
+              <span
+                className={`rounded-full px-2.5 py-0.5 font-semibold ${
+                  csvPreview.hasNameColumn
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {csvPreview.hasNameColumn
+                  ? 'Cabeçalho válido detetado'
+                  : 'Aviso: coluna nome_completo/nome não encontrada'}
+              </span>
+            </div>
+            <p className="text-stone-600 font-mono truncate">
+              Colunas: {csvPreview.headers.join(' | ')}
+            </p>
+          </div>
+        )}
 
         {csvStats && (
           <div className="border-t border-stone-200 pt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">

@@ -101,7 +101,14 @@ function ConsentContent() {
               <p><strong>Estado Atual:</strong> {consent.status}</p>
             </div>
 
-            {consent.status === 'SIGNED' ? (
+            {consent.status === 'REVOKED' ? (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-900 space-y-1">
+                <p className="font-bold">Consentimento Revogado</p>
+                <p>
+                  Este termo foi revogado junto da secretaria da escola. Contacte a direção caso pretenda emitir um novo termo de autorização.
+                </p>
+              </div>
+            ) : consent.status === 'SIGNED' ? (
               <div className="space-y-3 text-xs text-stone-700">
                 <p>
                   Assinado por <strong>{consent.guardian_full_name}</strong> (BI: {consent.guardian_bi}).
@@ -110,7 +117,7 @@ function ConsentContent() {
                   href={`${API_BASE}/compliance/consents/download-by-token/?token=${encodeURIComponent(consent.consent_token)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-block px-4 py-2.5 rounded-xl bg-teal-700 text-white font-semibold hover:bg-teal-800"
+                  className="inline-flex min-h-[44px] items-center justify-center px-4 py-2.5 rounded-xl bg-teal-700 text-white font-semibold hover:bg-teal-800"
                 >
                   Descarregar Comprovativo (HTML / Imprimir)
                 </a>
@@ -198,7 +205,7 @@ function ConsentContent() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3 rounded-xl bg-teal-700 text-white font-semibold text-sm hover:bg-teal-800 disabled:opacity-50"
+                  className="w-full min-h-[44px] py-3 rounded-xl bg-teal-700 text-white font-semibold text-sm hover:bg-teal-800 disabled:opacity-50"
                 >
                   {submitting ? 'A Registar Assinatura...' : 'Autorizar e Assinar Termo Digitalmente'}
                 </button>

@@ -82,7 +82,7 @@ services:
     image: edulink-backend:latest
     container_name: edulink_celery_worker
     restart: unless-stopped
-    command: ["celery", "-A", "config", "worker", "-l", "info"]
+    command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency=2"]
     volumes:
       - ./backend:/app
     environment:
@@ -175,7 +175,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${EDULINK_CADDYFILE:-./infra/caddy/Caddyfile.local}:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     environment:

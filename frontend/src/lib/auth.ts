@@ -13,6 +13,8 @@ export interface AuthUser {
   school_id: string | null;
   school_name: string | null;
   school_domain: string | null;
+  enable_erp_sync?: boolean;
+  enable_benefits_club?: boolean;
   academic_user: {
     id: string;
     full_name: string;

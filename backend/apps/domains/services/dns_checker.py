@@ -33,6 +33,8 @@ def check_domain_propagation(domain_config: DomainConfiguration) -> dict:
     Atualiza o estado de propagação e promove a zona para ACTIVE quando completa.
     """
     domain = domain_config.school.domain
+    if not domain:
+        raise ValueError('A instituição ainda não possui domínio definitivo (.edu.ao) configurado.')
     ns_answers = [ans.rstrip('.').lower() for ans in query_doh(domain, 'NS')]
     expected_ns = [ns.rstrip('.').lower() for ns in (domain_config.nameservers or [])]
     ns_delegated = bool(expected_ns) and all(ns in ns_answers for ns in expected_ns)
@@ -88,8 +90,9 @@ def build_dns_ao_dossier(domain_config: DomainConfiguration) -> dict:
     de domínio .edu.ao junto de um Registrar acreditado pela DNS.AO.
     """
     school = domain_config.school
+    domain_label = school.domain or f'{school.preview_slug}.edu.ao (pendente)'
     return {
-        'domain': school.domain,
+        'domain': domain_label,
         'institution': school.name,
         'nif': school.nif,
         'alvara_med_mescti': school.alvara_med_mescti,
@@ -102,7 +105,7 @@ def build_dns_ao_dossier(domain_config: DomainConfiguration) -> dict:
             f'Cópia do NIF Institucional ({school.nif})',
             f'Alvará MED/MESCTI ({school.alvara_med_mescti})',
             'Cópia do BI do Diretor / Representante Legal',
-            f'Declaração / Pedido formal de delegação DNS para {school.domain}',
+            f'Declaração / Pedido formal de delegação DNS para {domain_label}',
         ],
         'dns_records_summary': [
             {

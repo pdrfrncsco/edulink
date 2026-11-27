@@ -199,3 +199,44 @@ class BillingKwanzasAndAGTTests(TestCase):
             student_client.post(f"/api/v1/billing/payments/{payment_id}/sandbox-confirm/").status_code,
             403,
         )
+
+    def test_saft_export_restricted_to_platform_admin_and_returns_valid_ao_version(self):
+        client_a = APIClient()
+        client_a.force_authenticate(user=self.sec_a)
+        sub_res = client_a.post(
+            '/api/v1/billing/subscriptions/',
+            {'school': str(self.school_a.id), 'plan_code': 'ESSENCIAL'},
+            format='json',
+        )
+        pay_res = client_a.post(
+            '/api/v1/billing/payments/',
+            {'subscription': sub_res.json()['id'], 'payment_method': 'KWIK'},
+            format='json',
+        )
+        pay_id = pay_res.json()['id']
+
+        # Secretaria não pode exportar SAF-T global -> 403
+        self.assertEqual(client_a.get('/api/v1/billing/invoices/saft-export/').status_code, 403)
+
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=self.platform_admin)
+        self.assertEqual(
+            admin_client.post(f'/api/v1/billing/payments/{pay_id}/sandbox-confirm/').status_code,
+            200,
+        )
+
+        json_res = admin_client.get(f'/api/v1/billing/invoices/saft-export/?school={self.school_a.id}')
+        self.assertEqual(json_res.status_code, 200)
+        data = json_res.json()
+        self.assertEqual(data['AuditFileVersion'], '1.01_01')
+        self.assertEqual(data['Country'], 'AO')
+        self.assertEqual(data['CurrencyCode'], 'AOA')
+        self.assertEqual(data['NumberOfEntries'], 1)
+
+        xml_res = admin_client.get(
+            f'/api/v1/billing/invoices/saft-export/?export_format=xml&school={self.school_a.id}'
+        )
+        self.assertEqual(xml_res.status_code, 200)
+        xml_body = xml_res.content.decode('utf-8')
+        self.assertIn('<AuditFileVersion>1.01_01</AuditFileVersion>', xml_body)
+

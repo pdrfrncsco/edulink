@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import School, CloudIntegration
+from .models import School, CloudIntegration, OnboardingDocument
 
 
 class CloudIntegrationInline(admin.TabularInline):
@@ -36,3 +36,11 @@ class CloudIntegrationAdmin(admin.ModelAdmin):
     list_display = ('school', 'provider', 'sync_enabled', 'sync_status', 'last_sync_at')
     list_filter = ('provider', 'sync_enabled', 'sync_status')
     search_fields = ('school__name', 'school__domain')
+
+
+@admin.register(OnboardingDocument)
+class OnboardingDocumentAdmin(admin.ModelAdmin):
+    list_display = ('school', 'doc_type', 'status', 'verified_by', 'verified_at', 'created_at')
+    list_filter = ('doc_type', 'status')
+    search_fields = ('school__name', 'school__domain', 'school__preview_slug')
+    readonly_fields = ('verified_at', 'verified_by', 'created_at', 'updated_at')

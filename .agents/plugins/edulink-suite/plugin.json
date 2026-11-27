@@ -1,0 +1,13 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "edulink-suite",
+  "displayName": "EduLink Engineering Suite",
+  "version": "1.1.0",
+  "description": "Regras multi-tenant, skills de desenvolvimento full-stack, design system, runbook de servidor e servidor MCP local para a plataforma EduLink Angola.",
+  "mcpServers": "./mcp_config.json",
+  "suggestedPrompts": [
+    "Usa edulink_repo_health e edulink_django_migrations para diagnosticar o estado atual do projeto",
+    "Executa /edulink-sprint para corrigir os bloqueios P0 do repositório e validar o arranque local",
+    "Usa edulink_inspect_tenants e edulink_probe_api para testar o site gerado de uma escola piloto"
+  ]
+}

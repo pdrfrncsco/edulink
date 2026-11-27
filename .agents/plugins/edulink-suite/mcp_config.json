@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "edulink-devtools": {
+      "command": "python",
+      "args": [
+        "-u",
+        "${workspaceFolder}/.agents/plugins/edulink-suite/mcp/edulink_mcp_server.py"
+      ],
+      "env": {
+        "EDULINK_REPO_ROOT": "${workspaceFolder}",
+        "DJANGO_SETTINGS_MODULE": "config.settings_local",
+        "PYTHONUTF8": "1"
+      }
+    }
+  }
+}

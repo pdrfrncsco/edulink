@@ -5,10 +5,11 @@ import { apiJson, DomainConfig, FeedbackState } from './types';
 
 interface DomainsDNSTabProps {
   schoolId: string;
+  hasOfficialDomain?: boolean;
   onFeedback: (fb: FeedbackState | null) => void;
 }
 
-export default function DomainsDNSTab({ schoolId, onFeedback }: DomainsDNSTabProps) {
+export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFeedback }: DomainsDNSTabProps) {
   const [config, setConfig] = useState<DomainConfig | null>(null);
   const [dossier, setDossier] = useState<any | null>(null);
   const [googleToken, setGoogleToken] = useState('');
@@ -109,6 +110,11 @@ export default function DomainsDNSTab({ schoolId, onFeedback }: DomainsDNSTabPro
 
   return (
     <div className="space-y-6">
+      {!hasOfficialDomain && (
+        <div role="status" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
+          <strong>Modo Demonstração ativo:</strong> esta escola ainda utiliza o endereço provisório <code>.edulink.ao</code> e não tem domínio definitivo (<code>.edu.ao</code>) atribuído. Defina o domínio oficial na consola de Operação EduLink antes de gerar ou sincronizar registos DNS na Cloudflare.
+        </div>
+      )}
       <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-100 pb-4">
           <div>

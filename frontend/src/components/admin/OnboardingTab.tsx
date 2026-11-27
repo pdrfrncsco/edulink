@@ -2,7 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 import { authFetch } from '@/lib/auth';
-import { buildSchoolSiteHref, getDisplayRootDomain, isClientLocalHost } from '@/lib/siteUrls';
+import { buildSchoolSiteHref, getDisplayRootDomain } from '@/lib/siteUrls';
+import { useIsLocalHost } from '@/lib/useIsLocalHost';
 import { apiJson, FeedbackState } from './types';
 
 interface OnboardingTabProps {
@@ -122,6 +123,7 @@ function cleanDomain(raw: string): string {
 }
 
 export default function OnboardingTab({ onSchoolCreated, onFeedback }: OnboardingTabProps) {
+  const isLocalHostBrowser = useIsLocalHost();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [stepError, setStepError] = useState('');
@@ -318,8 +320,8 @@ export default function OnboardingTab({ onSchoolCreated, onFeedback }: Onboardin
         }
       }
 
-      const previewRoute = buildSchoolSiteHref(previewHost);
-      const siteLabel = isClientLocalHost() ? previewRoute : `https://${previewHost}`;
+      const previewRoute = buildSchoolSiteHref(previewHost, isLocalHostBrowser);
+      const siteLabel = isLocalHostBrowser ? previewRoute : `https://${previewHost}`;
       onFeedback({
         type: 'success',
         message: `Instituição "${payload.name}" registada com sucesso! Pré-visualização disponível em ${siteLabel}.${docSummary}`,
@@ -841,7 +843,7 @@ export default function OnboardingTab({ onSchoolCreated, onFeedback }: Onboardin
                 <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />
               </span>
               <span className="flex-1 bg-white rounded-md px-2.5 py-0.5 border border-stone-200 truncate">
-                {isClientLocalHost() ? `/sites/${previewHost}` : `https://${previewHost}`}
+                {isLocalHostBrowser ? `/sites/${previewHost}` : `https://${previewHost}`}
               </span>
             </div>
 

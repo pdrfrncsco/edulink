@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { AlertBanner, Button, Card, FormField, Input, StatusBadge } from '@/components/ui';
 import { API_BASE, AuthUser, saveAuthSession } from '@/lib/auth';
 
 interface AuthCardProps {
@@ -61,11 +62,11 @@ export default function AuthCard({ mode, onAuthenticated }: AuthCardProps) {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+    <Card padding="lg" className="w-full max-w-md mx-auto space-y-6">
       <div className="space-y-1.5 border-b border-stone-100 pb-4">
-        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800">
+        <StatusBadge tone="brand">
           {mode === 'secretary' ? 'Portal da Secretaria • Acesso Restrito' : 'Passaporte Académico • PWA'}
-        </span>
+        </StatusBadge>
         <h1 className="text-xl font-bold text-stone-900">
           {view === 'login'
             ? mode === 'secretary'
@@ -84,75 +85,76 @@ export default function AuthCard({ mode, onAuthenticated }: AuthCardProps) {
         </p>
       </div>
 
-      {error && (
-        <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 font-semibold">
-          {error}
-        </div>
-      )}
+      {error && <AlertBanner tone="error">{error}</AlertBanner>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {view === 'register' && mode === 'secretary' && (
-          <div>
-            <label htmlFor="auth-fullname" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Nome Completo <span aria-hidden="true">*</span>
-            </label>
-            <input
-              id="auth-fullname"
-              name="fullname"
-              type="text"
-              required
-              autoComplete="name"
-              enterKeyHint="next"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm"
-            />
-          </div>
+          <FormField id="auth-fullname" label="Nome Completo" required>
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="fullname"
+                type="text"
+                required
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoComplete="name"
+                enterKeyHint="next"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            )}
+          </FormField>
         )}
 
-        <div>
-          <label htmlFor="auth-email" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-            {mode === 'academic' ? 'E-mail Institucional (.edu.ao)' : 'E-mail'} <span aria-hidden="true">*</span>
-          </label>
-          <input
-            id="auth-email"
-            name="email"
-            type="email"
-            required
-            autoComplete="username"
-            spellCheck={false}
-            enterKeyHint="next"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm"
-          />
-        </div>
-
-        {view === 'register' && mode === 'academic' && (
-          <div>
-            <label htmlFor="auth-bi" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              N.º de BI ou Processo de Matrícula <span aria-hidden="true">*</span>
-            </label>
-            <input
-              id="auth-bi"
-              name="bi_or_student_id"
-              type="text"
+        <FormField
+          id="auth-email"
+          label={mode === 'academic' ? 'E-mail Institucional (.edu.ao)' : 'E-mail'}
+          required
+        >
+          {({ id, describedBy, invalid }) => (
+            <Input
+              id={id}
+              name="email"
+              type="email"
               required
-              autoCorrect="off"
-              autoCapitalize="none"
+              invalid={invalid}
+              aria-describedby={describedBy}
+              autoComplete="username"
               spellCheck={false}
               enterKeyHint="next"
-              value={biOrId}
-              onChange={(e) => setBiOrId(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm font-mono"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
+          )}
+        </FormField>
+
+        {view === 'register' && mode === 'academic' && (
+          <FormField id="auth-bi" label="N.º de BI ou Processo de Matrícula" required>
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="bi_or_student_id"
+                type="text"
+                required
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                enterKeyHint="next"
+                value={biOrId}
+                onChange={(e) => setBiOrId(e.target.value)}
+              />
+            )}
+          </FormField>
         )}
 
-        <div>
-          <div className="flex items-center justify-between mb-1">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
             <label htmlFor="auth-password" className="block text-xs font-semibold uppercase text-stone-700">
-              Palavra-passe <span aria-hidden="true">*</span>
+              Palavra-passe <span aria-hidden="true" className="text-red-600">*</span>
             </label>
             <button
               type="button"
@@ -163,28 +165,26 @@ export default function AuthCard({ mode, onAuthenticated }: AuthCardProps) {
               {showPassword ? 'Ocultar' : 'Mostrar'}
             </button>
           </div>
-          <input
+          {view === 'register' && (
+            <p id="auth-password-hint" className="text-xs text-stone-500">
+              Mínimo de 8 caracteres.
+            </p>
+          )}
+          <Input
             id="auth-password"
             name="password"
             type={showPassword ? 'text' : 'password'}
             required
             minLength={view === 'register' ? 8 : undefined}
+            aria-describedby={view === 'register' ? 'auth-password-hint' : undefined}
             autoComplete={view === 'login' ? 'current-password' : 'new-password'}
             enterKeyHint="done"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm"
           />
-          {view === 'register' && (
-            <span className="block text-[11px] text-stone-500 mt-1">Mínimo de 8 caracteres.</span>
-          )}
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 rounded-xl bg-teal-700 text-white font-semibold text-sm hover:bg-teal-800 disabled:opacity-50 transition shadow-sm"
-        >
+        <Button type="submit" size="lg" fullWidth loading={loading}>
           {loading
             ? 'A processar...'
             : view === 'login'
@@ -192,7 +192,7 @@ export default function AuthCard({ mode, onAuthenticated }: AuthCardProps) {
             : mode === 'secretary'
             ? 'Criar Conta da Secretaria'
             : 'Ativar Conta e Entrar'}
-        </button>
+        </Button>
       </form>
 
       <div className="border-t border-stone-100 pt-4 text-center text-xs text-stone-600">
@@ -222,6 +222,6 @@ export default function AuthCard({ mode, onAuthenticated }: AuthCardProps) {
           </button>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

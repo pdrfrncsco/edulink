@@ -2,7 +2,24 @@
 
 import React, { useEffect, useState } from 'react';
 import { buildSchoolSiteHref, getDisplayRootDomain } from '@/lib/siteUrls';
-import { AdminUserProfile, apiJson, FeedbackState, School } from './types';
+import { useIsLocalHost } from '@/lib/useIsLocalHost';
+import {
+  AdminUserProfile,
+  apiJson,
+  FeedbackState,
+  OnboardingDocumentItem,
+  School,
+  SetupStage,
+} from './types';
+
+const STAGE_OPTIONS: { value: SetupStage; label: string }[] = [
+  { value: 'NOT_STARTED', label: 'Por Iniciar' },
+  { value: 'PENDING_DOCS', label: 'Aguardando Docs' },
+  { value: 'SUBMITTED', label: 'Submetido / Em Revisão' },
+  { value: 'APPROVED', label: 'Aprovado / Ativo' },
+  { value: 'ACTION_REQUIRED', label: 'Ação Necessária' },
+  { value: 'NOT_ELIGIBLE', label: 'Não Elegível (Pago)' },
+];
 
 interface PlatformOpsTabProps {
   schools: School[];
@@ -21,8 +38,21 @@ export default function PlatformOpsTab({
   onSchoolsUpdated,
   onFeedback,
 }: PlatformOpsTabProps) {
+  const isLocalHostBrowser = useIsLocalHost();
   const [profiles, setProfiles] = useState<AdminUserProfile[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<OnboardingDocumentItem[]>([]);
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  const [officialDomain, setOfficialDomain] = useState('');
+  const [dnsStatus, setDnsStatus] = useState<SetupStage>('NOT_STARTED');
+  const [googleStatus, setGoogleStatus] = useState<SetupStage>('NOT_STARTED');
+  const [microsoftStatus, setMicrosoftStatus] = useState<SetupStage>('NOT_STARTED');
+  const [canvaStatus, setCanvaStatus] = useState<SetupStage>('NOT_STARTED');
+  const [flagErp, setFlagErp] = useState(false);
+  const [flagBenefits, setFlagBenefits] = useState(false);
+  const [flagPayments, setFlagPayments] = useState(false);
+
+  const selectedSchool = schools.find((s) => s.id === selectedSchoolId) || null;
 
   const loadProfiles = async () => {
     try {
@@ -33,9 +63,99 @@ export default function PlatformOpsTab({
     }
   };
 
+  const loadSchoolDocuments = async (schoolIdToLoad: string) => {
+    if (!schoolIdToLoad) {
+      setDocuments([]);
+      return;
+    }
+    try {
+      const docs = await apiJson<OnboardingDocumentItem[]>(`/tenants/${schoolIdToLoad}/documents/`);
+      setDocuments(Array.isArray(docs) ? docs : []);
+    } catch {
+      setDocuments([]);
+    }
+  };
+
   useEffect(() => {
     loadProfiles();
   }, []);
+
+  useEffect(() => {
+    if (selectedSchool) {
+      setOfficialDomain(selectedSchool.domain || '');
+      setDnsStatus(selectedSchool.dns_status || 'NOT_STARTED');
+      setGoogleStatus(selectedSchool.google_status || 'NOT_STARTED');
+      setMicrosoftStatus(selectedSchool.microsoft_status || 'NOT_STARTED');
+      setCanvaStatus(selectedSchool.canva_status || 'NOT_STARTED');
+      setFlagErp(Boolean(selectedSchool.enable_erp_sync));
+      setFlagBenefits(Boolean(selectedSchool.enable_benefits_club));
+      setFlagPayments(Boolean(selectedSchool.enable_online_payments));
+      loadSchoolDocuments(selectedSchool.id);
+    } else {
+      setDocuments([]);
+    }
+  }, [selectedSchoolId, schools]);
+
+  const handleReviewDocument = async (
+    doc: OnboardingDocumentItem,
+    decision: 'APPROVED' | 'REJECTED'
+  ) => {
+    if (!selectedSchool) return;
+    setBusyId(doc.id);
+    onFeedback(null);
+    try {
+      await apiJson(`/tenants/${selectedSchool.id}/documents/${doc.id}/review/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: decision,
+          review_notes: reviewNotes[doc.id] ?? doc.review_notes ?? '',
+        }),
+      });
+      onFeedback({
+        type: 'success',
+        message: `Documento "${doc.doc_type_label}" marcado como ${decision === 'APPROVED' ? 'Validado' : 'Rejeitado'}.`,
+      });
+      await loadSchoolDocuments(selectedSchool.id);
+      onSchoolsUpdated();
+    } catch (err: any) {
+      onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleSaveSchoolPipeline = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedSchool) return;
+    setBusyId(selectedSchool.id);
+    onFeedback(null);
+    try {
+      await apiJson(`/tenants/schools/${selectedSchool.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: officialDomain.trim() || null,
+          dns_status: dnsStatus,
+          google_status: googleStatus,
+          microsoft_status: microsoftStatus,
+          canva_status: canvaStatus,
+          enable_erp_sync: flagErp,
+          enable_benefits_club: flagBenefits,
+          enable_online_payments: flagPayments,
+        }),
+      });
+      onFeedback({
+        type: 'success',
+        message: `Pipeline, domínio e feature flags de ${selectedSchool.name} atualizados.`,
+      });
+      onSchoolsUpdated();
+    } catch (err: any) {
+      onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const handleToggleSchoolActive = async (school: School) => {
     setBusyId(school.id);
@@ -136,15 +256,11 @@ export default function PlatformOpsTab({
                 </tr>
               ) : (
                 schools.map((school) => {
-                  const schoolWithSlug = school as School & {
-                    preview_slug?: string;
-                    effective_site_host?: string;
-                  };
                   const host =
-                    schoolWithSlug.effective_site_host ||
+                    school.effective_site_host ||
                     school.domain ||
-                    (schoolWithSlug.preview_slug
-                      ? `${schoolWithSlug.preview_slug}.${getDisplayRootDomain()}`
+                    (school.preview_slug
+                      ? `${school.preview_slug}.${getDisplayRootDomain()}`
                       : '');
                   return (
                   <tr
@@ -198,7 +314,7 @@ export default function PlatformOpsTab({
                         </button>
                         {host && (
                           <a
-                            href={buildSchoolSiteHref(host)}
+                            href={buildSchoolSiteHref(host, isLocalHostBrowser)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50"
@@ -304,7 +420,7 @@ export default function PlatformOpsTab({
                         <option value="">Global / Sem escola</option>
                         {schools.map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.name} ({s.domain})
+                            {s.name} ({s.effective_site_host || s.domain || s.preview_slug || 'sem-domínio'})
                           </option>
                         ))}
                       </select>
@@ -330,6 +446,191 @@ export default function PlatformOpsTab({
           </table>
         </div>
       </section>
+
+      {selectedSchool && (
+        <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm space-y-5">
+          <div>
+            <h2 className="text-base font-bold text-stone-900">
+              3. Revisão Documental, Pipeline &amp; Feature Flags — {selectedSchool.name}
+            </h2>
+            <p className="text-xs text-stone-600">
+              Valide os comprovativos submetidos no onboarding, atualize os estados do pipeline chave-na-mão e ative módulos das Fases 2 e 3 para esta instituição.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-stone-700">
+              Documentos de Onboarding ({documents.length})
+            </h3>
+            <div className="table-wrapper" tabIndex={0} role="region" aria-labelledby="platform-docs-caption">
+              <table className="edulink-table">
+                <caption id="platform-docs-caption" className="sr-only">
+                  Documentos legais enviados pela escola para revisão
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Documento</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Notas de Revisão</th>
+                    <th scope="col">Decisão</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {documents.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center text-xs text-stone-500 py-4">
+                        Nenhum documento carregado por esta instituição até ao momento.
+                      </td>
+                    </tr>
+                  ) : (
+                    documents.map((doc) => (
+                      <tr key={doc.id}>
+                        <th scope="row" data-label="Documento">
+                          <span className="font-semibold text-stone-900 block">{doc.doc_type_label}</span>
+                          {doc.file && (
+                            <a
+                              href={doc.file}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-semibold text-teal-700 underline"
+                            >
+                              Abrir Ficheiro ↗
+                            </a>
+                          )}
+                        </th>
+                        <td data-label="Estado">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                              doc.status === 'APPROVED'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : doc.status === 'REJECTED'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {doc.status_label}
+                          </span>
+                        </td>
+                        <td data-label="Notas">
+                          <label htmlFor={`doc-note-${doc.id}`} className="sr-only">
+                            Notas para {doc.doc_type_label}
+                          </label>
+                          <input
+                            id={`doc-note-${doc.id}`}
+                            type="text"
+                            value={reviewNotes[doc.id] ?? doc.review_notes ?? ''}
+                            onChange={(e) =>
+                              setReviewNotes((prev) => ({ ...prev, [doc.id]: e.target.value }))
+                            }
+                            placeholder="Observação opcional..."
+                            className="edulink-input text-xs py-1.5"
+                          />
+                        </td>
+                        <td data-label="Decisão">
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              disabled={busyId === doc.id}
+                              onClick={() => handleReviewDocument(doc, 'APPROVED')}
+                              className="rounded-lg bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-800"
+                            >
+                              Aprovar
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyId === doc.id}
+                              onClick={() => handleReviewDocument(doc, 'REJECTED')}
+                              className="rounded-lg border border-red-300 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                            >
+                              Rejeitar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <form onSubmit={handleSaveSchoolPipeline} className="space-y-4 rounded-xl border border-stone-200 bg-stone-50 p-4">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-stone-700">
+              Domínio Oficial, Pipeline &amp; Feature Flags
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <div className="md:col-span-2">
+                <label htmlFor="ops-school-domain" className="block text-xs font-semibold text-stone-700 mb-1">
+                  Domínio Oficial (.edu.ao)
+                </label>
+                <input
+                  id="ops-school-domain"
+                  type="text"
+                  value={officialDomain}
+                  onChange={(e) => setOfficialDomain(e.target.value)}
+                  placeholder="colegio-esperanca.edu.ao"
+                  className="edulink-input text-xs font-mono"
+                />
+              </div>
+              <div>
+                <label htmlFor="ops-dns-stage" className="block text-xs font-semibold text-stone-700 mb-1">
+                  DNS .edu.ao
+                </label>
+                <select id="ops-dns-stage" value={dnsStatus} onChange={(e) => setDnsStatus(e.target.value as SetupStage)} className="edulink-input text-xs">
+                  {STAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="ops-google-stage" className="block text-xs font-semibold text-stone-700 mb-1">
+                  Google Workspace
+                </label>
+                <select id="ops-google-stage" value={googleStatus} onChange={(e) => setGoogleStatus(e.target.value as SetupStage)} className="edulink-input text-xs">
+                  {STAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="ops-ms-stage" className="block text-xs font-semibold text-stone-700 mb-1">
+                  Microsoft 365
+                </label>
+                <select id="ops-ms-stage" value={microsoftStatus} onChange={(e) => setMicrosoftStatus(e.target.value as SetupStage)} className="edulink-input text-xs">
+                  {STAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+              <div>
+                <label htmlFor="ops-canva-stage" className="block text-xs font-semibold text-stone-700 mb-1">
+                  Canva Educação
+                </label>
+                <select id="ops-canva-stage" value={canvaStatus} onChange={(e) => setCanvaStatus(e.target.value as SetupStage)} className="edulink-input text-xs">
+                  {STAGE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+              <label className="flex items-center gap-2 text-xs font-semibold text-stone-800 pt-4">
+                <input type="checkbox" checked={flagErp} onChange={(e) => setFlagErp(e.target.checked)} className="w-4 h-4 accent-teal-700" />
+                Ativar ERP &amp; Verificadores (Fase 2)
+              </label>
+              <label className="flex items-center gap-2 text-xs font-semibold text-stone-800 pt-4">
+                <input type="checkbox" checked={flagBenefits} onChange={(e) => setFlagBenefits(e.target.checked)} className="w-4 h-4 accent-teal-700" />
+                Ativar Clube de Benefícios
+              </label>
+              <label className="flex items-center gap-2 text-xs font-semibold text-stone-800 pt-4">
+                <input type="checkbox" checked={flagPayments} onChange={(e) => setFlagPayments(e.target.checked)} className="w-4 h-4 accent-teal-700" />
+                Ativar Pagamentos Portal
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={busyId === selectedSchool.id}
+              className="rounded-xl bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+            >
+              Guardar Pipeline &amp; Flags
+            </button>
+          </form>
+        </section>
+      )}
     </div>
   );
 }

@@ -45,7 +45,8 @@ def process_erp_event(event_record: ERPSyncEvent) -> ERPSyncEvent:
                 user.is_active = True
                 user.save()
             else:
-                email = generate_institutional_email(canonical.full_name, school.domain, school)
+                email_domain = school.domain or school.effective_site_host
+                email = generate_institutional_email(canonical.full_name, email_domain, school)
                 user = AcademicUser.objects.create(
                     school=school,
                     full_name=canonical.full_name,

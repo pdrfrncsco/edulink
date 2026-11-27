@@ -15,6 +15,11 @@ interface VerifyResult {
     bi_or_student_id: string;
     school_name: string;
     school_domain: string;
+    school_primary_color?: string;
+    school_logo_url?: string | null;
+    institution_type?: 'MED_K12' | 'MESCTI_HIGHER_ED';
+    apd_notified?: boolean;
+    apd_dossier_number?: string;
     academic_year: string;
     grade_class: string;
     status: string;
@@ -94,6 +99,31 @@ function VerifyContent() {
             </div>
 
             <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200 space-y-3 text-xs">
+              <div className="flex items-center gap-3 pb-2 border-b border-stone-200/80">
+                {result.student_info?.school_logo_url ? (
+                  <img
+                    src={result.student_info.school_logo_url}
+                    alt={`Logótipo de ${result.student_info.school_name}`}
+                    className="w-10 h-10 rounded-xl bg-white border border-stone-200 object-contain p-1 shrink-0"
+                  />
+                ) : (
+                  <div
+                    className="w-10 h-10 rounded-xl text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm"
+                    style={{ backgroundColor: result.student_info?.school_primary_color || '#0f766e' }}
+                  >
+                    {(result.student_info?.school_name || 'E').slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <span className="font-bold text-stone-900 block truncate">
+                    {result.student_info?.school_name}
+                  </span>
+                  <span className="text-[11px] font-mono text-stone-500 block truncate">
+                    {result.student_info?.school_domain}
+                  </span>
+                </div>
+              </div>
+
               <div>
                 <span className="text-[10px] uppercase font-bold text-stone-400 block">Titular</span>
                 <span className="text-base font-bold text-stone-900 block">{result.student_info?.full_name}</span>
@@ -102,8 +132,12 @@ function VerifyContent() {
 
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-stone-400 block">Instituição</span>
-                  <span className="font-semibold text-stone-800">{result.student_info?.school_name}</span>
+                  <span className="text-[10px] uppercase font-bold text-stone-400 block">Tutela</span>
+                  <span className="font-semibold text-stone-800">
+                    {result.student_info?.institution_type === 'MESCTI_HIGHER_ED'
+                      ? 'Ensino Superior (MESCTI)'
+                      : 'Ensino Geral / Técnico (MED)'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-stone-400 block">Papel</span>
@@ -123,6 +157,14 @@ function VerifyContent() {
                   <span className="font-semibold text-stone-800">{result.student_info?.grade_class}</span>
                 </div>
               </div>
+
+              {result.student_info?.apd_notified && (
+                <div className="pt-1">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                    ✓ Conformidade APD {result.student_info.apd_dossier_number ? `· ${result.student_info.apd_dossier_number}` : 'Verificada'}
+                  </span>
+                </div>
+              )}
             </div>
 
             <p className="text-[11px] text-stone-400 text-center">

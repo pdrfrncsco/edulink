@@ -47,6 +47,8 @@ def generate_dns_blueprint(
     MX, SPF combinado, DKIM e DMARC) para o domínio .edu.ao da escola.
     """
     school = domain_config.school
+    if not school.domain:
+        raise ValueError('A instituição ainda não possui domínio definitivo (.edu.ao) configurado para gerar registos DNS.')
     if providers is None:
         providers = list(
             CloudIntegration.objects.filter(school=school, sync_enabled=True).values_list('provider', flat=True)
