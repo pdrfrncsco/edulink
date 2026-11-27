@@ -33,3 +33,20 @@ class TLSDomainCheckTests(TestCase):
         self.assertEqual(self.client.get('/api/v1/tenants/tls-check/?domain=inativo.edu.ao').status_code, 403)
         self.assertEqual(self.client.get('/api/v1/tenants/tls-check/?domain=invasor.com').status_code, 403)
         self.assertEqual(self.client.get('/api/v1/tenants/tls-check/').status_code, 403)
+        # Bare slug sem domínio completo continua bloqueado no endpoint de TLS do Caddy
+        self.assertEqual(
+            self.client.get(f'/api/v1/tenants/tls-check/?domain={self.active_school.preview_slug}').status_code,
+            403,
+        )
+
+    def test_public_by_domain_resolves_preview_slug_localhost_and_bare_slug(self):
+        slug = self.active_school.preview_slug
+        for candidate in (
+            'ativo.edu.ao',
+            f'{slug}.edulink.ao',
+            f'{slug}.localhost',
+            slug,
+        ):
+            res = self.client.get(f'/api/v1/tenants/by-domain/?domain={candidate}')
+            self.assertEqual(res.status_code, 200, msg=f'Falhou para {candidate}')
+            self.assertEqual(res.json()['id'], str(self.active_school.id))

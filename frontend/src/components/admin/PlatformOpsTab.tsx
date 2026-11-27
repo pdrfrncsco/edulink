@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { buildSchoolSiteHref, getDisplayRootDomain } from '@/lib/siteUrls';
 import { AdminUserProfile, apiJson, FeedbackState, School } from './types';
 
 interface PlatformOpsTabProps {
@@ -134,14 +135,25 @@ export default function PlatformOpsTab({
                   </td>
                 </tr>
               ) : (
-                schools.map((school) => (
+                schools.map((school) => {
+                  const schoolWithSlug = school as School & {
+                    preview_slug?: string;
+                    effective_site_host?: string;
+                  };
+                  const host =
+                    schoolWithSlug.effective_site_host ||
+                    school.domain ||
+                    (schoolWithSlug.preview_slug
+                      ? `${schoolWithSlug.preview_slug}.${getDisplayRootDomain()}`
+                      : '');
+                  return (
                   <tr
                     key={school.id}
                     className={selectedSchoolId === school.id ? 'bg-teal-50/40' : undefined}
                   >
                     <th scope="row" data-label="Instituição">
                       <span className="font-semibold text-stone-900 block">{school.name}</span>
-                      <span className="text-[11px] font-mono text-stone-500">{school.domain}</span>
+                      <span className="text-[11px] font-mono text-stone-500">{host || 'Sem domínio'}</span>
                     </th>
                     <td data-label="NIF / Alvará" className="text-xs">
                       <span className="font-mono block">{school.nif}</span>
@@ -184,6 +196,16 @@ export default function PlatformOpsTab({
                         >
                           Gerir Escola
                         </button>
+                        {host && (
+                          <a
+                            href={buildSchoolSiteHref(host)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                          >
+                            Ver Site ↗
+                          </a>
+                        )}
                         <button
                           type="button"
                           disabled={busyId === school.id}
@@ -199,7 +221,8 @@ export default function PlatformOpsTab({
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -1,67 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-
-const API_BASE =
-  process.env.INTERNAL_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  'http://backend:8000/api/v1';
-
-const ROOT_DOMAIN = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'edulink.ao')
-  .toLowerCase()
-  .replace(/^www\./, '');
-
-export interface PublicSchoolData {
-  id: string;
-  name: string;
-  institution_type?: 'MED_K12' | 'MESCTI_HIGHER_ED';
-  preview_slug?: string;
-  domain?: string | null;
-  effective_site_host?: string;
-  is_canva_k12_eligible?: boolean;
-  alvara_med_mescti: string;
-  primary_color?: string;
-  logo_url?: string | null;
-  contact_email: string;
-  phone?: string;
-  province: string;
-  municipality: string;
-  address?: string;
-  about_text?: string;
-  apd_notified: boolean;
-  apd_dossier_number?: string;
-  is_active: boolean;
-}
-
-export async function getPublicSchoolData(domain: string): Promise<PublicSchoolData | null> {
-  try {
-    const res = await fetch(
-      `${API_BASE}/tenants/by-domain/?domain=${encodeURIComponent(domain)}`,
-      { next: { revalidate: 60 } }
-    );
-    if (res.status === 404) {
-      return null;
-    }
-    if (res.ok) {
-      return (await res.json()) as PublicSchoolData;
-    }
-  } catch (err) {
-    console.error('Falha ao consultar escola por domínio:', err);
-  }
-  return null;
-}
-
-function getPlatformLinks(currentDomain: string) {
-  const isLocal = currentDomain.endsWith('.localhost') || currentDomain === 'localhost';
-  return {
-    portalUrl: isLocal
-      ? 'http://portal.localhost:3000'
-      : process.env.NEXT_PUBLIC_PORTAL_URL || `https://portal.${ROOT_DOMAIN}`,
-    adminUrl: isLocal
-      ? 'http://admin.localhost:3000'
-      : process.env.NEXT_PUBLIC_ADMIN_URL || `https://admin.${ROOT_DOMAIN}`,
-  };
-}
+import { getPublicSchoolData, getSiteNavigationContext } from '@/lib/siteServerContext';
 
 export async function generateMetadata({
   params,
@@ -80,6 +20,7 @@ export async function generateMetadata({
 
   const host = school.effective_site_host || school.domain || domain;
   const isDemo = !school.domain;
+  const nav = await getSiteNavigationContext(domain, host);
 
   return {
     title: `${school.name} — Portal Oficial`,
@@ -87,7 +28,7 @@ export async function generateMetadata({
       school.about_text ||
       `${school.name} (${school.municipality}, ${school.province}) — Instituição de ensino acreditada em Angola (${school.alvara_med_mescti}).`,
     alternates: {
-      canonical: `https://${host}`,
+      canonical: nav.canonicalOrigin,
     },
     robots: isDemo ? { index: false, follow: false } : { index: true, follow: true },
   };
@@ -110,13 +51,16 @@ export default async function SchoolSitePage({
   const isDemo = !school.domain;
   const isHigherEd = school.institution_type === 'MESCTI_HIGHER_ED';
   const isCanvaFree = school.is_canva_k12_eligible ?? !isHigherEd;
-  const { portalUrl, adminUrl } = getPlatformLinks(domain);
+  const { portalUrl, adminUrl, privacyHref, canonicalOrigin } = await getSiteNavigationContext(
+    domain,
+    effectiveHost
+  );
 
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': isHigherEd ? 'CollegeOrUniversity' : 'School',
     name: school.name,
-    url: `https://${effectiveHost}`,
+    url: canonicalOrigin,
     logo: school.logo_url || undefined,
     email: school.contact_email,
     telephone: school.phone || undefined,
@@ -236,7 +180,7 @@ export default async function SchoolSitePage({
               Ver Alvará e Acreditação Oficial
             </a>
             <a
-              href="/privacidade"
+              href={privacyHref}
               className="px-5 py-3 rounded-xl font-semibold text-sm text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition"
             >
               Privacidade (APD)
@@ -296,7 +240,7 @@ export default async function SchoolSitePage({
             <h3 className="text-sm font-bold uppercase tracking-wider text-stone-800">
               Acreditação Oficial e Proteção de Dados (Angola)
             </h3>
-            <a href="/privacidade" className="text-xs font-semibold text-teal-800 hover:underline">
+            <a href={privacyHref} className="text-xs font-semibold text-teal-800 hover:underline">
               Consultar Política de Privacidade (Lei n.º 22/11) →
             </a>
           </div>
@@ -350,7 +294,7 @@ export default async function SchoolSitePage({
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 text-stone-500">
-            <a href="/privacidade" className="hover:text-stone-900 underline">
+            <a href={privacyHref} className="hover:text-stone-900 underline">
               Política de Privacidade (APD)
             </a>
             <a href={portalUrl} className="hover:text-stone-900 underline">

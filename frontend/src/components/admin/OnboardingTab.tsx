@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { authFetch } from '@/lib/auth';
+import { buildSchoolSiteHref, getDisplayRootDomain, isClientLocalHost } from '@/lib/siteUrls';
 import { apiJson, FeedbackState } from './types';
 
 interface OnboardingTabProps {
@@ -30,7 +31,7 @@ interface OnboardingFormState {
   about_text: string;
 }
 
-const ROOT_DOMAIN = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'edulink.ao').toLowerCase();
+const ROOT_DOMAIN = getDisplayRootDomain();
 
 const ANGOLA_PROVINCES: Record<string, string[]> = {
   Luanda: ['Talatona', 'Belas', 'Kilamba Kiaxi', 'Luanda', 'Cazenga', 'Viana', 'Cacuaco', 'Icolo e Bengo', 'Quiçama'],
@@ -317,9 +318,11 @@ export default function OnboardingTab({ onSchoolCreated, onFeedback }: Onboardin
         }
       }
 
+      const previewRoute = buildSchoolSiteHref(previewHost);
+      const siteLabel = isClientLocalHost() ? previewRoute : `https://${previewHost}`;
       onFeedback({
         type: 'success',
-        message: `Instituição "${payload.name}" registada com sucesso! Site pronto em https://${previewHost}.${docSummary}`,
+        message: `Instituição "${payload.name}" registada com sucesso! Pré-visualização disponível em ${siteLabel}.${docSummary}`,
         details: data,
       });
 
@@ -838,7 +841,7 @@ export default function OnboardingTab({ onSchoolCreated, onFeedback }: Onboardin
                 <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />
               </span>
               <span className="flex-1 bg-white rounded-md px-2.5 py-0.5 border border-stone-200 truncate">
-                https://{previewHost}
+                {isClientLocalHost() ? `/sites/${previewHost}` : `https://${previewHost}`}
               </span>
             </div>
 

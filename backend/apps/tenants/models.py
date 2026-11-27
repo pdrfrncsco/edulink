@@ -270,10 +270,11 @@ class School(UUIDModel, TimeStampedModel):
         super().save(*args, **kwargs)
 
     @classmethod
-    def resolve_by_host(cls, raw_host: str, root_domain: str | None = None):
+    def resolve_by_host(cls, raw_host: str, root_domain: str | None = None, allow_bare_slug: bool = False):
         """
         Resolve uma escola ativa a partir do cabeçalho Host (usado pelo Caddy On-Demand TLS
-        e pelo gerador multi-domínio do Next.js). Suporta tanto domínio próprio quanto {slug}.edulink.ao.
+        e pelo gerador multi-domínio do Next.js). Suporta domínio próprio, {slug}.edulink.ao,
+        {slug}.localhost e (quando allow_bare_slug=True) o preview_slug direto em rotas locais /sites/{slug}.
         """
         host = cls.normalize_host(raw_host)
         if not host:
@@ -289,6 +290,9 @@ class School(UUIDModel, TimeStampedModel):
                 slug = host[:-len(suffix)]
                 if slug and '.' not in slug and slug not in RESERVED_PREVIEW_SLUGS:
                     return cls.objects.filter(preview_slug=slug, is_active=True).first()
+
+        if allow_bare_slug and '.' not in host and host not in RESERVED_PREVIEW_SLUGS:
+            return cls.objects.filter(preview_slug=host, is_active=True).first()
         return None
 
 

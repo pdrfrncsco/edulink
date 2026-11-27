@@ -19,6 +19,7 @@ import {
   getStoredUser,
   updateStoredUser,
 } from '@/lib/auth';
+import { buildSchoolSiteHref, getDisplayRootDomain, isClientLocalHost } from '@/lib/siteUrls';
 
 type SectionKey =
   | 'platform_ops'
@@ -70,7 +71,7 @@ interface NavItem {
   badge?: string;
 }
 
-const ROOT_DOMAIN = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'edulink.ao').toLowerCase();
+const ROOT_DOMAIN = getDisplayRootDomain();
 
 const STAGE_STYLE: Record<SetupStage, { label: string; cls: string }> = {
   NOT_STARTED: { label: 'Por Iniciar', cls: 'bg-stone-100 text-stone-700 border-stone-200' },
@@ -622,12 +623,12 @@ export default function AdminPage() {
           {activeSchool && effectiveHost && activeSection !== 'platform_ops' && activeSection !== 'onboarding' && (
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <a
-                href={`https://${effectiveHost}`}
+                href={buildSchoolSiteHref(effectiveHost)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 font-mono text-stone-800 hover:bg-stone-100 transition"
               >
-                {effectiveHost} ↗
+                {isClientLocalHost() ? `Pré-visualizar Site (${effectiveHost}) ↗` : `${effectiveHost} ↗`}
               </a>
             </div>
           )}
@@ -658,7 +659,17 @@ export default function AdminPage() {
               <div className="mt-2 text-xs font-mono bg-white/80 p-3 rounded-lg border border-teal-200 space-y-1">
                 {feedback.details.effective_site_host && (
                   <p>
-                    <strong>Site:</strong> https://{feedback.details.effective_site_host}
+                    <strong>Site:</strong>{' '}
+                    <a
+                      href={buildSchoolSiteHref(feedback.details.effective_site_host)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-800 underline"
+                    >
+                      {isClientLocalHost()
+                        ? buildSchoolSiteHref(feedback.details.effective_site_host)
+                        : `https://${feedback.details.effective_site_host}`}
+                    </a>
                   </p>
                 )}
                 {feedback.details.domain && (

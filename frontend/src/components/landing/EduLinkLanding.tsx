@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { getDisplayRootDomain } from '@/lib/siteUrls';
 
 type TutelaType = 'MED_K12' | 'MESCTI_HIGHER_ED';
 type PersonaKey = 'direcao' | 'docentes' | 'estudantes';
 
-const ROOT_DOMAIN = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'edulink.ao')
-  .toLowerCase()
-  .replace(/^www\./, '');
+const ROOT_DOMAIN = getDisplayRootDomain();
 
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || '/admin';
 const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || '/portal';

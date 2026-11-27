@@ -127,7 +127,7 @@ class SchoolPublicDetailView(generics.RetrieveAPIView):
 
     def get_object(self):
         domain = self.request.query_params.get('domain', '')
-        return School.resolve_by_host(domain)
+        return School.resolve_by_host(domain, allow_bare_slug=True)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

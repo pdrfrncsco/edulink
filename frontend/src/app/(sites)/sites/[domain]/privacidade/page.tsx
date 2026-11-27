@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getPublicSchoolData } from '../page';
+import { getPublicSchoolData, getSiteNavigationContext } from '@/lib/siteServerContext';
 
 export async function generateMetadata({
   params,
@@ -32,6 +32,7 @@ export default async function SchoolPrivacyPage({
   }
 
   const effectiveHost = school.effective_site_host || school.domain || domain;
+  const { homeHref } = await getSiteNavigationContext(domain, effectiveHost);
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 py-10 px-4 sm:px-6">
@@ -49,7 +50,7 @@ export default async function SchoolPrivacyPage({
             </p>
           </div>
           <a
-            href="/"
+            href={homeHref}
             className="rounded-xl border border-stone-300 px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50"
           >
             ← Voltar ao Site
