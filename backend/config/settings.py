@@ -153,6 +153,13 @@ EDULINK_FERNET_KEY = os.getenv('EDULINK_FERNET_KEY', 'dGhpcy1pcy1hLTMyLWJ5dGUtc2
 EDULINK_JWT_SECRET = os.getenv('EDULINK_JWT_SECRET', 'edulink-passport-jwt-secret-signature-2026')
 EDULINK_PUBLIC_BASE_URL = os.getenv('EDULINK_PUBLIC_BASE_URL', 'http://localhost:3000')
 
+# Billing & Kwanzas (Multicaixa Express / KWiK / Faturação AGT)
+KWANZA_GATEWAY_WEBHOOK_SECRET = os.getenv('KWANZA_GATEWAY_WEBHOOK_SECRET', 'edulink-kwanza-dev-secret')
+KWANZA_SANDBOX_ENABLED = os.getenv(
+    'KWANZA_SANDBOX_ENABLED',
+    'True' if DEBUG else 'False',
+).lower() in ('true', '1', 'yes')
+
 # Cloudflare & DNS.AO Automation
 CLOUDFLARE_API_TOKEN = os.getenv('CLOUDFLARE_API_TOKEN', '')
 CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID', '')

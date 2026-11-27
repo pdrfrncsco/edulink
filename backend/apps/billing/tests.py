@@ -5,7 +5,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from apps.accounts.models import UserProfile
@@ -21,6 +21,7 @@ def sign_kwanza_webhook(body_bytes: bytes) -> str:
     return f"sha256={digest}"
 
 
+@override_settings(KWANZA_SANDBOX_ENABLED=True)
 class BillingKwanzasAndAGTTests(TestCase):
     def setUp(self):
         self.school_a = School.objects.create(
