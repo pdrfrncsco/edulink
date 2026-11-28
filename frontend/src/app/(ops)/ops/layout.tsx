@@ -18,7 +18,7 @@ export default function OpsLayout({
             <div className="flex items-baseline gap-2">
               <span className="font-bold text-base text-white tracking-tight">EduLink Ops</span>
               <span className="hidden sm:inline rounded-full bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
-                Backoffice Interno
+                Backoffice
               </span>
             </div>
           </a>
@@ -28,13 +28,13 @@ export default function OpsLayout({
               href="/admin"
               className="rounded-lg border border-stone-700 bg-stone-800 px-2.5 py-1.5 font-semibold text-stone-200 hover:bg-stone-700 transition"
             >
-              Painel Escola (/admin)
+              Painel Escola
             </a>
             <a
               href="/portal"
               className="rounded-lg border border-stone-700 bg-stone-800 px-2.5 py-1.5 font-semibold text-stone-200 hover:bg-stone-700 transition"
             >
-              Portal PWA
+              Portal
             </a>
           </div>
         </div>
