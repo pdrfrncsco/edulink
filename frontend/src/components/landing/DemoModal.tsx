@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { AlertBanner, Button, FormField, Input, Modal, Select } from '@/components/ui';
+import { AlertBanner, Button, ButtonLink, FormField, Input, Modal, Select } from '@/components/ui';
 import { slugifySchool } from '@/lib/formatters';
 import { ADMIN_URL, PROVINCE_LIST, ROOT_DOMAIN, WHATSAPP_NUMBER } from './data';
 
@@ -140,20 +140,25 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
             </p>
           </AlertBanner>
           <div className="space-y-2">
-            <a
+            <ButtonLink
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="min-h-[44px] flex items-center justify-center w-full text-center py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition"
+              size="lg"
+              fullWidth
+              className="bg-emerald-600 hover:bg-emerald-700 text-xs font-bold"
             >
               Enviar Pedido via WhatsApp Agora
-            </a>
-            <a
+            </ButtonLink>
+            <ButtonLink
               href={ADMIN_URL}
-              className="min-h-[44px] flex items-center justify-center w-full text-center py-3 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition"
+              variant="secondary"
+              size="lg"
+              fullWidth
+              className="text-xs font-bold"
             >
               Ou Criar Conta e Iniciar Registo
-            </a>
+            </ButtonLink>
           </div>
         </div>
       )}

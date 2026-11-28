@@ -29,6 +29,7 @@ export default function MobileNavDrawer({
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const sheetRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const onCloseRef = useRef(onClose);
   const observeCloseRef = useRef(false);
 
@@ -136,6 +137,7 @@ export default function MobileNavDrawer({
 
       if (!cancelled && dialog.open) {
         scroller.scrollTo({ left: 0, behavior: 'auto' });
+        closeButtonRef.current?.focus({ preventScroll: true });
         requestAnimationFrame(() => {
           if (!cancelled && dialog.open) {
             observeCloseRef.current = true;
@@ -176,10 +178,10 @@ export default function MobileNavDrawer({
               {subtitle && <p className="text-xs text-stone-600 truncate">{subtitle}</p>}
             </div>
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={requestAnimatedClose}
               aria-label="Fechar menu"
-              {...({ autofocus: '' } as React.ButtonHTMLAttributes<HTMLButtonElement>)}
               className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 transition shrink-0"
             >
               <X className="h-4 w-4" aria-hidden="true" />

@@ -2,9 +2,12 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ExternalLink } from 'lucide-react';
-import { AlertBanner, Button, Card, FormField, Input, Select, SkeletonCard, StatusBadge } from '@/components/ui';
-import { API_BASE, ParentalConsent } from '@/components/admin/types';
+import { AlertBanner, Card, SkeletonCard, StatusBadge } from '@/components/ui';
+import { API_BASE, type ParentalConsent } from '@/components/admin/types';
+import ConsentSignatureForm, {
+  type GuardianRelationship,
+} from '@/components/consent/ConsentSignatureForm';
+import ConsentSummaryCard from '@/components/consent/ConsentSummaryCard';
 
 function ConsentContent() {
   const searchParams = useSearchParams();
@@ -18,9 +21,7 @@ function ConsentContent() {
 
   const [guardianName, setGuardianName] = useState('');
   const [guardianBi, setGuardianBi] = useState('');
-  const [relationship, setRelationship] = useState<'PAI_MAE' | 'TUTOR_LEGAL' | 'ENCARREGADO'>(
-    'PAI_MAE'
-  );
+  const [relationship, setRelationship] = useState<GuardianRelationship>('PAI_MAE');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
@@ -91,165 +92,22 @@ function ConsentContent() {
 
         {consent && (
           <>
-            <Card variant="muted" padding="sm" className="rounded-xl text-xs space-y-1">
-              <p>
-                <strong>Instituição:</strong> {consent.school_name}
-              </p>
-              <p>
-                <strong>Estudante:</strong> {consent.student_name}
-              </p>
-              <p>
-                <strong>E-mail Institucional:</strong>{' '}
-                <span className="font-mono text-teal-800">{consent.student_email}</span>
-              </p>
-              <div className="pt-0.5 flex items-center gap-2">
-                <strong>Estado Atual:</strong>
-                <StatusBadge
-                  tone={
-                    consent.status === 'SIGNED'
-                      ? 'success'
-                      : consent.status === 'REVOKED'
-                      ? 'error'
-                      : 'warning'
-                  }
-                  dot
-                >
-                  {consent.status === 'SIGNED'
-                    ? 'Assinado'
-                    : consent.status === 'REVOKED'
-                    ? 'Revogado'
-                    : 'Pendente'}
-                </StatusBadge>
-              </div>
-            </Card>
-
-            {consent.status === 'REVOKED' ? (
-              <AlertBanner tone="error" title="Consentimento Revogado">
-                Este termo foi revogado junto da secretaria da escola. Contacte a direção caso
-                pretenda emitir um novo termo de autorização.
-              </AlertBanner>
-            ) : consent.status === 'SIGNED' ? (
-              <div className="space-y-3 text-xs text-stone-700">
-                <p>
-                  Assinado por <strong>{consent.guardian_full_name}</strong> (BI:{' '}
-                  <span className="font-mono">{consent.guardian_bi}</span>).
-                </p>
-                <a
-                  href={`${API_BASE}/compliance/consents/download-by-token/?token=${encodeURIComponent(
-                    consent.consent_token
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-[44px] items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-700 text-white font-semibold hover:bg-teal-800 transition"
-                >
-                  <span>Descarregar Comprovativo (HTML / Imprimir)</span>
-                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-              </div>
-            ) : (
-              <form onSubmit={handleSign} className="space-y-4">
-                <FormField
-                  id="consent-guardian-name"
-                  label="Nome Completo do Encarregado"
-                  required
-                >
-                  {({ id, describedBy, invalid }) => (
-                    <Input
-                      id={id}
-                      name="guardian_full_name"
-                      type="text"
-                      required
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      autoComplete="name"
-                      enterKeyHint="next"
-                      value={guardianName}
-                      onChange={(e) => setGuardianName(e.target.value)}
-                    />
-                  )}
-                </FormField>
-
-                <FormField
-                  id="consent-guardian-bi"
-                  label="N.º do Bilhete de Identidade (BI)"
-                  required
-                >
-                  {({ id, describedBy, invalid }) => (
-                    <Input
-                      id={id}
-                      name="guardian_bi"
-                      type="text"
-                      required
-                      mono
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      enterKeyHint="next"
-                      value={guardianBi}
-                      onChange={(e) => setGuardianBi(e.target.value)}
-                    />
-                  )}
-                </FormField>
-
-                <FormField id="consent-rel" label="Qualidade / Parentesco">
-                  {({ id, describedBy, invalid }) => (
-                    <Select
-                      id={id}
-                      name="guardian_relationship"
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      value={relationship}
-                      onChange={(e) => setRelationship(e.target.value as typeof relationship)}
-                    >
-                      <option value="PAI_MAE">Pai / Mãe</option>
-                      <option value="TUTOR_LEGAL">Tutor Legal</option>
-                      <option value="ENCARREGADO">Encarregado de Educação</option>
-                    </Select>
-                  )}
-                </FormField>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <FormField id="consent-phone" label="Telefone">
-                    {({ id, describedBy, invalid }) => (
-                      <Input
-                        id={id}
-                        name="guardian_phone"
-                        type="tel"
-                        invalid={invalid}
-                        aria-describedby={describedBy}
-                        autoComplete="tel"
-                        enterKeyHint="next"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    )}
-                  </FormField>
-
-                  <FormField id="consent-email" label="E-mail">
-                    {({ id, describedBy, invalid }) => (
-                      <Input
-                        id={id}
-                        name="guardian_email"
-                        type="email"
-                        invalid={invalid}
-                        aria-describedby={describedBy}
-                        autoComplete="email"
-                        enterKeyHint="done"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    )}
-                  </FormField>
-                </div>
-
-                <Button type="submit" size="lg" fullWidth loading={submitting}>
-                  {submitting
-                    ? 'A Registar Assinatura...'
-                    : 'Autorizar e Assinar Termo Digitalmente'}
-                </Button>
-              </form>
+            <ConsentSummaryCard consent={consent} />
+            {consent.status === 'PENDING' && (
+              <ConsentSignatureForm
+                guardianName={guardianName}
+                guardianBi={guardianBi}
+                relationship={relationship}
+                phone={phone}
+                email={email}
+                submitting={submitting}
+                onChangeGuardianName={setGuardianName}
+                onChangeGuardianBi={setGuardianBi}
+                onChangeRelationship={setRelationship}
+                onChangePhone={setPhone}
+                onChangeEmail={setEmail}
+                onSubmit={handleSign}
+              />
             )}
           </>
         )}

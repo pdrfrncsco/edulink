@@ -1,0 +1,41 @@
+/* Form validation after interaction (:user-invalid), dialogs, and range sliders */
+.edulink-input {
+  font: inherit;
+  font-size: max(1rem, 0.9375rem);
+  min-height: 44px;
+}
+
+.edulink-input:user-invalid {
+  border-color: #dc2626;
+}
+
+.edulink-input:focus-visible,
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgb(12 10 9 / 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.edulink-range {
+  accent-color: #0f766e;
+  min-height: 36px;
+}
+
+.edulink-range:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 4px;
+  border-radius: 0.5rem;
+}

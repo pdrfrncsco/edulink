@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { Button, Card, ConfirmModal, DataTable, StatusBadge, type DataTableColumn } from '@/components/ui';
+import { Button, ButtonLink, Card, ConfirmModal, DataTable, StatusBadge, type DataTableColumn } from '@/components/ui';
 import { buildSchoolSiteHref, getDisplayRootDomain } from '@/lib/siteUrls';
 import type { School } from '../types';
 
@@ -113,15 +113,16 @@ export default function OpsSchoolsTable({
               Gerir Escola
             </Button>
             {host && (
-              <a
+              <ButtonLink
                 href={buildSchoolSiteHref(host, isLocalHostBrowser)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[34px] inline-flex items-center gap-1 rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+                variant="outline"
+                size="sm"
+                rightIcon={<ExternalLink className="h-3 w-3" aria-hidden="true" />}
               >
-                <span>Ver Site</span>
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              </a>
+                Ver Site
+              </ButtonLink>
             )}
             <Button
               type="button"

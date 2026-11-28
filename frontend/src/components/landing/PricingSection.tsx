@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Check } from 'lucide-react';
-import { Button, StatusBadge, cn } from '@/components/ui';
+import { Button, ButtonLink, StatusBadge, cn } from '@/components/ui';
 import { formatKz } from '@/lib/formatters';
 import { ADMIN_URL, PLANS } from './data';
 
@@ -72,17 +72,15 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
               </div>
 
               <div className="space-y-2 pt-2">
-                <a
+                <ButtonLink
                   href={ADMIN_URL}
-                  className={cn(
-                    'min-h-[44px] flex items-center justify-center w-full text-center py-3 rounded-xl text-xs font-bold transition',
-                    plan.featured
-                      ? 'bg-teal-700 text-white hover:bg-teal-800 shadow-sm'
-                      : 'bg-stone-900 text-white hover:bg-stone-800'
-                  )}
+                  variant={plan.featured ? 'primary' : 'secondary'}
+                  size="lg"
+                  fullWidth
+                  className="text-xs font-bold"
                 >
                   Começar com {plan.name}
-                </a>
+                </ButtonLink>
                 <Button
                   type="button"
                   variant="outline"

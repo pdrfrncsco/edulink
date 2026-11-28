@@ -1,17 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  AlertBanner,
-  Button,
-  Card,
-  CopyButton,
-  FormField,
-  Input,
-  StatusBadge,
-} from '@/components/ui';
+import { AlertBanner, Card, StatusBadge } from '@/components/ui';
 import DnsRecordsTable from './DnsRecordsTable';
-import { apiJson, DomainConfig, FeedbackState } from './types';
+import DnsAoDossierCard from './domains/DnsAoDossierCard';
+import DomainConfigForm from './domains/DomainConfigForm';
+import { apiJson, type DomainConfig, type FeedbackState } from './types';
 
 interface DomainsDNSTabProps {
   schoolId: string;
@@ -40,18 +34,27 @@ export default function DomainsDNSTab({
   const [fetching, setFetching] = useState(Boolean(schoolId));
 
   const resetFormFields = () => {
-    setDossier(null); setGoogleToken(''); setMsToken('');
-    setDkimSelector('google'); setDkimKey(''); setWebTarget('sites.edulink.ao'); setCfAccountId('');
+    setDossier(null);
+    setGoogleToken('');
+    setMsToken('');
+    setDkimSelector('google');
+    setDkimKey('');
+    setWebTarget('sites.edulink.ao');
+    setCfAccountId('');
   };
 
   const loadConfig = async () => {
     if (!schoolId) {
-      setConfig(null); resetFormFields(); setFetching(false);
+      setConfig(null);
+      resetFormFields();
+      setFetching(false);
       return;
     }
     setFetching(true);
     try {
-      const data = await apiJson<{ results: DomainConfig[] }>(`/domains/configs/?school=${schoolId}`);
+      const data = await apiJson<{ results: DomainConfig[] }>(
+        `/domains/configs/?school=${schoolId}`
+      );
       const first = (data.results || [])[0] || null;
       setConfig(first);
       if (first) {
@@ -180,188 +183,31 @@ export default function DomainsDNSTab({
           )}
         </div>
 
-        <form
+        <DomainConfigForm
+          schoolId={schoolId}
+          config={config}
+          webTarget={webTarget}
+          cfAccountId={cfAccountId}
+          googleToken={googleToken}
+          msToken={msToken}
+          dkimSelector={dkimSelector}
+          dkimKey={dkimKey}
+          loading={loading}
+          onChangeWebTarget={setWebTarget}
+          onChangeCfAccountId={setCfAccountId}
+          onChangeGoogleToken={setGoogleToken}
+          onChangeMsToken={setMsToken}
+          onChangeDkimSelector={setDkimSelector}
+          onChangeDkimKey={setDkimKey}
           onSubmit={handleSaveConfig}
-          aria-labelledby="dns-form-heading"
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          <FormField id="dns-web-target" label="Destino Web (IPv4 ou CNAME do servidor)">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="target_web_ip_or_cname"
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={webTarget}
-                onChange={(e) => setWebTarget(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="dns-cf-account" label="Cloudflare Account ID (opcional em Sandbox)">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="cloudflare_account_id"
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={cfAccountId}
-                onChange={(e) => setCfAccountId(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="dns-google-verify" label="Token TXT Google Verification">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="google_verification_token"
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                placeholder="google-site-verification=..."
-                value={googleToken}
-                onChange={(e) => setGoogleToken(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="dns-ms-verify" label="Token TXT Microsoft Verification">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="microsoft_verification_token"
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                placeholder="MS=ms12345678"
-                value={msToken}
-                onChange={(e) => setMsToken(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="dns-dkim-selector" label="Seletor DKIM">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="dkim_selector"
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={dkimSelector}
-                onChange={(e) => setDkimSelector(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="dns-dkim-key" label="Chave Pública DKIM (opcional)">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="dkim_public_key"
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={dkimKey}
-                onChange={(e) => setDkimKey(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <div className="md:col-span-2 flex flex-wrap gap-3 justify-between pt-2">
-            <div className="flex flex-wrap gap-2">
-              {config && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/generate-blueprint/`, 'POST', 'Blueprint DNS gerado com sucesso!')}
-                  >
-                    1. Gerar Blueprint DNS
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/sync-cloudflare/`, 'POST', 'Zona e registos sincronizados na Cloudflare!')}
-                  >
-                    2. Sincronizar Cloudflare
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/verify-propagation/`, 'POST', 'Verificação de propagação DNS concluída!')}
-                  >
-                    3. Verificar Propagação DNS
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/dns-ao-dossier/`, 'GET', 'Checklist DNS.AO carregada!')}
-                  >
-                    Ver Dossiê DNS.AO
-                  </Button>
-                </>
-              )}
-            </div>
-            <Button type="submit" disabled={!schoolId} loading={loading}>
-              {config ? 'Atualizar Configuração' : 'Inicializar Zona DNS'}
-            </Button>
-          </div>
-        </form>
+          onRunAction={runAction}
+        />
 
         {(nameservers.length > 0 || dossier) && (
-          <Card variant="muted" padding="sm" className="rounded-xl space-y-2 text-xs">
-            <span className="font-bold text-stone-900 uppercase block">
-              Nameservers para Delegação no Registrar DNS.AO:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {nameservers.map((ns) => (
-                <div
-                  key={ns}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-stone-300"
-                >
-                  <code className="font-mono text-teal-800">{ns}</code>
-                  <CopyButton value={ns} label="Copiar" size="sm" />
-                </div>
-              ))}
-            </div>
-            {dossier?.required_documents && (
-              <ul className="list-disc list-inside text-stone-600 pt-1">
-                {dossier.required_documents.map((doc, idx) => (
-                  <li key={idx}>{doc}</li>
-                ))}
-              </ul>
-            )}
-          </Card>
+          <DnsAoDossierCard
+            nameservers={nameservers}
+            requiredDocuments={dossier?.required_documents}
+          />
         )}
       </Card>
 

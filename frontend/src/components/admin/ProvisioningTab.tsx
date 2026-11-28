@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Card, FormField, Input, Textarea } from '@/components/ui';
-import {
-  ActiveIntegrationsGrid,
-  KeycloakSsoCard,
-  ProvisioningLogsTable,
-} from './ProvisioningAuditPanels';
-import { apiJson, CloudIntegration, FeedbackState, ProvisioningLog } from './types';
+import { Button, Card } from '@/components/ui';
+import ActiveIntegrationsGrid from './provisioning/ActiveIntegrationsGrid';
+import CloudConnectorForm from './provisioning/CloudConnectorForm';
+import KeycloakSsoCard from './provisioning/KeycloakSsoCard';
+import ProvisioningLogsTable from './provisioning/ProvisioningLogsTable';
+import { apiJson, type CloudIntegration, type FeedbackState, type ProvisioningLog } from './types';
 
 interface ProvisioningTabProps {
   schoolId: string;
@@ -203,149 +202,25 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
           onTestConnection={handleTestConnection}
         />
 
-        <form onSubmit={handleSaveIntegration} aria-labelledby="cloud-form-heading" className="space-y-4 pt-2">
-          <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold uppercase text-stone-700">
-              Selecione o Provedor de Nuvem
-            </legend>
-            <div className="flex flex-wrap gap-4 text-sm">
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="cloud_provider"
-                  value="GOOGLE"
-                  checked={provider === 'GOOGLE'}
-                  onChange={() => setProvider('GOOGLE')}
-                  className="accent-teal-700"
-                />
-                <span>Google Workspace (Service Account)</span>
-              </label>
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="cloud_provider"
-                  value="MICROSOFT"
-                  checked={provider === 'MICROSOFT'}
-                  onChange={() => setProvider('MICROSOFT')}
-                  className="accent-teal-700"
-                />
-                <span>Microsoft 365 Education (Entra ID)</span>
-              </label>
-            </div>
-          </fieldset>
-
-          <div className="flex items-center gap-2">
-            <input
-              id="sandbox-mode-check"
-              name="sandbox_mode"
-              type="checkbox"
-              checked={sandboxMode}
-              onChange={(e) => setSandboxMode(e.target.checked)}
-              className="accent-teal-700 w-4 h-4"
-            />
-            <label htmlFor="sandbox-mode-check" className="text-sm text-stone-700 cursor-pointer">
-              Executar em modo Sandbox (simulação segura sem credenciais reais de produção)
-            </label>
-          </div>
-
-          {provider === 'GOOGLE' ? (
-            <div className="space-y-4">
-              <FormField
-                id="google-delegated-admin"
-                label="E-mail Super Admin Google (Domain-Wide Delegation)"
-              >
-                {({ id, describedBy, invalid }) => (
-                  <Input
-                    id={id}
-                    name="delegated_admin_email"
-                    type="email"
-                    mono
-                    invalid={invalid}
-                    aria-describedby={describedBy}
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    placeholder="admin@colegio-esperanca.edu.ao"
-                    value={delegatedAdmin}
-                    onChange={(e) => setDelegatedAdmin(e.target.value)}
-                  />
-                )}
-              </FormField>
-              {!sandboxMode && (
-                <FormField id="google-sa-json" label="JSON da Service Account (Google Cloud)" required>
-                  {({ id, describedBy, invalid }) => (
-                    <Textarea
-                      id={id}
-                      name="google_sa_json"
-                      rows={4}
-                      required
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      placeholder='{"type": "service_account", "client_email": "...", "private_key": "..."}'
-                      value={googleJson}
-                      onChange={(e) => setGoogleJson(e.target.value)}
-                      className="text-xs font-mono"
-                    />
-                  )}
-                </FormField>
-              )}
-            </div>
-          ) : (
-            !sandboxMode && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField id="ms-tenant" label="Tenant ID (Entra ID)" required>
-                  {({ id, describedBy, invalid }) => (
-                    <Input
-                      id={id}
-                      name="ms_tenant_id"
-                      required
-                      mono
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      value={msTenantId}
-                      onChange={(e) => setMsTenantId(e.target.value)}
-                    />
-                  )}
-                </FormField>
-                <FormField id="ms-client" label="Client ID (App Registration)" required>
-                  {({ id, describedBy, invalid }) => (
-                    <Input
-                      id={id}
-                      name="ms_client_id"
-                      required
-                      mono
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      value={msClientId}
-                      onChange={(e) => setMsClientId(e.target.value)}
-                    />
-                  )}
-                </FormField>
-                <FormField id="ms-secret" label="Client Secret" required>
-                  {({ id, describedBy, invalid }) => (
-                    <Input
-                      id={id}
-                      name="ms_client_secret"
-                      type="password"
-                      required
-                      mono
-                      invalid={invalid}
-                      aria-describedby={describedBy}
-                      value={msClientSecret}
-                      onChange={(e) => setMsClientSecret(e.target.value)}
-                    />
-                  )}
-                </FormField>
-              </div>
-            )
-          )}
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={!schoolId} loading={loading}>
-              Guardar Integração Encriptada
-            </Button>
-          </div>
-        </form>
+        <CloudConnectorForm
+          schoolId={schoolId}
+          provider={provider}
+          sandboxMode={sandboxMode}
+          delegatedAdmin={delegatedAdmin}
+          googleJson={googleJson}
+          msTenantId={msTenantId}
+          msClientId={msClientId}
+          msClientSecret={msClientSecret}
+          loading={loading}
+          onChangeProvider={setProvider}
+          onChangeSandboxMode={setSandboxMode}
+          onChangeDelegatedAdmin={setDelegatedAdmin}
+          onChangeGoogleJson={setGoogleJson}
+          onChangeMsTenantId={setMsTenantId}
+          onChangeMsClientId={setMsClientId}
+          onChangeMsClientSecret={setMsClientSecret}
+          onSubmit={handleSaveIntegration}
+        />
       </Card>
 
       {ssoMetadata && (

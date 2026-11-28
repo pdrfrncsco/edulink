@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Card, FormField, Input, Select, StatusBadge } from '@/components/ui';
+import { Card, StatusBadge } from '@/components/ui';
 import { openProtectedHtml } from '@/lib/auth';
+import APDDossierForm from './compliance/APDDossierForm';
+import APDProtocolCard from './compliance/APDProtocolCard';
 import ParentalConsentsPanel from './ParentalConsentsPanel';
-import { APDDossier, apiJson, FeedbackState, ParentalConsent } from './types';
+import { apiJson, type APDDossier, type FeedbackState, type ParentalConsent } from './types';
 
 interface ComplianceAPDTabProps {
   schoolId: string;
@@ -186,7 +188,11 @@ export default function ComplianceAPDTab({
           </div>
           {dossier && (
             <StatusBadge
-              tone={dossier.status === 'APPROVED' || dossier.status === 'SUBMITTED' ? 'success' : 'warning'}
+              tone={
+                dossier.status === 'APPROVED' || dossier.status === 'SUBMITTED'
+                  ? 'success'
+                  : 'warning'
+              }
               size="md"
               className="self-start"
             >
@@ -195,171 +201,39 @@ export default function ComplianceAPDTab({
           )}
         </div>
 
-        <form
+        <APDDossierForm
+          schoolId={schoolId}
+          dossier={dossier}
+          directorName={directorName}
+          directorBi={directorBi}
+          dpoName={dpoName}
+          dpoEmail={dpoEmail}
+          institutionType={institutionType}
+          hasMinors={hasMinors}
+          loading={loading}
+          onChangeDirectorName={setDirectorName}
+          onChangeDirectorBi={setDirectorBi}
+          onChangeDpoName={setDpoName}
+          onChangeDpoEmail={setDpoEmail}
+          onChangeInstitutionType={setInstitutionType}
+          onChangeHasMinors={setHasMinors}
           onSubmit={handleSaveDossier}
-          aria-labelledby="apd-form-heading"
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-        >
-          <FormField id="apd-director-name" label="Nome do Diretor / Representante Legal" required>
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="director_full_name"
-                type="text"
-                required
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoComplete="name"
-                value={directorName}
-                onChange={(e) => setDirectorName(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="apd-director-bi" label="BI do Diretor" required>
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="director_bi"
-                type="text"
-                required
-                mono
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={directorBi}
-                onChange={(e) => setDirectorBi(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="apd-dpo-name" label="Ponto Focal de Privacidade (opcional)">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="dpo_name"
-                type="text"
-                invalid={invalid}
-                aria-describedby={describedBy}
-                value={dpoName}
-                onChange={(e) => setDpoName(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="apd-dpo-email" label="E-mail de Privacidade / APD">
-            {({ id, describedBy, invalid }) => (
-              <Input
-                id={id}
-                name="dpo_email"
-                type="email"
-                invalid={invalid}
-                aria-describedby={describedBy}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={dpoEmail}
-                onChange={(e) => setDpoEmail(e.target.value)}
-              />
-            )}
-          </FormField>
-
-          <FormField id="apd-inst-type" label="Nível de Ensino">
-            {({ id, describedBy, invalid }) => (
-              <Select
-                id={id}
-                name="institution_type"
-                invalid={invalid}
-                aria-describedby={describedBy}
-                value={institutionType}
-                onChange={(e) =>
-                  setInstitutionType(e.target.value as 'PRIMARY_SECONDARY' | 'HIGHER_ED')
-                }
-              >
-                <option value="PRIMARY_SECONDARY">Ensino Primário / Secundário (Menores)</option>
-                <option value="HIGHER_ED">Ensino Superior / Técnico (IES)</option>
-              </Select>
-            )}
-          </FormField>
-
-          <div className="flex items-center gap-2 pt-6">
-            <input
-              id="apd-has-minors"
-              name="has_minors"
-              type="checkbox"
-              checked={hasMinors}
-              onChange={(e) => setHasMinors(e.target.checked)}
-              className="accent-teal-700 w-4 h-4"
-            />
-            <label htmlFor="apd-has-minors" className="text-sm text-stone-700 cursor-pointer">
-              Trata dados de menores de idade (exige Consentimento Parental)
-            </label>
-          </div>
-
-          <div className="md:col-span-2 flex flex-wrap gap-2 justify-between items-center pt-2">
-            <div className="flex flex-wrap gap-2">
-              {dossier && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={loading}
-                    onClick={handleGenerateDossier}
-                  >
-                    Gerar / Atualizar Dossiê APD
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      openProtectedHtml(`/compliance/dossiers/${dossier.id}/download-html/`).catch(
-                        (err) => onFeedback({ type: 'error', message: err.message })
-                      )
-                    }
-                  >
-                    Imprimir / Ver HTML Oficial
-                  </Button>
-                </>
-              )}
-            </div>
-            <Button type="submit" disabled={!schoolId} loading={loading}>
-              {dossier ? 'Atualizar Dados APD' : 'Criar Dossiê APD'}
-            </Button>
-          </div>
-        </form>
+          onGenerateDossier={handleGenerateDossier}
+          onOpenHtml={() => {
+            if (!dossier) return;
+            openProtectedHtml(`/compliance/dossiers/${dossier.id}/download-html/`).catch((err) =>
+              onFeedback({ type: 'error', message: err.message })
+            );
+          }}
+        />
 
         {dossier && (
-          <div className="border-t border-stone-100 pt-4 flex flex-col sm:flex-row gap-3 items-end">
-            <FormField
-              id="apd-ref-number"
-              label="Registar N.º de Processo Protocolado na APD"
-              className="flex-1 w-full"
-            >
-              {({ id, describedBy, invalid }) => (
-                <Input
-                  id={id}
-                  name="apd_reference_number"
-                  type="text"
-                  mono
-                  invalid={invalid}
-                  aria-describedby={describedBy}
-                  placeholder="Ex: APD-PROC-2026-0412"
-                  value={apdRefNumber}
-                  onChange={(e) => setApdRefNumber(e.target.value)}
-                />
-              )}
-            </FormField>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={loading}
-              onClick={handleMarkSubmitted}
-            >
-              Confirmar Submissão à APD
-            </Button>
-          </div>
+          <APDProtocolCard
+            apdRefNumber={apdRefNumber}
+            loading={loading}
+            onChangeRefNumber={setApdRefNumber}
+            onConfirmSubmitted={handleMarkSubmitted}
+          />
         )}
       </Card>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Button } from '@/components/ui';
+import { Button, ButtonLink } from '@/components/ui';
 import { slugifySchool } from '@/lib/formatters';
 import {
   ADMIN_URL,
@@ -140,12 +140,14 @@ export default function EduLinkLanding() {
               >
                 Agendar Demonstração
               </Button>
-              <a
+              <ButtonLink
                 href={ADMIN_URL}
-                className="min-h-[44px] inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/30 bg-white/10 text-white font-bold text-sm hover:bg-white/20 transition"
+                variant="outline"
+                size="lg"
+                className="border-white/30 bg-white/10 text-white font-bold hover:bg-white/20 px-6"
               >
                 Abrir Portal da Secretaria
-              </a>
+              </ButtonLink>
             </div>
           </div>
         </section>

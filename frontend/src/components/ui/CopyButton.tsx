@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, Copy } from 'lucide-react';
+import { copyTextSafely } from '@/lib/clipboard';
 import { Button, type ButtonSize, type ButtonVariant } from './Button';
 
 export interface CopyButtonProps {
@@ -36,27 +37,14 @@ export function CopyButton({
   }, []);
 
   const handleCopy = async () => {
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(value);
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = value;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(textarea);
-        if (!ok) throw new Error('Clipboard indisponível');
-      }
-      setCopied(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setCopied(false), 2000);
-    } catch {
+    const ok = await copyTextSafely(value);
+    if (!ok) {
       onCopyError?.();
+      return;
     }
+    setCopied(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   return (

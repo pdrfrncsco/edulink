@@ -4,6 +4,7 @@ import React from 'react';
 import { FileCode2, FileJson, Printer } from 'lucide-react';
 import { Button, Card, DataTable, type DataTableColumn } from '@/components/ui';
 import { authFetch, openProtectedHtml } from '@/lib/auth';
+import { downloadTextBlob } from '@/lib/downloads';
 import { formatAOA } from '@/lib/formatters';
 import { apiJson, type AGTInvoice, type FeedbackState } from '../types';
 
@@ -37,13 +38,7 @@ export default function AGTInvoicesPanel({
           throw new Error(errData.detail || 'Erro ao gerar ficheiro SAF-T (AO) XML.');
         }
         const xmlText = await res.text();
-        const blob = new Blob([xmlText], { type: 'application/xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `saft-ao-edulink-${dateSlug}.xml`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadTextBlob(xmlText, `saft-ao-edulink-${dateSlug}.xml`, 'application/xml;charset=utf-8');
         onFeedback({
           type: 'success',
           message: 'Ficheiro oficial SAF-T (AO) XML exportado com sucesso.',
@@ -52,13 +47,11 @@ export default function AGTInvoicesPanel({
         const saft = await apiJson<Record<string, any>>(
           '/billing/invoices/saft-export/?export_format=json'
         );
-        const blob = new Blob([JSON.stringify(saft, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `saft-ao-edulink-${dateSlug}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadTextBlob(
+          JSON.stringify(saft, null, 2),
+          `saft-ao-edulink-${dateSlug}.json`,
+          'application/json'
+        );
         onFeedback({
           type: 'success',
           message: `Resumo SAF-T (AO) JSON exportado com ${saft.NumberOfEntries} fatura(s).`,

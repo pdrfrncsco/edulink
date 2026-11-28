@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ExternalLink, LogOut, RefreshCw } from 'lucide-react';
-import { Button, Card, StatusBadge } from '@/components/ui';
+import { Button, ButtonLink, Card, StatusBadge } from '@/components/ui';
 import type { AuthUser } from '@/lib/auth';
 import { KEYCLOAK_ACCOUNT_URL, type PassportData } from './types';
 
@@ -64,15 +64,18 @@ export default function AccountTab({
       )}
 
       <div className="space-y-2.5">
-        <a
+        <ButtonLink
           href={KEYCLOAK_ACCOUNT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="min-h-[44px] inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-stone-900 text-white text-xs font-semibold text-center hover:bg-stone-800 transition"
+          variant="secondary"
+          size="lg"
+          fullWidth
+          className="text-xs"
+          rightIcon={<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />}
         >
-          <span>Alterar Palavra-passe Única (SSO)</span>
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-        </a>
+          Alterar Palavra-passe Única (SSO)
+        </ButtonLink>
         <Button
           type="button"
           variant="outline"

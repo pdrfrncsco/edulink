@@ -8,11 +8,11 @@ import {
   ConfirmModal,
   CopyButton,
   DataTable,
-  Input,
   StatusBadge,
   type DataTableColumn,
 } from '@/components/ui';
 import { openProtectedHtml } from '@/lib/auth';
+import ConsentRowActions from './compliance/ConsentRowActions';
 import { apiJson, type FeedbackState, type ParentalConsent } from './types';
 
 interface ParentalConsentsPanelProps {
@@ -191,73 +191,24 @@ export default function ParentalConsentsPanel({
       key: 'actions',
       header: 'Ações',
       render: (c) => (
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                openProtectedHtml(`/compliance/consents/${c.id}/download-html/`).catch((err) =>
-                  onFeedback({ type: 'error', message: err.message })
-                )
-              }
-            >
-              HTML
-            </Button>
-            {c.status === 'PENDING' && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={loading}
-                onClick={() => {
-                  if (c.guardian_email) {
-                    handleSendConsentEmail(c.id);
-                  } else {
-                    setEmailPromptId(emailPromptId === c.id ? null : c.id);
-                    setGuardianEmailInput('');
-                  }
-                }}
-              >
-                Enviar E-mail
-              </Button>
-            )}
-            {c.status !== 'REVOKED' && (
-              <Button
-                type="button"
-                variant="danger"
-                size="sm"
-                onClick={() => setConfirmRevokeConsent(c)}
-              >
-                Revogar
-              </Button>
-            )}
-          </div>
-          {emailPromptId === c.id && (
-            <div className="flex flex-wrap gap-1.5 items-center pt-1">
-              <label htmlFor={`guardian-email-${c.id}`} className="sr-only">
-                E-mail do Encarregado
-              </label>
-              <Input
-                id={`guardian-email-${c.id}`}
-                type="email"
-                placeholder="encarregado@email.ao"
-                value={guardianEmailInput}
-                onChange={(e) => setGuardianEmailInput(e.target.value)}
-                className="w-auto min-w-[180px] py-1 text-xs"
-              />
-              <Button
-                type="button"
-                size="sm"
-                disabled={loading || !guardianEmailInput.trim()}
-                onClick={() => handleSendConsentEmail(c.id, guardianEmailInput)}
-              >
-                Enviar
-              </Button>
-            </div>
-          )}
-        </div>
+        <ConsentRowActions
+          consent={c}
+          loading={loading}
+          isPromptOpen={emailPromptId === c.id}
+          guardianEmailInput={guardianEmailInput}
+          onOpenHtml={(item) =>
+            openProtectedHtml(`/compliance/consents/${item.id}/download-html/`).catch((err) =>
+              onFeedback({ type: 'error', message: err.message })
+            )
+          }
+          onSendEmail={handleSendConsentEmail}
+          onToggleEmailPrompt={(id) => {
+            setEmailPromptId(emailPromptId === id ? null : id);
+            setGuardianEmailInput('');
+          }}
+          onChangeEmailInput={setGuardianEmailInput}
+          onRequestRevoke={setConfirmRevokeConsent}
+        />
       ),
     },
   ];

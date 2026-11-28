@@ -1,50 +1,17 @@
-import json
 import re
-from pathlib import Path
 
-from cryptography.fernet import InvalidToken
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db import models
 from django.utils.text import slugify
 
-from apps.core.crypto import decrypt_text, encrypt_text
 from apps.core.models import TimeStampedModel, UUIDModel
-
-
-nif_validator = RegexValidator(
-    regex=r'^\d{9,10}[A-Za-z0-9]?$',
-    message='O NIF de Angola deve conter entre 9 a 10 dígitos numéricos (com possível sufixo).'
+from .validators import (
+    RESERVED_PREVIEW_SLUGS,
+    domain_validator,
+    hex_color_validator,
+    nif_validator,
 )
-
-# Aceita .edu.ao (preferencial), .ed.ao, domínios próprios já existentes (.co.ao, .ao, .com, .org, .net) e .localhost
-domain_validator = RegexValidator(
-    regex=r'^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:edu\.ao|ed\.ao|co\.ao|ao|com|org|net|localhost)$',
-    message=(
-        'Introduza um domínio válido em minúsculas (ex.: colegio-esperanca.edu.ao, '
-        'escola.co.ao, escola.com ou colegio.localhost para testes).'
-    )
-)
-
-hex_color_validator = RegexValidator(
-    regex=r'^#[0-9A-Fa-f]{6}$',
-    message='A cor primária deve estar em formato hexadecimal (ex.: #0D9488).'
-)
-
-RESERVED_PREVIEW_SLUGS = {
-    'www', 'admin', 'ops', 'portal', 'api', 'auth', 'sso',
-    'mail', 'webmail', 'docs', 'status', 'cdn', 'static', 'app',
-}
-
-
-def onboarding_document_upload_path(instance: 'OnboardingDocument', filename: str) -> str:
-    ext = Path(filename).suffix.lower() or '.pdf'
-    return f'tenants/{instance.school_id}/onboarding/{instance.doc_type.lower()}_{instance.id}{ext}'
-
-
-class CloudCredentialDecryptionError(Exception):
-    """Lançada quando uma credencial encriptada não pode ser lida (ex.: rotação de chave Fernet)."""
 
 
 class School(UUIDModel, TimeStampedModel):
@@ -86,7 +53,6 @@ class School(UUIDModel, TimeStampedModel):
         help_text='Número do Alvará, Despacho ou Decreto de Reconhecimento Oficial'
     )
 
-    # Identidade de Domínio: Demo imediata + Domínio oficial (.edu.ao ou existente)
     preview_slug = models.SlugField(
         max_length=63,
         unique=True,
@@ -122,7 +88,6 @@ class School(UUIDModel, TimeStampedModel):
         help_text='Indica se a escola tem acesso ativo na plataforma EduLink'
     )
 
-    # Dados de Contacto e Localização (Angola)
     contact_email = models.EmailField(
         verbose_name='E-mail Institucional de Contacto',
         help_text='Exibido publicamente no site escolar (ex.: secretaria@escola.edu.ao).'
@@ -142,7 +107,6 @@ class School(UUIDModel, TimeStampedModel):
         help_text='Apresentação institucional exibida no site público'
     )
 
-    # Pipeline Chave-na-Mão de Intermediação (Backoffice EduLink)
     dns_status = models.CharField(
         max_length=20,
         choices=SetupStage.choices,
@@ -168,7 +132,6 @@ class School(UUIDModel, TimeStampedModel):
         verbose_name='Estado Canva para Educação'
     )
 
-    # Blindagem Regulatória APD (Lei n.º 22/11)
     apd_notified = models.BooleanField(
         default=False,
         verbose_name='Notificação APD Submetida'
@@ -179,7 +142,6 @@ class School(UUIDModel, TimeStampedModel):
         verbose_name='N.º do Dossiê APD'
     )
 
-    # Feature Flags por Tenant (Fases 2 e 3 desativadas por padrão no MVP piloto)
     enable_erp_sync = models.BooleanField(
         default=False,
         verbose_name='Ativar Sincronização ERP (Fase 2)'
@@ -294,166 +256,3 @@ class School(UUIDModel, TimeStampedModel):
         if allow_bare_slug and '.' not in host and host not in RESERVED_PREVIEW_SLUGS:
             return cls.objects.filter(preview_slug=host, is_active=True).first()
         return None
-
-
-class OnboardingDocument(UUIDModel, TimeStampedModel):
-    """
-    Armazena os comprovativos legais obrigatórios recolhidos durante o onboarding
-    para submissão à DNS.AO, Google Workspace, Microsoft 365 e APD.
-    """
-
-    class DocumentType(models.TextChoices):
-        ALVARA_MED_MESCTI = 'ALVARA_MED_MESCTI', 'Alvará / Despacho MED ou MESCTI'
-        NIF_CARD = 'NIF_CARD', 'Cartão de Contribuinte (NIF)'
-        DIRECTOR_BI = 'DIRECTOR_BI', 'Bilhete de Identidade (BI) do Diretor'
-        TECHNICAL_MANDATE = 'TECHNICAL_MANDATE', 'Mandato Técnico / Autorização Assinada'
-        APD_DOSSIER = 'APD_DOSSIER', 'Comprovativo de Notificação APD'
-
-    class ReviewStatus(models.TextChoices):
-        PENDING = 'PENDING', 'Pendente de Validação'
-        APPROVED = 'APPROVED', 'Validado'
-        REJECTED = 'REJECTED', 'Rejeitado (Reenvio Necessário)'
-
-    school = models.ForeignKey(
-        School,
-        on_delete=models.CASCADE,
-        related_name='onboarding_documents',
-        verbose_name='Escola'
-    )
-    doc_type = models.CharField(
-        max_length=32,
-        choices=DocumentType.choices,
-        verbose_name='Tipo de Documento'
-    )
-    file = models.FileField(
-        upload_to=onboarding_document_upload_path,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'png', 'jpg', 'jpeg'])],
-        verbose_name='Ficheiro Digitalizado (PDF/Imagem)'
-    )
-    status = models.CharField(
-        max_length=16,
-        choices=ReviewStatus.choices,
-        default=ReviewStatus.PENDING,
-        verbose_name='Estado da Revisão'
-    )
-    review_notes = models.TextField(blank=True, verbose_name='Observações da Equipa EduLink')
-    verified_at = models.DateTimeField(null=True, blank=True, verbose_name='Validado em')
-    verified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='verified_onboarding_documents',
-        verbose_name='Validado por'
-    )
-
-    class Meta:
-        verbose_name = 'Documento de Onboarding'
-        verbose_name_plural = 'Documentos de Onboarding'
-        ordering = ['-created_at']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['school', 'doc_type'],
-                name='uniq_onboarding_doc_per_school_type'
-            )
-        ]
-
-    def __str__(self) -> str:
-        return f'{self.school.name} — {self.get_doc_type_display()} ({self.status})'
-
-
-class CloudIntegration(UUIDModel, TimeStampedModel):
-    """
-    Armazena com segurança (AES-256 / Fernet) as credenciais de autenticação
-    de cada escola nos provedores de nuvem (Google Workspace for Education e Microsoft 365).
-    """
-
-    class Provider(models.TextChoices):
-        GOOGLE = 'GOOGLE', 'Google Workspace for Education'
-        MICROSOFT = 'MICROSOFT', 'Microsoft 365 Education (A1/Entra ID)'
-
-    class SyncStatus(models.TextChoices):
-        IDLE = 'IDLE', 'Aguardando'
-        SYNCING = 'SYNCING', 'Sincronizando'
-        SUCCESS = 'SUCCESS', 'Sincronizado com Sucesso'
-        ERROR = 'ERROR', 'Erro de Sincronização'
-
-    school = models.ForeignKey(
-        School,
-        on_delete=models.CASCADE,
-        related_name='cloud_integrations',
-        verbose_name='Escola'
-    )
-    provider = models.CharField(
-        max_length=20,
-        choices=Provider.choices,
-        verbose_name='Provedor de Nuvem'
-    )
-    encrypted_credentials = models.TextField(
-        verbose_name='Credenciais Encriptadas (AES-256)',
-        help_text='JSON da Service Account ou App Registration encriptado com Fernet'
-    )
-    sync_enabled = models.BooleanField(
-        default=True,
-        verbose_name='Sincronização Automática Ativa'
-    )
-    sync_status = models.CharField(
-        max_length=20,
-        choices=SyncStatus.choices,
-        default=SyncStatus.IDLE,
-        verbose_name='Estado de Sincronização'
-    )
-    last_sync_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name='Última Sincronização'
-    )
-    last_error_message = models.TextField(
-        blank=True,
-        verbose_name='Última Mensagem de Erro'
-    )
-
-    class Meta:
-        verbose_name = 'Integração de Nuvem'
-        verbose_name_plural = 'Integrações de Nuvem'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['school', 'provider'],
-                name='uniq_cloud_integration_school_provider'
-            )
-        ]
-
-    def __str__(self) -> str:
-        return f'{self.school.name} - {self.get_provider_display()}'
-
-    def set_credentials(self, credentials_data) -> None:
-        """Recebe um dicionário ou string, serializa para JSON e encripta."""
-        if isinstance(credentials_data, (dict, list)):
-            plain_str = json.dumps(credentials_data)
-        else:
-            plain_str = str(credentials_data)
-        self.encrypted_credentials = encrypt_text(plain_str)
-
-    def get_credentials(self):
-        """Decripta os dados e retorna como objeto Python (dict/str)."""
-        if not self.encrypted_credentials:
-            return None
-        try:
-            decrypted_str = decrypt_text(self.encrypted_credentials)
-        except (InvalidToken, ValueError) as exc:
-            raise CloudCredentialDecryptionError(
-                'Não foi possível desencriptar as credenciais desta integração. '
-                'Verifique a chave FERNET_ENCRYPTION_KEY ou reenvie as credenciais.'
-            ) from exc
-
-        try:
-            return json.loads(decrypted_str)
-        except json.JSONDecodeError:
-            return decrypted_str
-
-    @property
-    def has_valid_credentials(self) -> bool:
-        try:
-            return bool(self.get_credentials())
-        except CloudCredentialDecryptionError:
-            return False

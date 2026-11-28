@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Download, Upload } from 'lucide-react';
 import { Button, Card, FormField, Input, StatusBadge } from '@/components/ui';
 import { authFetch } from '@/lib/auth';
+import { downloadTextBlob } from '@/lib/downloads';
 import type { FeedbackState } from './types';
 
 interface CsvImportPanelProps {
@@ -39,13 +40,7 @@ export default function CsvImportPanel({
       'Esperança Nzola Sebastião;007812930LA031;ALUNO;11ª Classe - CFB;2026/2027;945223344;esperanca.n@gmail.com',
       'António Baptista Mukinda;001289456HA012;PROFESSOR;Departamento de Física;2026/2027;912887766;a.mukinda@gmail.com',
     ].join('\n');
-    const blob = new Blob(['\ufeff' + sample], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'turma_exemplo_angola.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadTextBlob('\ufeff' + sample, 'turma_exemplo_angola.csv', 'text/csv;charset=utf-8;');
   };
 
   const handleFileSelected = async (file: File | null) => {
