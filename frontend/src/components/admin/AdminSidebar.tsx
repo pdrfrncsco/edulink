@@ -4,6 +4,7 @@ import React from 'react';
 import { LogOut, Menu, X } from 'lucide-react';
 import { Button, Card, StatusBadge, cn } from '@/components/ui';
 import type { AuthUser } from '@/lib/auth';
+import { getContrastTextColor } from '@/lib/formatters';
 import type { NavItem, SectionKey } from './navigation';
 import type { School } from './types';
 
@@ -170,8 +171,11 @@ export default function AdminSidebar({
               />
             ) : (
               <span
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
-                style={{ backgroundColor: activeSchool.primary_color || '#0F766E' }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                style={{
+                  backgroundColor: activeSchool.primary_color || '#0F766E',
+                  color: getContrastTextColor(activeSchool.primary_color || '#0F766E'),
+                }}
               >
                 {activeSchool.name.slice(0, 2).toUpperCase()}
               </span>

@@ -37,10 +37,20 @@ export function CopyButton({
 
   const handleCopy = async () => {
     try {
-      if (typeof navigator === 'undefined' || !navigator.clipboard) {
-        throw new Error('Clipboard API indisponível');
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = value;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (!ok) throw new Error('Clipboard indisponível');
       }
-      await navigator.clipboard.writeText(value);
       setCopied(true);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setCopied(false), 2000);

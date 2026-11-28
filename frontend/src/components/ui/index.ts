@@ -1,6 +1,7 @@
 export { cn } from './cn';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button';
 export { StatusBadge, type StatusBadgeProps, type StatusTone } from './StatusBadge';
+export { Tabs, TabPanel, type TabOption, type TabPanelProps, type TabsProps } from './Tabs';
 export {
   Card,
   CardHeader,

@@ -13,8 +13,16 @@ export interface AuthUser {
   school_id: string | null;
   school_name: string | null;
   school_domain: string | null;
+  school_official_domain?: string | null;
+  school_preview_slug?: string | null;
+  school_primary_color?: string;
+  school_logo_url?: string | null;
+  school_is_active?: boolean | null;
+  institution_type?: 'MED_K12' | 'MESCTI_HIGHER_ED' | null;
+  is_canva_k12_eligible?: boolean | null;
   enable_erp_sync?: boolean;
   enable_benefits_club?: boolean;
+  enable_online_payments?: boolean;
   academic_user: {
     id: string;
     full_name: string;

@@ -1,7 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AlertBanner, StatusBadge } from '@/components/ui';
+import {
+  AlertBanner,
+  Button,
+  Card,
+  CopyButton,
+  FormField,
+  Input,
+  StatusBadge,
+} from '@/components/ui';
+import DnsRecordsTable from './DnsRecordsTable';
 import { apiJson, DomainConfig, FeedbackState } from './types';
 
 interface DomainsDNSTabProps {
@@ -10,9 +19,17 @@ interface DomainsDNSTabProps {
   onFeedback: (fb: FeedbackState | null) => void;
 }
 
-export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFeedback }: DomainsDNSTabProps) {
+/** `.edu.ao` DNS.AO registrar dossier, Cloudflare automation blueprint, and DoH checker. */
+export default function DomainsDNSTab({
+  schoolId,
+  hasOfficialDomain = true,
+  onFeedback,
+}: DomainsDNSTabProps) {
   const [config, setConfig] = useState<DomainConfig | null>(null);
-  const [dossier, setDossier] = useState<any | null>(null);
+  const [dossier, setDossier] = useState<{
+    nameservers_to_configure?: string[];
+    required_documents?: string[];
+  } | null>(null);
   const [googleToken, setGoogleToken] = useState('');
   const [msToken, setMsToken] = useState('');
   const [dkimSelector, setDkimSelector] = useState('google');
@@ -101,19 +118,31 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
     }
   };
 
-  const runAction = async (path: string, method: 'POST' | 'GET', successMessage: string, body?: any) => {
+  const runAction = async (path: string, method: 'POST' | 'GET', successMessage: string) => {
     setLoading(true);
     onFeedback(null);
     try {
-      const res = await apiJson(path, {
-        method,
-        headers: body ? { 'Content-Type': 'application/json' } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
-      });
+      const res = await apiJson<{
+        nameservers?: string[];
+        nameservers_to_configure?: string[];
+        required_documents?: string[];
+        domain?: string;
+        zone_id?: string;
+      }>(path, { method });
       if (path.endsWith('dns-ao-dossier/')) {
         setDossier(res);
       }
-      onFeedback({ type: 'success', message: successMessage, details: res.nameservers ? { next_steps: res.nameservers.map((ns: string) => `NS: ${ns}`), domain: res.domain, school_id: res.zone_id } : undefined });
+      onFeedback({
+        type: 'success',
+        message: successMessage,
+        details: res.nameservers
+          ? {
+              next_steps: res.nameservers.map((ns) => `NS: ${ns}`),
+              domain: res.domain,
+              school_id: res.zone_id,
+            }
+          : undefined,
+      });
       await loadConfig();
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
@@ -122,21 +151,28 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
     }
   };
 
+  const nameservers = dossier?.nameservers_to_configure || config?.nameservers || [];
+
   return (
     <div className="space-y-6">
       {!hasOfficialDomain && (
         <AlertBanner tone="warning">
-          <strong>Modo Demonstração ativo:</strong> esta escola ainda utiliza o endereço provisório <code>.edulink.ao</code> e não tem domínio definitivo (<code>.edu.ao</code>) atribuído. Defina o domínio oficial na consola de Operação EduLink antes de gerar ou sincronizar registos DNS na Cloudflare.
+          <strong>Modo Demonstração ativo:</strong> esta escola ainda utiliza o endereço provisório{' '}
+          <code>.edulink.ao</code> e não tem domínio definitivo (<code>.edu.ao</code>) atribuído.
+          Defina o domínio oficial na consola de Operação EduLink antes de gerar ou sincronizar
+          registos DNS na Cloudflare.
         </AlertBanner>
       )}
-      <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+
+      <Card padding="lg" className="space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-100 pb-4">
           <div>
             <h2 id="dns-form-heading" className="text-lg font-bold text-stone-900">
-              Automação DNS (.edu.ao) — Cloudflare & DNS.AO
+              Automação DNS (.edu.ao) — Cloudflare &amp; DNS.AO
             </h2>
             <p className="text-xs sm:text-sm text-stone-500">
-              Gera automaticamente registos Web, MX, SPF combinado, DKIM e DMARC para aprovação no Google Workspace e Microsoft 365.
+              Gera automaticamente registos Web, MX, SPF combinado, DKIM e DMARC para aprovação no
+              Google Workspace e Microsoft 365.
             </p>
           </div>
           {config && (
@@ -146,244 +182,216 @@ export default function DomainsDNSTab({ schoolId, hasOfficialDomain = true, onFe
           )}
         </div>
 
-        <form onSubmit={handleSaveConfig} aria-labelledby="dns-form-heading" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="dns-web-target" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Destino Web (IPv4 ou CNAME do servidor)
-            </label>
-            <input
-              id="dns-web-target"
-              name="target_web_ip_or_cname"
-              type="text"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={webTarget}
-              onChange={(e) => setWebTarget(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label htmlFor="dns-cf-account" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Cloudflare Account ID (opcional em Sandbox)
-            </label>
-            <input
-              id="dns-cf-account"
-              name="cloudflare_account_id"
-              type="text"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={cfAccountId}
-              onChange={(e) => setCfAccountId(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label htmlFor="dns-google-verify" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Token TXT Google Verification
-            </label>
-            <input
-              id="dns-google-verify"
-              name="google_verification_token"
-              type="text"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder="google-site-verification=..."
-              value={googleToken}
-              onChange={(e) => setGoogleToken(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono"
-            />
-          </div>
-          <div>
-            <label htmlFor="dns-ms-verify" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Token TXT Microsoft Verification
-            </label>
-            <input
-              id="dns-ms-verify"
-              name="microsoft_verification_token"
-              type="text"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder="MS=ms12345678"
-              value={msToken}
-              onChange={(e) => setMsToken(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono"
-            />
-          </div>
-          <div>
-            <label htmlFor="dns-dkim-selector" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Seletor DKIM
-            </label>
-            <input
-              id="dns-dkim-selector"
-              name="dkim_selector"
-              type="text"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={dkimSelector}
-              onChange={(e) => setDkimSelector(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm font-mono"
-            />
-          </div>
-          <div>
-            <label htmlFor="dns-dkim-key" className="block text-xs font-semibold uppercase text-stone-700 mb-1">
-              Chave Pública DKIM (opcional)
-            </label>
-            <input
-              id="dns-dkim-key"
-              name="dkim_public_key"
-              type="text"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={dkimKey}
-              onChange={(e) => setDkimKey(e.target.value)}
-              className="edulink-input w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs font-mono"
-            />
-          </div>
+        <form
+          onSubmit={handleSaveConfig}
+          aria-labelledby="dns-form-heading"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          <FormField id="dns-web-target" label="Destino Web (IPv4 ou CNAME do servidor)">
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="target_web_ip_or_cname"
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={webTarget}
+                onChange={(e) => setWebTarget(e.target.value)}
+              />
+            )}
+          </FormField>
+
+          <FormField id="dns-cf-account" label="Cloudflare Account ID (opcional em Sandbox)">
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="cloudflare_account_id"
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={cfAccountId}
+                onChange={(e) => setCfAccountId(e.target.value)}
+              />
+            )}
+          </FormField>
+
+          <FormField id="dns-google-verify" label="Token TXT Google Verification">
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="google_verification_token"
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="google-site-verification=..."
+                value={googleToken}
+                onChange={(e) => setGoogleToken(e.target.value)}
+              />
+            )}
+          </FormField>
+
+          <FormField id="dns-ms-verify" label="Token TXT Microsoft Verification">
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="microsoft_verification_token"
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="MS=ms12345678"
+                value={msToken}
+                onChange={(e) => setMsToken(e.target.value)}
+              />
+            )}
+          </FormField>
+
+          <FormField id="dns-dkim-selector" label="Seletor DKIM">
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="dkim_selector"
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={dkimSelector}
+                onChange={(e) => setDkimSelector(e.target.value)}
+              />
+            )}
+          </FormField>
+
+          <FormField id="dns-dkim-key" label="Chave Pública DKIM (opcional)">
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                name="dkim_public_key"
+                mono
+                invalid={invalid}
+                aria-describedby={describedBy}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={dkimKey}
+                onChange={(e) => setDkimKey(e.target.value)}
+              />
+            )}
+          </FormField>
 
           <div className="md:col-span-2 flex flex-wrap gap-3 justify-between pt-2">
             <div className="flex flex-wrap gap-2">
               {config && (
                 <>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/generate-blueprint/`, 'POST', 'Blueprint DNS gerado com sucesso!')}
-                    className="px-4 py-2.5 rounded-xl border border-teal-300 bg-teal-50 text-teal-800 text-xs font-semibold hover:bg-teal-100"
+                    onClick={() =>
+                      runAction(
+                        `/domains/configs/${config.id}/generate-blueprint/`,
+                        'POST',
+                        'Blueprint DNS gerado com sucesso!'
+                      )
+                    }
                   >
                     1. Gerar Blueprint DNS
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/sync-cloudflare/`, 'POST', 'Zona e registos sincronizados na Cloudflare!')}
-                    className="px-4 py-2.5 rounded-xl border border-sky-300 bg-sky-50 text-sky-800 text-xs font-semibold hover:bg-sky-100"
+                    onClick={() =>
+                      runAction(
+                        `/domains/configs/${config.id}/sync-cloudflare/`,
+                        'POST',
+                        'Zona e registos sincronizados na Cloudflare!'
+                      )
+                    }
                   >
                     2. Sincronizar Cloudflare
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/verify-propagation/`, 'POST', 'Verificação DoH concluída!')}
-                    className="px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-700 text-xs font-semibold hover:bg-stone-100"
+                    onClick={() =>
+                      runAction(
+                        `/domains/configs/${config.id}/verify-propagation/`,
+                        'POST',
+                        'Verificação DoH concluída!'
+                      )
+                    }
                   >
                     3. Verificar Propagação (DoH)
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     disabled={loading}
-                    onClick={() => runAction(`/domains/configs/${config.id}/dns-ao-dossier/`, 'GET', 'Checklist DNS.AO carregada!')}
-                    className="px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-xs font-semibold hover:bg-amber-100"
+                    onClick={() =>
+                      runAction(
+                        `/domains/configs/${config.id}/dns-ao-dossier/`,
+                        'GET',
+                        'Checklist DNS.AO carregada!'
+                      )
+                    }
                   >
                     Ver Dossiê DNS.AO
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
-            <button
-              type="submit"
-              disabled={!schoolId || loading}
-              className="px-5 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-semibold hover:bg-teal-800 disabled:opacity-50"
-            >
+            <Button type="submit" disabled={!schoolId} loading={loading}>
               {config ? 'Atualizar Configuração' : 'Inicializar Zona DNS'}
-            </button>
+            </Button>
           </div>
         </form>
 
-        {/* Nameservers & DNS.AO Dossier Box */}
-        {(config?.nameservers?.length || dossier) && (
-          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-2 text-xs">
+        {(nameservers.length > 0 || dossier) && (
+          <Card variant="muted" padding="sm" className="rounded-xl space-y-2 text-xs">
             <span className="font-bold text-stone-900 uppercase block">
               Nameservers para Delegação no Registrar DNS.AO:
             </span>
             <div className="flex flex-wrap gap-2">
-              {(dossier?.nameservers_to_configure || config?.nameservers || []).map((ns: string) => (
-                <code key={ns} className="px-2.5 py-1 rounded bg-white border border-stone-300 font-mono text-teal-800">
-                  {ns}
-                </code>
+              {nameservers.map((ns) => (
+                <div
+                  key={ns}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-stone-300"
+                >
+                  <code className="font-mono text-teal-800">{ns}</code>
+                  <CopyButton value={ns} label="Copiar" size="sm" />
+                </div>
               ))}
             </div>
             {dossier?.required_documents && (
               <ul className="list-disc list-inside text-stone-600 pt-1">
-                {dossier.required_documents.map((doc: string, idx: number) => (
+                {dossier.required_documents.map((doc, idx) => (
                   <li key={idx}>{doc}</li>
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
         )}
-      </div>
+      </Card>
 
-      {/* DNS Records Table */}
-      <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-4 shadow-sm">
-        <h3 id="dns-records-caption" className="text-base font-bold text-stone-900">
-          Registos DNS da Zona ({config?.records?.length || 0})
-        </h3>
-        <div tabIndex={0} role="region" aria-labelledby="dns-records-caption" className="table-wrapper">
-          <table className="edulink-table text-xs sm:text-sm">
-            <caption className="sr-only">Registos DNS configurados para o domínio .edu.ao</caption>
-            <thead>
-              <tr className="text-xs uppercase text-stone-600 border-b border-stone-200">
-                <th className="p-3 font-semibold">Tipo / Host</th>
-                <th className="p-3 font-semibold">Finalidade</th>
-                <th className="p-3 font-semibold">Conteúdo</th>
-                <th className="p-3 font-semibold">Cloudflare</th>
-                <th className="p-3 font-semibold">Propagado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {!config || config.records.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-6 text-center text-stone-500">
-                    Nenhum registo DNS gerado. Clique em &quot;Inicializar Zona DNS&quot; e depois em &quot;1. Gerar Blueprint DNS&quot;.
-                  </td>
-                </tr>
-              ) : (
-                config.records.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-stone-50/70">
-                    <th scope="row" className="p-3 font-mono text-xs text-stone-900">
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 mr-1.5 font-bold">
-                        {rec.record_type}
-                      </span>
-                      {rec.name}
-                    </th>
-                    <td data-label="Finalidade" className="p-3 text-xs text-stone-700">
-                      {rec.purpose}
-                    </td>
-                    <td data-label="Conteúdo" className="p-3 font-mono text-xs text-stone-700 break-all max-w-md">
-                      {rec.priority !== null ? `[${rec.priority}] ` : ''}
-                      {rec.content}
-                    </td>
-                    <td data-label="Cloudflare" className="p-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                          rec.sync_state === 'SYNCED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                        }`}
-                      >
-                        {rec.sync_state}
-                      </span>
-                    </td>
-                    <td data-label="Propagado" className="p-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                          rec.propagated ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'
-                        }`}
-                      >
-                        {rec.propagated ? 'Sim (DoH)' : 'Aguardando'}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DnsRecordsTable records={config?.records || []} />
     </div>
   );
 }

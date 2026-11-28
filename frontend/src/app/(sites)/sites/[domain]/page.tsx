@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getContrastTextColor } from '@/lib/formatters';
 import { getPublicSchoolData, getSiteNavigationContext } from '@/lib/siteServerContext';
 
 export async function generateMetadata({
@@ -47,6 +48,7 @@ export default async function SchoolSitePage({
   }
 
   const brandColor = school.primary_color || '#0D9488';
+  const brandForeground = getContrastTextColor(brandColor);
   const effectiveHost = school.effective_site_host || school.domain || domain;
   const isDemo = !school.domain;
   const isHigherEd = school.institution_type === 'MESCTI_HIGHER_ED';
@@ -110,8 +112,8 @@ export default async function SchoolSitePage({
               />
             ) : (
               <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl shadow shrink-0"
-                style={{ backgroundColor: brandColor }}
+                className="w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-xl shadow shrink-0"
+                style={{ backgroundColor: brandColor, color: brandForeground }}
               >
                 {school.name.slice(0, 2).toUpperCase()}
               </div>
@@ -137,8 +139,8 @@ export default async function SchoolSitePage({
             </a>
             <a
               href={adminUrl}
-              className="hidden sm:inline-block px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
-              style={{ backgroundColor: brandColor }}
+              className="hidden sm:inline-block px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition hover:opacity-95"
+              style={{ backgroundColor: brandColor, color: brandForeground }}
             >
               Secretaria Online
             </a>
@@ -168,8 +170,8 @@ export default async function SchoolSitePage({
           <div className="pt-2 flex flex-wrap gap-3">
             <a
               href={portalUrl}
-              className="px-6 py-3 rounded-xl font-bold text-sm text-white shadow transition hover:opacity-95"
-              style={{ backgroundColor: brandColor }}
+              className="px-6 py-3 rounded-xl font-bold text-sm shadow transition hover:opacity-95"
+              style={{ backgroundColor: brandColor, color: brandForeground }}
             >
               Aceder ao Cartão Digital &amp; Webmail
             </a>

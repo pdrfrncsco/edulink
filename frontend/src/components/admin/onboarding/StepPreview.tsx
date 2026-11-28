@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Card, cn } from '@/components/ui';
+import { getContrastTextColor } from '@/lib/formatters';
 import { ROOT_DOMAIN, type OnboardingFormState } from './types';
 
 interface StepPreviewProps {
@@ -83,7 +84,13 @@ export default function StepPreview({
           </span>
         </div>
 
-        <div className="p-6 text-white space-y-4" style={{ backgroundColor: formData.primary_color }}>
+        <div
+          className="p-6 space-y-4"
+          style={{
+            backgroundColor: formData.primary_color,
+            color: getContrastTextColor(formData.primary_color),
+          }}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               {formData.logo_url ? (
@@ -93,7 +100,7 @@ export default function StepPreview({
                   className="w-10 h-10 rounded-xl bg-white object-contain p-1 shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold text-sm shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-black/15 flex items-center justify-center font-bold text-sm shrink-0">
                   {(formData.name || 'E').slice(0, 2).toUpperCase()}
                 </div>
               )}
@@ -104,12 +111,12 @@ export default function StepPreview({
                 <h4 className="text-base font-extrabold truncate">{formData.name}</h4>
               </div>
             </div>
-            <span className="hidden sm:inline-block rounded-lg bg-white/20 px-3 py-1.5 text-xs font-semibold shrink-0">
+            <span className="hidden sm:inline-block rounded-lg bg-black/15 px-3 py-1.5 text-xs font-semibold shrink-0">
               Portal / Webmail
             </span>
           </div>
 
-          <p className="text-xs sm:text-sm text-white/90 max-w-2xl">
+          <p className="text-xs sm:text-sm opacity-90 max-w-2xl">
             {formData.about_text ||
               'Instituição de ensino oficialmente acreditada, preparada para o ecossistema Google Workspace, Microsoft 365 e Passaporte Académico Digital.'}
           </p>
