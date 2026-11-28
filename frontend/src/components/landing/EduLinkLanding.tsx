@@ -121,14 +121,14 @@ export default function EduLinkLanding() {
           <div className="rounded-3xl bg-gradient-to-br from-teal-800 to-stone-900 text-white p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xl">
             <div className="space-y-2 max-w-2xl">
               <span className="text-xs font-bold uppercase tracking-wider text-teal-300">
-                Pronto para o Ano Lectivo 2026/2027
+                Arranque 2026/2027
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Coloque a sua instituição online em .edu.ao esta semana
+                Prepare o domínio .edu.ao antes das próximas matrículas
               </h2>
               <p className="text-sm text-teal-100/90">
-                Crie a conta da secretaria para testar o Onboarding Wizard ou agende uma demonstração
-                presencial/online em Luanda com o site da sua escola já pré-montado.
+                Registe a secretaria para experimentar o gerador de site ou marque uma apresentação
+                na sua escola, em Luanda ou por videochamada.
               </p>
             </div>
             <div className="flex flex-wrap gap-3 shrink-0">
@@ -138,7 +138,7 @@ export default function EduLinkLanding() {
                 onClick={() => openDemoWithContext()}
                 className="bg-white text-stone-950 hover:bg-stone-100 font-bold"
               >
-                Agendar Demonstração
+                Marcar demonstração
               </Button>
               <ButtonLink
                 href={ADMIN_URL}
@@ -146,7 +146,7 @@ export default function EduLinkLanding() {
                 size="lg"
                 className="border-white/30 bg-white/10 text-white font-bold hover:bg-white/20 px-6"
               >
-                Abrir Portal da Secretaria
+                Registar secretaria
               </ButtonLink>
             </div>
           </div>
@@ -160,8 +160,8 @@ export default function EduLinkLanding() {
               E
             </span>
             <p>
-              <strong>EduLink Angola</strong> © {new Date().getFullYear()} · Infraestrutura de
-              Identidade Académica &amp; Nuvem Escolar.
+              <strong>EduLink Angola</strong> © {new Date().getFullYear()} · Identidade digital,
+              domínio .edu.ao e licenças educativas em Angola.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-5 font-semibold text-stone-600">

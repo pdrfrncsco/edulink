@@ -33,10 +33,10 @@ export default function SimulatorPreviewCard({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-3">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">
-            Simulador Instantâneo
+            Pré-visualização em direto
           </span>
           <h2 className="text-sm font-bold text-stone-900">
-            Veja como fica a identidade digital da sua escola
+            Veja como ficam o endereço e o cartão dos alunos
           </h2>
         </div>
         <div className="flex items-center gap-1" role="group" aria-label="Cor da instituição">
@@ -123,7 +123,7 @@ export default function SimulatorPreviewCard({
         <div className="bg-stone-100 border-b border-stone-200 px-3 py-2 flex items-center justify-between text-[11px] font-mono text-stone-600">
           <span className="truncate">https://{simEduDomain}</span>
           <span className="shrink-0 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-sans font-bold">
-            SSL Automático
+            Site Seguro (HTTPS)
           </span>
         </div>
 
@@ -137,7 +137,7 @@ export default function SimulatorPreviewCard({
             <div className="flex items-start justify-between gap-2 border-b border-white/15 pb-2.5">
               <div className="min-w-0">
                 <span className="text-[9px] uppercase tracking-wider text-white/80 block">
-                  Passaporte Académico Digital
+                  Cartão Digital do Aluno
                 </span>
                 <p className="text-xs font-bold truncate">
                   {simSchoolName.trim() || 'Sua Instituição'}
@@ -149,7 +149,7 @@ export default function SimulatorPreviewCard({
             </div>
 
             <div className="space-y-1">
-              <p className="text-[10px] text-white/80 uppercase">E-mail Gerado Automaticamente</p>
+              <p className="text-[10px] text-white/80 uppercase">E-mail da escola</p>
               <p className="text-xs font-bold">Ana Luísa Domingos · 11.ª Classe</p>
               <p className="text-[11px] font-mono text-white/95 break-all">
                 ana.domingos@{simEduDomain}
@@ -158,23 +158,23 @@ export default function SimulatorPreviewCard({
 
             <div className="flex items-center justify-between gap-2 bg-white/10 rounded-xl p-2 text-[10px]">
               <span>
-                Demo imediata: <strong className="font-mono">{simPreviewDomain}</strong>
+                Endereço de prova: <strong className="font-mono">{simPreviewDomain}</strong>
               </span>
             </div>
           </div>
 
           <div className="sm:col-span-5 bg-white rounded-2xl border border-stone-200 p-3.5 space-y-2.5 flex flex-col justify-between">
             <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
-              Licenças e Serviços Incluídos
+              O que fica disponível
             </p>
             <ul className="space-y-1.5 text-[11px] text-stone-700">
               <li className="flex items-center justify-between gap-1">
                 <span>Google Workspace</span>
-                <span className="font-bold text-emerald-700">Grátis</span>
+                <span className="font-bold text-emerald-700">Gratuito</span>
               </li>
               <li className="flex items-center justify-between gap-1">
                 <span>Microsoft 365 A1</span>
-                <span className="font-bold text-emerald-700">Grátis</span>
+                <span className="font-bold text-emerald-700">Gratuito</span>
               </li>
               <li className="flex items-center justify-between gap-1">
                 <span>Canva Educação</span>
@@ -184,7 +184,7 @@ export default function SimulatorPreviewCard({
                     simTutela === 'MED_K12' ? 'text-emerald-700' : 'text-amber-700'
                   )}
                 >
-                  {simTutela === 'MED_K12' ? 'Grátis (K-12)' : 'Plano Campus'}
+                  {simTutela === 'MED_K12' ? 'Gratuito (MED)' : 'Plano pago IES'}
                 </span>
               </li>
               <li className="flex items-center justify-between gap-1">
@@ -192,7 +192,7 @@ export default function SimulatorPreviewCard({
                 <span className="font-bold text-emerald-700">Elegível</span>
               </li>
               <li className="flex items-center justify-between gap-1">
-                <span>Cartão QR Offline</span>
+                <span>Cartão QR sem rede</span>
                 <span className="font-bold text-teal-800">Incluído</span>
               </li>
             </ul>
@@ -204,7 +204,7 @@ export default function SimulatorPreviewCard({
               onClick={() => onOpenDemo(simSchoolName)}
               className="mt-1 truncate"
             >
-              Reservar {simEduDomain || `escola.${ROOT_DOMAIN}`}
+              Pedir prova de {simEduDomain || `escola.${ROOT_DOMAIN}`}
             </Button>
           </div>
         </div>

@@ -18,14 +18,14 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-2 max-w-2xl">
             <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
-              Preços Transparentes em Kwanzas (AOA)
+              Preços em Kwanzas (AOA)
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
-              Planos desenhados para o ciclo letivo das escolas em Angola
+              Escolha o plano conforme o tamanho da instituição
             </h2>
           </div>
           <StatusBadge tone="warning" size="md" className="rounded-2xl px-4 py-2.5 whitespace-normal">
-            Condições especiais para os 10 primeiros colégios piloto em Luanda
+            Isenção parcial ou total da taxa de arranque nos 10 primeiros colégios piloto em Luanda
           </StatusBadge>
         </div>
 
@@ -79,7 +79,7 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
                   fullWidth
                   className="text-xs font-bold"
                 >
-                  Começar com {plan.name}
+                  Registar escola neste plano
                 </ButtonLink>
                 <Button
                   type="button"
@@ -88,7 +88,7 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
                   fullWidth
                   onClick={() => onOpenDemo()}
                 >
-                  Falar com Especialista
+                  Tirar dúvidas com a equipa
                 </Button>
               </div>
             </div>

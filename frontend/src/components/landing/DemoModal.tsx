@@ -28,7 +28,7 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
 
   const whatsappHref = useMemo(() => {
     const text = encodeURIComponent(
-      `Olá equipa EduLink Angola! Sou ${demoDirector || 'da direção'} de "${demoSchool || initialSchool}" (${demoProvince}). Gostaria de agendar a demonstração do domínio .edu.ao, site automático e licenças Google/Microsoft/Canva. Contacto: ${demoPhone || 'a confirmar'}.`
+      `Bom dia equipa EduLink. Sou ${demoDirector || 'da direção'} de "${demoSchool || initialSchool}" (${demoProvince}). Gostaria de agendar uma demonstração do domínio .edu.ao, do site escolar e das contas Google e Microsoft para a nossa instituição. Contacto: ${demoPhone || 'a confirmar'}.`
     );
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
   }, [demoDirector, demoSchool, demoPhone, demoProvince, initialSchool]);
@@ -42,13 +42,13 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
     <Modal
       open={open}
       onClose={onClose}
-      eyebrow="Demonstração Comercial · Angola"
-      title="Veja o site da sua escola pronto em 5 minutos"
+      eyebrow="Visita ou reunião online · Angola"
+      title="Agende uma demonstração para a sua escola"
       size="md"
     >
       {!demoSubmitted ? (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <FormField id="demo-director" label="Seu Nome e Cargo" required>
+          <FormField id="demo-director" label="O seu nome e cargo" required>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -61,12 +61,12 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
                 enterKeyHint="next"
                 value={demoDirector}
                 onChange={(e) => setDemoDirector(e.target.value)}
-                placeholder="Ex.: Dr. Carlos Mendes — Diretor Pedagógico"
+                placeholder="Ex.: António Manuel, Diretor Geral"
               />
             )}
           </FormField>
 
-          <FormField id="demo-school" label="Nome do Colégio / IES" required>
+          <FormField id="demo-school" label="Nome do colégio ou instituição" required>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -84,7 +84,7 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
           </FormField>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField id="demo-phone" label="WhatsApp / Telefone" required>
+            <FormField id="demo-phone" label="WhatsApp ou telefone" required>
               {({ id, describedBy, invalid }) => (
                 <Input
                   id={id}
@@ -123,17 +123,17 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
           </div>
 
           <Button type="submit" size="lg" fullWidth>
-            Preparar Contacto e Demonstração
+            Continuar para agendamento
           </Button>
         </form>
       ) : (
         <div className="space-y-4">
-          <AlertBanner tone="success" title="Resumo pronto para a equipa comercial EduLink!">
+          <AlertBanner tone="success" title="Pedido pronto para enviar">
             <p>
               Instituição: <strong>{demoSchool}</strong> ({demoProvince})
             </p>
             <p>
-              Pré-visualização sugerida:{' '}
+              Endereço de teste sugerido:{' '}
               <strong className="font-mono">
                 {slugifySchool(demoSchool, 'sua-escola')}.{ROOT_DOMAIN}
               </strong>
@@ -148,7 +148,7 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
               fullWidth
               className="bg-emerald-600 hover:bg-emerald-700 text-xs font-bold"
             >
-              Enviar Pedido via WhatsApp Agora
+              Enviar pedido pelo WhatsApp
             </ButtonLink>
             <ButtonLink
               href={ADMIN_URL}
@@ -157,7 +157,7 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
               fullWidth
               className="text-xs font-bold"
             >
-              Ou Criar Conta e Iniciar Registo
+              Ou abrir conta da secretaria agora
             </ButtonLink>
           </div>
         </div>
