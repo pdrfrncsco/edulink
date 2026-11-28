@@ -1,120 +1,88 @@
 'use client';
 
-import React from 'react';
-import { ExternalLink } from 'lucide-react';
-import { AlertBanner, Card, CopyButton, StatusBadge, cn } from '@/components/ui';
-import type { CloudAppItem, GlobalPerkItem, PassportData } from './types';
+import React, { useMemo } from 'react';
+import CloudAppList from './apps/CloudAppList';
+import GlobalPerksList from './apps/GlobalPerksList';
+import InstitutionalEmailCard from './apps/InstitutionalEmailCard';
+import {
+  buildCloudApps,
+  buildGlobalPerks,
+  getPersonaContextMeta,
+  isPreviewDemoDomain,
+} from './cloudAppsCatalog';
+import type { PassportData } from './types';
 
 interface CloudAppsTabProps {
   passport: PassportData;
+  isTeacher?: boolean;
   isSuspended: boolean;
-  cloudApps: CloudAppItem[];
-  globalPerks: GlobalPerkItem[];
+  isOffline?: boolean;
+  isTokenExpired?: boolean;
+  onSync?: () => void;
 }
 
-/** Institutional email, SSO cloud apps (Google, Microsoft, Canva), and global student perks. */
+/**
+ * Institutional cloud apps & global perks panel tailored for:
+ * Student vs. Teacher and MED (K-12) vs. MESCTI (Higher Ed), with safe offline mode and 360px layout.
+ */
 export default function CloudAppsTab({
   passport,
+  isTeacher: isTeacherProp,
   isSuspended,
-  cloudApps,
-  globalPerks,
+  isOffline = false,
+  isTokenExpired = false,
+  onSync,
 }: CloudAppsTabProps) {
+  const isTeacher = isTeacherProp ?? passport.role === 'TEACHER';
+  const isHigherEd = passport.institutionType === 'MESCTI_HIGHER_ED';
+  const isCanvaFreeK12 = !isHigherEd;
+  const isDemoDomain = isPreviewDemoDomain(passport.schoolDomain);
   const domainSuffix = passport.schoolDomain.split('.').slice(-2).join('.');
+
+  const personaMeta = useMemo(
+    () => getPersonaContextMeta(isTeacher, isHigherEd),
+    [isTeacher, isHigherEd]
+  );
+
+  const cloudApps = useMemo(
+    () => buildCloudApps(passport, isTeacher, isCanvaFreeK12),
+    [passport, isTeacher, isCanvaFreeK12]
+  );
+
+  const globalPerks = useMemo(
+    () => buildGlobalPerks(isTeacher, passport.institutionType),
+    [isTeacher, passport.institutionType]
+  );
 
   return (
     <div className="space-y-4">
-      <Card padding="sm" className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold text-stone-900">O Seu E-mail Institucional</h2>
-            <p className="text-xs font-mono text-teal-800 break-all">
-              {passport.institutionalEmail}
-            </p>
-          </div>
-          <CopyButton
-            value={passport.institutionalEmail}
-            label="Copiar"
-            copiedLabel="Copiado!"
-            size="sm"
-            className="shrink-0"
-          />
-        </div>
-        {isSuspended && (
-          <AlertBanner tone="error">
-            A sua matrícula está suspensa. Contacte a secretaria de {passport.schoolName} para
-            reativar os acessos em nuvem.
-          </AlertBanner>
-        )}
-      </Card>
+      <InstitutionalEmailCard
+        institutionalEmail={passport.institutionalEmail}
+        schoolName={passport.schoolName}
+        personaMeta={personaMeta}
+        isSuspended={isSuspended}
+        isOffline={isOffline}
+        isTokenExpired={isTokenExpired}
+        isDemoDomain={isDemoDomain}
+        onSync={onSync}
+      />
 
-      <Card padding="sm" className="space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-700">
-          Ferramentas da Escola (Login Único)
-        </h2>
-        <div className="space-y-2.5">
-          {cloudApps.map((app) =>
-            isSuspended ? (
-              <div
-                key={app.name}
-                aria-disabled="true"
-                className="block rounded-xl border border-stone-200 bg-stone-50 p-3.5 opacity-60"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-stone-900">{app.name}</span>
-                  <StatusBadge tone="neutral">{app.badge}</StatusBadge>
-                </div>
-                <p className="text-[11px] text-stone-600 mt-1">{app.subtitle}</p>
-              </div>
-            ) : (
-              <a
-                key={app.name}
-                href={app.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-xl border border-stone-200 p-3.5 transition hover:border-teal-500 hover:bg-teal-50/30"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-stone-900 inline-flex items-center gap-1">
-                    {app.name}
-                    <ExternalLink className="h-3 w-3 text-stone-400" aria-hidden="true" />
-                  </span>
-                  <StatusBadge tone={app.available ? 'brand' : 'neutral'}>{app.badge}</StatusBadge>
-                </div>
-                <p className="text-[11px] text-stone-600 mt-1">{app.subtitle}</p>
-              </a>
-            )
-          )}
-        </div>
-      </Card>
+      <CloudAppList
+        title={personaMeta.appsSectionTitle}
+        apps={cloudApps}
+        isSuspended={isSuspended}
+        isOffline={isOffline}
+        isDemoDomain={isDemoDomain}
+      />
 
-      <Card padding="sm" className="space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-700">
-          Benefícios Globais com o Domínio .{domainSuffix}
-        </h2>
-        <ul className="space-y-2">
-          {globalPerks.map((perk) => (
-            <li
-              key={perk.name}
-              className="rounded-xl border border-stone-200 p-3 flex items-center justify-between gap-3"
-            >
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-stone-900">{perk.name}</p>
-                <p className="text-[11px] text-stone-600">{perk.desc}</p>
-              </div>
-              <a
-                href={perk.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  'shrink-0 min-h-[36px] inline-flex items-center rounded-lg border border-teal-700 px-3 py-1.5 text-[11px] font-semibold text-teal-800 hover:bg-teal-50'
-                )}
-              >
-                Ativar
-              </a>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <GlobalPerksList
+        title={personaMeta.perksSectionTitle}
+        domainSuffix={domainSuffix}
+        perks={globalPerks}
+        isSuspended={isSuspended}
+        isOffline={isOffline}
+        isDemoDomain={isDemoDomain}
+      />
     </div>
   );
 }

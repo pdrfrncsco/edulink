@@ -1,3 +1,6 @@
+export { copyTextSafely } from '@/lib/clipboard';
+export { buildCloudApps, buildGlobalPerks } from './cloudAppsCatalog';
+
 export const OFFLINE_PASSPORT_KEY = 'edulink_offline_passport_cache';
 export const KEYCLOAK_ACCOUNT_URL =
   process.env.NEXT_PUBLIC_KEYCLOAK_ACCOUNT_URL ||
@@ -46,6 +49,7 @@ export interface GlobalPerkItem {
   name: string;
   desc: string;
   href: string;
+  badge?: string;
 }
 
 export class AuthSessionError extends Error {
@@ -63,96 +67,29 @@ export function isNetworkFailure(err: unknown): boolean {
   return err instanceof TypeError;
 }
 
-export function buildCloudApps(
-  passport: PassportData | null,
-  isTeacher: boolean,
-  isCanvaFreeK12: boolean
-): CloudAppItem[] {
-  if (!passport) return [];
-  const email = encodeURIComponent(passport.institutionalEmail);
-  return [
-    {
-      name: 'Webmail Institucional',
-      subtitle: passport.institutionalEmail,
-      href: `https://mail.google.com/a/${passport.schoolDomain}`,
-      badge: 'E-mail Oficial',
-      available: true,
-    },
-    {
-      name: isTeacher ? 'Google Classroom (Docente)' : 'Google Classroom & Drive',
-      subtitle: isTeacher
-        ? 'Gerir turmas, tarefas e Google Docs'
-        : 'Aulas, cadernos e armazenamento em nuvem',
-      href: `https://classroom.google.com/u/0/?authuser=${email}`,
-      badge: 'Google Workspace',
-      available: true,
-    },
-    {
-      name: isTeacher ? 'Microsoft 365 (Faculty)' : 'Microsoft 365 & Teams',
-      subtitle: 'Word, Excel, PowerPoint Web, Teams e OneDrive',
-      href: `https://www.office.com/?login_hint=${email}`,
-      badge: 'Office 365 A1',
-      available: true,
-    },
-    {
-      name: isCanvaFreeK12 ? 'Canva para Educação' : 'Canva para Universidades',
-      subtitle: isCanvaFreeK12
-        ? isTeacher
-          ? 'Gratuito para docentes K-12 via conta da escola'
-          : 'Design educativo gratuito com conta da escola'
-        : 'Disponível mediante plano Canva Campus da IES',
-      href: 'https://www.canva.com/education/',
-      badge: isCanvaFreeK12 ? '100% Gratuito (K-12)' : 'Ensino Superior',
-      available: isCanvaFreeK12,
-    },
-  ];
-}
-
-export function buildGlobalPerks(isTeacher: boolean): GlobalPerkItem[] {
-  return isTeacher
-    ? [
-        {
-          name: 'GitHub Global Campus (Docentes)',
-          desc: 'Ferramentas gratuitas para ensino de programação e repositórios privados.',
-          href: 'https://education.github.com/teachers',
-        },
-        {
-          name: 'Figma for Education',
-          desc: 'Plano Professional gratuito para salas de aula e projetos académicos.',
-          href: 'https://www.figma.com/education/',
-        },
-        {
-          name: 'JetBrains Educational Licenses',
-          desc: 'IDEs profissionais gratuitas com o e-mail institucional.',
-          href: 'https://www.jetbrains.com/community/education/',
-        },
-      ]
-    : [
-        {
-          name: 'GitHub Student Developer Pack',
-          desc: 'Créditos cloud, domínios e ferramentas de desenvolvimento gratuitas.',
-          href: 'https://education.github.com/pack',
-        },
-        {
-          name: 'Figma for Education',
-          desc: 'Design UI/UX e FigJam gratuitos com verificação académica.',
-          href: 'https://www.figma.com/education/',
-        },
-        {
-          name: 'JetBrains & Spotify Estudante',
-          desc: 'Use o seu e-mail institucional para solicitar elegibilidade académica.',
-          href: 'https://www.jetbrains.com/community/education/',
-        },
-      ];
-}
-
-export function readCachedPassport(): PassportData | null {
+/** Reads and validates the offline passport cache, purging mismatched or corrupted entries. */
+export function readCachedPassport(expectedInstitutionalEmail?: string): PassportData | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(OFFLINE_PASSPORT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PassportData>;
-    if (!parsed.token || !parsed.verificationUrl || !parsed.fullName) return null;
+    if (
+      !parsed.token ||
+      !parsed.verificationUrl ||
+      !parsed.fullName ||
+      !parsed.institutionalEmail
+    ) {
+      localStorage.removeItem(OFFLINE_PASSPORT_KEY);
+      return null;
+    }
+    if (
+      expectedInstitutionalEmail &&
+      parsed.institutionalEmail.toLowerCase() !== expectedInstitutionalEmail.toLowerCase()
+    ) {
+      localStorage.removeItem(OFFLINE_PASSPORT_KEY);
+      return null;
+    }
     return parsed as PassportData;
   } catch {
     localStorage.removeItem(OFFLINE_PASSPORT_KEY);
@@ -172,5 +109,3 @@ export function decodeJwtExp(token: string): number | null {
     return null;
   }
 }
-
-export { copyTextSafely } from '@/lib/clipboard';

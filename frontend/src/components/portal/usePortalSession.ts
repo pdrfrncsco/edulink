@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import {
   authFetch,
@@ -13,8 +13,6 @@ import {
 import {
   AuthSessionError,
   OFFLINE_PASSPORT_KEY,
-  buildCloudApps,
-  buildGlobalPerks,
   decodeJwtExp,
   isNetworkFailure,
   readCachedPassport,
@@ -22,9 +20,11 @@ import {
   type PassportData,
   type PortalTab,
 } from './types';
+import { useOnlineStatus } from './useOnlineStatus';
 
-/** Manages PWA Service Worker, JWT passport issuance, QR generation, and offline fallback. */
+/** Manages PWA Service Worker, JWT passport issuance, QR generation, and safe offline fallback. */
 export function usePortalSession() {
+  const isOnline = useOnlineStatus();
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [activeTab, setActiveTab] = useState<PortalTab>('card');
@@ -48,17 +48,6 @@ export function usePortalSession() {
     }
   };
 
-  const loadBenefitCatalog = async () => {
-    try {
-      const res = await authFetch('/benefits/catalog/');
-      if (!res.ok) return;
-      const data = await res.json();
-      setOffers(Array.isArray(data) ? data : data.results || []);
-    } catch {
-      // Offline: mantém catálogo vazio sem afetar o cartão
-    }
-  };
-
   const handleLogout = () => {
     clearAuthSession();
     if (typeof window !== 'undefined') {
@@ -66,10 +55,27 @@ export function usePortalSession() {
     }
     setAuthUser(null);
     setPassport(null);
+    setOffers([]);
     setQrDataUrl('');
     setQrFullscreen(false);
     setIsOfflineCache(false);
     setError('');
+  };
+
+  const loadBenefitCatalog = async () => {
+    try {
+      const res = await authFetch('/benefits/catalog/');
+      if (res.status === 401 || res.status === 403) {
+        handleLogout();
+        setError('A sua sessão ou matrícula foi revogada. Inicie sessão novamente.');
+        return;
+      }
+      if (!res.ok) return;
+      const data = await res.json();
+      setOffers(Array.isArray(data) ? data : data.results || []);
+    } catch {
+      // Offline: mantém catálogo vazio sem afetar o cartão
+    }
   };
 
   const fetchRealPassport = async (user: AuthUser) => {
@@ -139,7 +145,7 @@ export function usePortalSession() {
       }
 
       if (isNetworkFailure(err)) {
-        const cachedCard = readCachedPassport();
+        const cachedCard = readCachedPassport(user.academic_user.institutional_email);
         if (cachedCard) {
           setPassport(cachedCard);
           setIsOfflineCache(true);
@@ -183,7 +189,7 @@ export function usePortalSession() {
       if (err instanceof AuthSessionError) {
         handleLogout();
       } else if (isNetworkFailure(err)) {
-        const cachedCard = readCachedPassport();
+        const cachedCard = readCachedPassport(cachedUser?.academic_user?.institutional_email);
         if (cachedUser && cachedCard) {
           setPassport(cachedCard);
           setIsOfflineCache(true);
@@ -217,15 +223,8 @@ export function usePortalSession() {
 
   const isTeacher = passport?.role === 'TEACHER';
   const isSuspended = passport?.status === 'SUSPENDED';
-  const isCanvaFreeK12 = passport?.institutionType !== 'MESCTI_HIGHER_ED';
   const isTokenExpired = Boolean(passport?.tokenExpiresAt && Date.now() > passport.tokenExpiresAt);
-
-  const cloudApps = useMemo(
-    () => buildCloudApps(passport, isTeacher, isCanvaFreeK12),
-    [passport, isTeacher, isCanvaFreeK12]
-  );
-
-  const globalPerks = useMemo(() => buildGlobalPerks(isTeacher), [isTeacher]);
+  const isOffline = !isOnline || isOfflineCache;
 
   return {
     authUser,
@@ -236,6 +235,7 @@ export function usePortalSession() {
     qrDataUrl,
     qrFullscreen,
     setQrFullscreen,
+    isOffline,
     isOfflineCache,
     error,
     offers,
@@ -243,8 +243,6 @@ export function usePortalSession() {
     isTeacher,
     isSuspended,
     isTokenExpired,
-    cloudApps,
-    globalPerks,
     syncPortalSession,
     handleAuthenticated,
     handleLogout,

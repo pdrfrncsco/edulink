@@ -92,9 +92,11 @@ export default function PortalStudentPage() {
         <TabPanel idPrefix="portal-tab" tabId="apps" active={portal.activeTab === 'apps'}>
           <CloudAppsTab
             passport={portal.passport}
+            isTeacher={portal.isTeacher}
             isSuspended={portal.isSuspended}
-            cloudApps={portal.cloudApps}
-            globalPerks={portal.globalPerks}
+            isOffline={portal.isOffline}
+            isTokenExpired={portal.isTokenExpired}
+            onSync={() => portal.syncPortalSession()}
           />
         </TabPanel>
       )}
