@@ -12,4 +12,5 @@
   - Erro / Suspenso / Rejeitado: `bg-red-50 text-red-800 border-red-200`
 
 ## Primitivos Base (`frontend/src/components/ui/`)
-- `Button.tsx`, `StatusBadge.tsx`, `Card.tsx`, `AlertBanner.tsx`, `Modal.tsx`, `DataTable.tsx`, `EmptyState.tsx`, `FormField.tsx`, `CopyButton.tsx`.
+- `Button.tsx`, `StatusBadge.tsx`, `Tabs.tsx`, `Card.tsx`, `AlertBanner.tsx`, `Modal.tsx`, `Skeleton.tsx`, `EmptyState.tsx`, `DataTable.tsx`, `FormField.tsx`, `CopyButton.tsx`.
+- Navegação móvel responsiva (`/admin` e `/ops`): `components/admin/MobileNavDrawer.tsx` (`<dialog>` nativo com *scroll-snap* e `100svh`).

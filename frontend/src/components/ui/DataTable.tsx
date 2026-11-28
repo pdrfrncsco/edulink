@@ -3,6 +3,7 @@
 import React, { useId } from 'react';
 import { cn } from './cn';
 import { EmptyState } from './EmptyState';
+import { Skeleton } from './Skeleton';
 
 export interface DataTableColumn<T> {
   key: string;
@@ -79,6 +80,7 @@ export function DataTable<T>({
       tabIndex={0}
       role="region"
       aria-labelledby={labelId}
+      aria-busy={loading || undefined}
       className={cn('table-wrapper', className)}
     >
       <table className={cn('edulink-table text-xs sm:text-sm', tableClassName)}>
@@ -100,11 +102,20 @@ export function DataTable<T>({
         </thead>
         <tbody className="divide-y divide-stone-100">
           {loading ? (
-            <tr>
-              <td colSpan={columns.length} className="p-6 text-center text-stone-500">
-                A carregar dados...
-              </td>
-            </tr>
+            Array.from({ length: 3 }).map((_, rowIdx) => (
+              <tr key={`skeleton-${rowIdx}`} aria-hidden="true">
+                {columns.map((col, colIdx) => (
+                  <td key={col.key} className="p-3">
+                    <Skeleton
+                      className={cn(
+                        'h-3.5',
+                        colIdx === 0 ? 'w-36' : colIdx === columns.length - 1 ? 'w-20' : 'w-24'
+                      )}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))
           ) : (
             data.map((row) => (
               <tr key={getRowKey(row)} className="hover:bg-stone-50/70">

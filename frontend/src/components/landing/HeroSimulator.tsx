@@ -40,9 +40,9 @@ export default function HeroSimulator({
             Programa Piloto Luanda 2026/2027 · Faturação AGT &amp; APD
           </StatusBadge>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-stone-900 leading-[1.1]">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-stone-900 leading-[1.12]">
             A sua escola em Angola com <span className="text-teal-700">.edu.ao</span>, Google,
-            Microsoft e Canva —{' '}
+            Microsoft e Canva,{' '}
             <span className="underline decoration-amber-400 decoration-4 underline-offset-4">
               sem burocracia
             </span>
@@ -52,7 +52,7 @@ export default function HeroSimulator({
           <p className="text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl">
             A <strong>EduLink</strong> entrega num único pacote em Kwanzas o registo do domínio
             educacional, o site oficial automático, contas institucionais para alunos e professores,
-            Passaporte Digital QR e blindagem perante a <strong>APD (Lei n.º 22/11)</strong>.
+            Passaporte Digital QR e conformidade com a <strong>APD (Lei n.º 22/11)</strong>.
           </p>
 
           <div className="flex flex-wrap gap-3 pt-1">
@@ -63,21 +63,21 @@ export default function HeroSimulator({
               href={ADMIN_URL}
               className="inline-flex items-center justify-center min-h-[44px] px-6 py-3 rounded-xl border border-stone-300 bg-white text-stone-800 text-sm font-bold hover:bg-stone-50 transition"
             >
-              Criar Conta da Secretaria →
+              Criar Conta da Secretaria
             </a>
           </div>
 
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-stone-200/80 text-xs">
             <div>
-              <p className="text-lg sm:text-xl font-extrabold text-stone-900">5 min</p>
+              <p className="text-lg sm:text-xl font-bold text-stone-900">5 min</p>
               <p className="text-stone-500">Para gerar o site de demonstração</p>
             </div>
             <div>
-              <p className="text-lg sm:text-xl font-extrabold text-stone-900">100% AOA</p>
+              <p className="text-lg sm:text-xl font-bold text-stone-900">100% AOA</p>
               <p className="text-stone-500">MCX, KWiK, IBAN e Fatura AGT</p>
             </div>
             <div>
-              <p className="text-lg sm:text-xl font-extrabold text-stone-900">Lei 22/11</p>
+              <p className="text-lg sm:text-xl font-bold text-stone-900">Lei 22/11</p>
               <p className="text-stone-500">Dossiê APD e termos parentais</p>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function HeroSimulator({
                       <span className="text-[9px] uppercase tracking-wider text-white/80 block">
                         Passaporte Académico Digital
                       </span>
-                      <p className="text-xs font-extrabold truncate">
+                      <p className="text-xs font-bold truncate">
                         {simSchoolName.trim() || 'Sua Instituição'}
                       </p>
                     </div>
@@ -225,7 +225,7 @@ export default function HeroSimulator({
                 {/* Unlocked Licenses */}
                 <div className="sm:col-span-5 bg-white rounded-2xl border border-stone-200 p-3.5 space-y-2.5 flex flex-col justify-between">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500">
-                    Ecossistema Desbloqueado
+                    Licenças e Serviços Incluídos
                   </p>
                   <ul className="space-y-1.5 text-[11px] text-stone-700">
                     <li className="flex items-center justify-between gap-1">

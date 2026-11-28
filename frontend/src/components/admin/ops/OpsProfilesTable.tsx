@@ -9,6 +9,7 @@ interface OpsProfilesTableProps {
   profiles: AdminUserProfile[];
   schools: School[];
   busyId: string | null;
+  loading?: boolean;
   onRefresh: () => void;
   onUpdateProfile: (
     profile: AdminUserProfile,
@@ -21,6 +22,7 @@ export default function OpsProfilesTable({
   profiles,
   schools,
   busyId,
+  loading = false,
   onRefresh,
   onUpdateProfile,
 }: OpsProfilesTableProps) {
@@ -139,6 +141,7 @@ export default function OpsProfilesTable({
         data={profiles}
         getRowKey={(p) => p.id}
         caption="Perfis de acesso e papéis RBAC da plataforma EduLink"
+        loading={loading}
         emptyTitle="Nenhum perfil encontrado"
       />
 

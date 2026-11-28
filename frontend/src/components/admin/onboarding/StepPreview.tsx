@@ -108,7 +108,7 @@ export default function StepPreview({
                 <span className="text-[10px] uppercase tracking-wider opacity-85 block">
                   {formData.institution_type === 'MED_K12' ? 'Ensino Acreditado MED' : 'Ensino Superior MESCTI'}
                 </span>
-                <h4 className="text-base font-extrabold truncate">{formData.name}</h4>
+                <h4 className="text-base font-bold truncate">{formData.name}</h4>
               </div>
             </div>
             <span className="hidden sm:inline-block rounded-lg bg-black/15 px-3 py-1.5 text-xs font-semibold shrink-0">
@@ -118,7 +118,7 @@ export default function StepPreview({
 
           <p className="text-xs sm:text-sm opacity-90 max-w-2xl">
             {formData.about_text ||
-              'Instituição de ensino oficialmente acreditada, preparada para o ecossistema Google Workspace, Microsoft 365 e Passaporte Académico Digital.'}
+              'Instituição de ensino oficialmente acreditada, preparada para o Google Workspace, Microsoft 365 e Passaporte Académico Digital.'}
           </p>
         </div>
 

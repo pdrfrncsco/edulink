@@ -42,14 +42,17 @@ export default function ERPAndVerifiersTab({
   const [apiBaseUrl, setApiBaseUrl] = useState('');
   const [revealedSecrets, setRevealedSecrets] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(Boolean(schoolId));
 
   const loadAll = async () => {
     if (!schoolId) {
       setConnections([]);
       setEvents([]);
       setVerifiers([]);
+      setFetching(false);
       return;
     }
+    setFetching(true);
     try {
       const [connRes, evtRes, verRes] = await Promise.all([
         apiJson<{ results: ERPConnection[] }>(`/erp-sync/connections/?school=${schoolId}`),
@@ -61,6 +64,8 @@ export default function ERPAndVerifiersTab({
       setVerifiers(verRes.results || []);
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -83,7 +88,7 @@ export default function ERPAndVerifiersTab({
       });
       onFeedback({
         type: 'success',
-        message: `Conector ${erpProvider} ativado com segredo HMAC-SHA256.`,
+        message: `Conector ${erpProvider} ativado com chave de segurança.`,
       });
       setApiBaseUrl('');
       await loadAll();
@@ -215,10 +220,10 @@ export default function ERPAndVerifiersTab({
       <Card padding="lg" className="space-y-6">
         <div className="border-b border-stone-100 pb-4">
           <h2 id="erp-form-heading" className="text-lg font-bold text-stone-900">
-            Conectores B2B2B — ERPs Escolares Angolanos
+            Integração com ERPs Escolares Angolanos
           </h2>
           <p className="text-xs sm:text-sm text-stone-500">
-            Receba webhooks assinados (HMAC-SHA256) do KLASSE, SysPortal ou Kacennu para criar
+            Ligue o KLASSE, SysPortal ou Kacennu com assinatura de segurança para criar
             matrículas ou suspender acessos por propinas em atraso automaticamente.
           </p>
         </div>
@@ -294,7 +299,7 @@ export default function ERPAndVerifiersTab({
                 {revealedSecrets[conn.id] && (
                   <div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-stone-500">Segredo HMAC-SHA256:</span>
+                      <span className="text-stone-500">Chave secreta de assinatura:</span>
                       <CopyButton value={revealedSecrets[conn.id]} label="Copiar" size="sm" />
                     </div>
                     <code className="block font-mono bg-amber-50 p-2 rounded border border-amber-200 break-all text-amber-900 mt-1">
@@ -309,7 +314,7 @@ export default function ERPAndVerifiersTab({
                     size="sm"
                     onClick={() => handleRevealSecret(conn.id)}
                   >
-                    Ver Segredo HMAC
+                    Ver Chave Secreta
                   </Button>
                   <Button
                     type="button"
@@ -331,6 +336,7 @@ export default function ERPAndVerifiersTab({
           data={events}
           getRowKey={(ev) => ev.id}
           caption="Eventos recebidos dos ERPs locais"
+          loading={fetching}
           emptyTitle="Nenhum evento ERP registado ainda"
         />
       </Card>
@@ -339,6 +345,7 @@ export default function ERPAndVerifiersTab({
         schoolId={schoolId}
         verifiers={verifiers}
         loading={loading}
+        fetching={fetching}
         onSetLoading={setLoading}
         onReload={loadAll}
         onFeedback={onFeedback}

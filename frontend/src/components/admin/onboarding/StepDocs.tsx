@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Check } from 'lucide-react';
 import { Card, FormField, Input, StatusBadge } from '@/components/ui';
 import { REQUIRED_DOCS, type DocKey, type OnboardingFormState } from './types';
 
@@ -124,8 +125,11 @@ export default function StepDocs({
                   className="block w-full text-xs text-stone-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-800 hover:file:bg-teal-100"
                 />
                 {file && (
-                  <p className="text-[11px] font-mono text-emerald-700 truncate">
-                    ✓ {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)
+                  <p className="text-[11px] font-mono text-emerald-700 flex items-center gap-1 min-w-0">
+                    <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    <span className="truncate">
+                      {file.name} ({Math.max(1, Math.round(file.size / 1024))} KB)
+                    </span>
                   </p>
                 )}
               </Card>

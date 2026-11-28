@@ -11,6 +11,7 @@ interface OpsSchoolsTableProps {
   selectedSchoolId: string;
   isLocalHostBrowser: boolean;
   busyId: string | null;
+  loading?: boolean;
   onSelectSchool: (id: string) => void;
   onOperateSchool: (id: string) => void;
   onToggleSchoolActive: (school: School) => Promise<void>;
@@ -22,6 +23,7 @@ export default function OpsSchoolsTable({
   selectedSchoolId,
   isLocalHostBrowser,
   busyId,
+  loading = false,
   onSelectSchool,
   onOperateSchool,
   onToggleSchoolActive,
@@ -153,6 +155,7 @@ export default function OpsSchoolsTable({
         data={schools}
         getRowKey={(school) => school.id}
         caption="Lista global de instituições registadas na plataforma EduLink"
+        loading={loading}
         emptyTitle="Nenhuma escola registada até ao momento"
       />
 

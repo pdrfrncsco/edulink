@@ -27,6 +27,7 @@ interface OpsSchoolInspectorProps {
   selectedSchool: School;
   documents: OnboardingDocumentItem[];
   busyId: string | null;
+  loadingDocs?: boolean;
   onReviewDocument: (
     doc: OnboardingDocumentItem,
     decision: 'APPROVED' | 'REJECTED',
@@ -49,6 +50,7 @@ export default function OpsSchoolInspector({
   selectedSchool,
   documents,
   busyId,
+  loadingDocs = false,
   onReviewDocument,
   onSavePipeline,
 }: OpsSchoolInspectorProps) {
@@ -200,6 +202,7 @@ export default function OpsSchoolInspector({
           data={documents}
           getRowKey={(doc) => doc.id}
           caption="Documentos legais enviados pela escola para revisão"
+          loading={loadingDocs}
           emptyTitle="Nenhum documento carregado por esta instituição"
         />
       </div>

@@ -6,10 +6,11 @@ import type { DNSRecord } from './types';
 
 interface DnsRecordsTableProps {
   records: DNSRecord[];
+  loading?: boolean;
 }
 
-/** Displays DNS blueprint records with Cloudflare sync and DoH propagation status. */
-export default function DnsRecordsTable({ records }: DnsRecordsTableProps) {
+/** Displays DNS blueprint records with Cloudflare sync and propagation status. */
+export default function DnsRecordsTable({ records, loading = false }: DnsRecordsTableProps) {
   const columns: DataTableColumn<DNSRecord>[] = [
     {
       key: 'host',
@@ -59,7 +60,7 @@ export default function DnsRecordsTable({ records }: DnsRecordsTableProps) {
       header: 'Propagado',
       render: (rec) => (
         <StatusBadge tone={rec.propagated ? 'success' : 'neutral'} dot>
-          {rec.propagated ? 'Sim (DoH)' : 'Aguardando'}
+          {rec.propagated ? 'Propagado' : 'Aguardando'}
         </StatusBadge>
       ),
     },
@@ -76,6 +77,7 @@ export default function DnsRecordsTable({ records }: DnsRecordsTableProps) {
         getRowKey={(rec) => rec.id}
         caption="Registos DNS configurados para o domínio .edu.ao"
         labelledBy="dns-records-caption"
+        loading={loading}
         emptyTitle="Nenhum registo DNS gerado"
         emptyDescription='Clique em "Inicializar Zona DNS" e depois em "1. Gerar Blueprint DNS".'
       />

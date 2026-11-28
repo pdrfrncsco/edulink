@@ -21,7 +21,7 @@ export default function PersonaTabs() {
           <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
             Uma Plataforma, Três Públicos Beneficiados
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
             Valor imediato para a direção, professores e estudantes
           </h2>
         </div>

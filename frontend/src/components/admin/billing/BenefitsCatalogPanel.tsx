@@ -23,6 +23,7 @@ interface BenefitsCatalogPanelProps {
   partners: BenefitPartner[];
   offers: BenefitOffer[];
   busy: boolean;
+  fetching?: boolean;
   onSetBusy: (busy: boolean) => void;
   onReload: () => Promise<void>;
   onFeedback: (fb: FeedbackState | null) => void;
@@ -34,6 +35,7 @@ export default function BenefitsCatalogPanel({
   partners,
   offers,
   busy,
+  fetching = false,
   onSetBusy,
   onReload,
   onFeedback,
@@ -309,6 +311,7 @@ export default function BenefitsCatalogPanel({
         data={partners}
         getRowKey={(partner) => partner.id}
         caption="Parceiros e ofertas do Clube de Benefícios"
+        loading={fetching}
         emptyTitle="Nenhum parceiro configurado ainda"
         emptyDescription="Os parceiros comerciais locais serão exibidos aqui assim que estiverem ativos."
       />

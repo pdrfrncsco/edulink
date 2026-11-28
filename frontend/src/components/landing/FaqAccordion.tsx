@@ -19,7 +19,7 @@ export default function FaqAccordion() {
         <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
           Perguntas Frequentes
         </span>
-        <h2 id="faq-heading" className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+        <h2 id="faq-heading" className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
           Tudo o que a direção escolar precisa de saber
         </h2>
       </div>

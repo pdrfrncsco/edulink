@@ -32,7 +32,7 @@ export async function getPublicSchoolData(domain: string): Promise<PublicSchoolD
   try {
     const res = await fetch(
       `${API_BASE}/tenants/by-domain/?domain=${encodeURIComponent(domain)}`,
-      { next: { revalidate: 60 } }
+      { cache: 'no-store' }
     );
     if (res.status === 404) {
       return null;

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Check } from 'lucide-react';
 import { Button, StatusBadge, cn } from '@/components/ui';
 import { formatKz } from '@/lib/formatters';
 import { ADMIN_URL, PLANS } from './data';
@@ -19,7 +20,7 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
             <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
               Preços Transparentes em Kwanzas (AOA)
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
               Planos desenhados para o ciclo letivo das escolas em Angola
             </h2>
           </div>
@@ -50,9 +51,9 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
                 </span>
 
                 <div>
-                  <h3 className="text-xl font-extrabold text-stone-900">{plan.name}</h3>
+                  <h3 className="text-xl font-bold text-stone-900">{plan.name}</h3>
                   <div className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-3xl font-extrabold text-stone-900">
+                    <span className="text-3xl font-bold text-stone-900">
                       {formatKz(plan.price)}
                     </span>
                     <span className="text-xs font-semibold text-stone-500">{plan.period}</span>
@@ -63,9 +64,7 @@ export default function PricingSection({ onOpenDemo }: PricingSectionProps) {
                 <ul className="space-y-2.5 pt-3 border-t border-stone-200/80 text-xs text-stone-700">
                   {plan.features.map((item) => (
                     <li key={item} className="flex items-start gap-2">
-                      <span className="text-teal-700 font-bold mt-0.5" aria-hidden="true">
-                        ✓
-                      </span>
+                      <Check className="h-3.5 w-3.5 text-teal-700 shrink-0 mt-0.5" aria-hidden="true" />
                       <span>{item}</span>
                     </li>
                   ))}

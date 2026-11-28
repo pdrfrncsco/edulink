@@ -30,6 +30,7 @@ interface SubscriptionsPanelProps {
   subscriptions: ExtendedSubscription[];
   payments: ExtendedPayment[];
   busy: boolean;
+  fetching?: boolean;
   onSetBusy: (busy: boolean) => void;
   onReload: () => Promise<void>;
   onFeedback: (fb: FeedbackState | null) => void;
@@ -43,6 +44,7 @@ export default function SubscriptionsPanel({
   subscriptions,
   payments,
   busy,
+  fetching = false,
   onSetBusy,
   onReload,
   onFeedback,
@@ -343,6 +345,7 @@ export default function SubscriptionsPanel({
         data={subscriptions}
         getRowKey={(sub) => sub.id}
         caption="Subscrições da escola selecionada"
+        loading={fetching}
         emptyTitle="Nenhuma subscrição registada para esta escola"
         emptyDescription="Escolha um plano acima para criar uma subscrição e gerar a referência em Kwanzas."
       />
@@ -353,6 +356,7 @@ export default function SubscriptionsPanel({
           data={payments}
           getRowKey={(pay) => pay.id}
           caption="Pagamentos em Kwanzas"
+          loading={fetching}
         />
       )}
 

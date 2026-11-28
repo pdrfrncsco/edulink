@@ -37,23 +37,19 @@ export default function DomainsDNSTab({
   const [webTarget, setWebTarget] = useState('sites.edulink.ao');
   const [cfAccountId, setCfAccountId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(Boolean(schoolId));
 
   const resetFormFields = () => {
-    setDossier(null);
-    setGoogleToken('');
-    setMsToken('');
-    setDkimSelector('google');
-    setDkimKey('');
-    setWebTarget('sites.edulink.ao');
-    setCfAccountId('');
+    setDossier(null); setGoogleToken(''); setMsToken('');
+    setDkimSelector('google'); setDkimKey(''); setWebTarget('sites.edulink.ao'); setCfAccountId('');
   };
 
   const loadConfig = async () => {
     if (!schoolId) {
-      setConfig(null);
-      resetFormFields();
+      setConfig(null); resetFormFields(); setFetching(false);
       return;
     }
+    setFetching(true);
     try {
       const data = await apiJson<{ results: DomainConfig[] }>(`/domains/configs/?school=${schoolId}`);
       const first = (data.results || [])[0] || null;
@@ -71,6 +67,8 @@ export default function DomainsDNSTab({
       }
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -168,7 +166,7 @@ export default function DomainsDNSTab({
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-100 pb-4">
           <div>
             <h2 id="dns-form-heading" className="text-lg font-bold text-stone-900">
-              Automação DNS (.edu.ao) — Cloudflare &amp; DNS.AO
+              Domínio Oficial (.edu.ao) e DNS
             </h2>
             <p className="text-xs sm:text-sm text-stone-500">
               Gera automaticamente registos Web, MX, SPF combinado, DKIM e DMARC para aprovação no
@@ -300,13 +298,7 @@ export default function DomainsDNSTab({
                     variant="outline"
                     size="sm"
                     disabled={loading}
-                    onClick={() =>
-                      runAction(
-                        `/domains/configs/${config.id}/generate-blueprint/`,
-                        'POST',
-                        'Blueprint DNS gerado com sucesso!'
-                      )
-                    }
+                    onClick={() => runAction(`/domains/configs/${config.id}/generate-blueprint/`, 'POST', 'Blueprint DNS gerado com sucesso!')}
                   >
                     1. Gerar Blueprint DNS
                   </Button>
@@ -315,13 +307,7 @@ export default function DomainsDNSTab({
                     variant="outline"
                     size="sm"
                     disabled={loading}
-                    onClick={() =>
-                      runAction(
-                        `/domains/configs/${config.id}/sync-cloudflare/`,
-                        'POST',
-                        'Zona e registos sincronizados na Cloudflare!'
-                      )
-                    }
+                    onClick={() => runAction(`/domains/configs/${config.id}/sync-cloudflare/`, 'POST', 'Zona e registos sincronizados na Cloudflare!')}
                   >
                     2. Sincronizar Cloudflare
                   </Button>
@@ -330,28 +316,16 @@ export default function DomainsDNSTab({
                     variant="outline"
                     size="sm"
                     disabled={loading}
-                    onClick={() =>
-                      runAction(
-                        `/domains/configs/${config.id}/verify-propagation/`,
-                        'POST',
-                        'Verificação DoH concluída!'
-                      )
-                    }
+                    onClick={() => runAction(`/domains/configs/${config.id}/verify-propagation/`, 'POST', 'Verificação de propagação DNS concluída!')}
                   >
-                    3. Verificar Propagação (DoH)
+                    3. Verificar Propagação DNS
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     disabled={loading}
-                    onClick={() =>
-                      runAction(
-                        `/domains/configs/${config.id}/dns-ao-dossier/`,
-                        'GET',
-                        'Checklist DNS.AO carregada!'
-                      )
-                    }
+                    onClick={() => runAction(`/domains/configs/${config.id}/dns-ao-dossier/`, 'GET', 'Checklist DNS.AO carregada!')}
                   >
                     Ver Dossiê DNS.AO
                   </Button>
@@ -391,7 +365,7 @@ export default function DomainsDNSTab({
         )}
       </Card>
 
-      <DnsRecordsTable records={config?.records || []} />
+      <DnsRecordsTable records={config?.records || []} loading={fetching} />
     </div>
   );
 }

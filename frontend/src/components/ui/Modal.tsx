@@ -134,7 +134,7 @@ export function Modal({
                 {eyebrow}
               </span>
             )}
-            <h1 id={titleId} className="text-lg font-extrabold text-stone-900 leading-snug">
+            <h1 id={titleId} className="text-lg font-bold text-stone-900 leading-snug">
               {title}
             </h1>
             {description && (

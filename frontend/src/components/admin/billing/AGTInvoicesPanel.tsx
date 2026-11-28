@@ -11,6 +11,7 @@ interface AGTInvoicesPanelProps {
   invoices: AGTInvoice[];
   isPlatformAdmin: boolean;
   busy: boolean;
+  fetching?: boolean;
   onSetBusy: (busy: boolean) => void;
   onFeedback: (fb: FeedbackState | null) => void;
 }
@@ -20,6 +21,7 @@ export default function AGTInvoicesPanel({
   invoices,
   isPlatformAdmin,
   busy,
+  fetching = false,
   onSetBusy,
   onFeedback,
 }: AGTInvoicesPanelProps) {
@@ -161,6 +163,7 @@ export default function AGTInvoicesPanel({
         data={invoices}
         getRowKey={(inv) => inv.id}
         caption="Faturas Eletrónicas AGT emitidas"
+        loading={fetching}
         emptyTitle="Nenhuma fatura AGT emitida ainda"
         emptyDescription="As faturas são emitidas automaticamente após a confirmação dos pagamentos em Kwanzas."
       />

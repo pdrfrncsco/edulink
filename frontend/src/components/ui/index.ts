@@ -13,6 +13,7 @@ export {
 } from './Card';
 export { AlertBanner, type AlertBannerProps, type AlertTone } from './AlertBanner';
 export { Modal, ConfirmModal, type ModalProps, type ModalSize, type ConfirmModalProps } from './Modal';
+export { Skeleton, SkeletonCard, type SkeletonProps } from './Skeleton';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { DataTable, type DataTableProps, type DataTableColumn } from './DataTable';
 export {

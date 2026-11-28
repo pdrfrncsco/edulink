@@ -8,6 +8,7 @@ interface GlobalVerifiersPanelProps {
   schoolId: string;
   verifiers: GlobalVerifierApp[];
   loading: boolean;
+  fetching?: boolean;
   onSetLoading: (loading: boolean) => void;
   onReload: () => Promise<void>;
   onFeedback: (fb: FeedbackState | null) => void;
@@ -18,6 +19,7 @@ export default function GlobalVerifiersPanel({
   schoolId,
   verifiers,
   loading,
+  fetching = false,
   onSetLoading,
   onReload,
   onFeedback,
@@ -119,8 +121,8 @@ export default function GlobalVerifiersPanel({
           Verificadores Globais (SheerID, UNiDAYS &amp; GitHub Education)
         </h2>
         <p className="text-xs sm:text-sm text-stone-500">
-          Prepare o pacote de acreditação institucional (domínio .edu.ao, Schema.org e endpoint
-          público) para desbloquear GitHub Student Pack, Spotify e Google AI.
+          Prepare o pacote de acreditação institucional (domínio .edu.ao e verificação pública) para
+          ativar o GitHub Student Pack, Spotify e Google AI.
         </p>
       </div>
 
@@ -155,6 +157,7 @@ export default function GlobalVerifiersPanel({
         data={verifiers}
         getRowKey={(v) => v.id}
         caption="Estado das candidaturas nos verificadores globais"
+        loading={fetching}
         emptyTitle="Nenhuma candidatura iniciada para esta instituição"
       />
     </Card>

@@ -2,22 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { AlertBanner, Card, StatusBadge } from '@/components/ui';
+import { AlertBanner, Card, SkeletonCard, StatusBadge } from '@/components/ui';
 import AuthCard from '@/components/auth/AuthCard';
-import {
-  AuthUser,
-  clearAuthSession,
-  getAccessToken,
-  getStoredUser,
-  updateStoredUser,
-} from '@/lib/auth';
+import { AuthUser, clearAuthSession, getAccessToken, getStoredUser, updateStoredUser } from '@/lib/auth';
 import { buildSchoolSiteHref } from '@/lib/siteUrls';
 import { useIsLocalHost } from '@/lib/useIsLocalHost';
-import {
-  AdminAccessGate,
-  AdminFeedbackBanner,
-  AdminFirstRunOnboarding,
-} from './AdminAccessGate';
+import { AdminAccessGate, AdminFeedbackBanner, AdminFirstRunOnboarding } from './AdminAccessGate';
 import AdminSidebar from './AdminSidebar';
 import BillingAndBenefitsTab from './BillingAndBenefitsTab';
 import ComplianceAPDTab from './ComplianceAPDTab';
@@ -55,10 +45,12 @@ export default function AdminShell({ surfaceMode = 'admin' }: AdminShellProps) {
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [schools, setSchools] = useState<School[]>([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(true);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
 
   const loadSchools = async (preferSchoolId?: string) => {
+    setSchoolsLoading(true);
     try {
       const data = await apiJson<{ results?: School[] } | School[]>('/tenants/schools/');
       const list = Array.isArray(data) ? data : data.results || [];
@@ -75,6 +67,8 @@ export default function AdminShell({ surfaceMode = 'admin' }: AdminShellProps) {
         clearAuthSession();
         setAuthUser(null);
       }
+    } finally {
+      setSchoolsLoading(false);
     }
   };
 
@@ -182,8 +176,15 @@ export default function AdminShell({ surfaceMode = 'admin' }: AdminShellProps) {
 
   if (!authReady) {
     return (
-      <div className="py-16 text-center text-sm text-stone-500" role="status">
-        A verificar sessão autenticada...
+      <div className="space-y-6 py-4" role="status" aria-busy="true" aria-label="A verificar sessão autenticada">
+        <SkeletonCard rows={2} />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <SkeletonCard rows={5} className="lg:col-span-1" />
+          <div className="lg:col-span-3 space-y-4">
+            <SkeletonCard rows={4} />
+            <SkeletonCard rows={4} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -328,6 +329,7 @@ export default function AdminShell({ surfaceMode = 'admin' }: AdminShellProps) {
         {activeSection === 'platform_ops' && isPlatformAdmin && surfaceMode === 'ops' && (
           <PlatformOpsTab
             schools={schools}
+            schoolsLoading={schoolsLoading}
             selectedSchoolId={selectedSchoolId}
             onSelectSchool={(id) => {
               setSelectedSchoolId(id);
@@ -341,20 +343,13 @@ export default function AdminShell({ surfaceMode = 'admin' }: AdminShellProps) {
 
         {activeSection === 'onboarding' && isPlatformAdmin && surfaceMode === 'ops' && (
           <OnboardingTab
-            onSchoolCreated={async (id) => {
-              await loadSchools(id);
-              navigateTo('overview');
-            }}
+            onSchoolCreated={async (id) => { await loadSchools(id); navigateTo('overview'); }}
             onFeedback={setFeedback}
           />
         )}
 
         {activeSection === 'directory' && (
-          <DirectoryTab
-            schoolId={selectedSchoolId}
-            onFeedback={setFeedback}
-            onDirectoryUpdated={() => loadSchools(selectedSchoolId)}
-          />
+          <DirectoryTab schoolId={selectedSchoolId} onFeedback={setFeedback} onDirectoryUpdated={() => loadSchools(selectedSchoolId)} />
         )}
 
         {activeSection === 'provisioning' && (
@@ -362,27 +357,15 @@ export default function AdminShell({ surfaceMode = 'admin' }: AdminShellProps) {
         )}
 
         {activeSection === 'domains' && (
-          <DomainsDNSTab
-            schoolId={selectedSchoolId}
-            hasOfficialDomain={Boolean(activeSchool?.domain)}
-            onFeedback={setFeedback}
-          />
+          <DomainsDNSTab schoolId={selectedSchoolId} hasOfficialDomain={Boolean(activeSchool?.domain)} onFeedback={setFeedback} />
         )}
 
         {activeSection === 'compliance' && (
-          <ComplianceAPDTab
-            schoolId={selectedSchoolId}
-            onFeedback={setFeedback}
-            onSchoolUpdated={() => loadSchools(selectedSchoolId)}
-          />
+          <ComplianceAPDTab schoolId={selectedSchoolId} onFeedback={setFeedback} onSchoolUpdated={() => loadSchools(selectedSchoolId)} />
         )}
 
         {activeSection === 'erp_verifiers' && erpFeatureEnabled && (
-          <ERPAndVerifiersTab
-            schoolId={selectedSchoolId}
-            onFeedback={setFeedback}
-            onDirectoryUpdated={() => loadSchools(selectedSchoolId)}
-          />
+          <ERPAndVerifiersTab schoolId={selectedSchoolId} onFeedback={setFeedback} onDirectoryUpdated={() => loadSchools(selectedSchoolId)} />
         )}
 
         {activeSection === 'billing_benefits' && (

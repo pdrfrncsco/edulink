@@ -140,8 +140,8 @@ export function AdminFirstRunOnboarding({
             Configure a sua instituição na EduLink
           </h1>
           <p className="text-xs sm:text-sm text-stone-600 mt-1">
-            Em poucos minutos gera o site institucional, prepara o pedido .edu.ao e desbloqueia
-            Google Workspace, Microsoft 365 e Canva Educação.
+            Em poucos minutos gera o site institucional, prepara o pedido .edu.ao e ativa o acesso
+            ao Google Workspace, Microsoft 365 e Canva Educação.
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={onLogout}>

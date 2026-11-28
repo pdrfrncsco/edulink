@@ -21,13 +21,13 @@ import RoiCalculator from './RoiCalculator';
 
 /** Commercial landing page composed from modular accessible sections. */
 export default function EduLinkLanding() {
-  const [simSchoolName, setSimSchoolName] = useState('Colégio Horizonte de Luanda');
+  const [simSchoolName, setSimSchoolName] = useState('');
   const [simTutela, setSimTutela] = useState<TutelaType>('MED_K12');
   const [simColor, setSimColor] = useState('#0D9488');
   const [demoModalOpen, setDemoModalOpen] = useState(false);
-  const [demoPrefillSchool, setDemoPrefillSchool] = useState('Colégio Horizonte de Luanda');
+  const [demoPrefillSchool, setDemoPrefillSchool] = useState('');
 
-  const simSlug = useMemo(() => slugifySchool(simSchoolName), [simSchoolName]);
+  const simSlug = useMemo(() => slugifySchool(simSchoolName, 'sua-escola'), [simSchoolName]);
   const simEduDomain = `${simSlug}.edu.ao`;
   const simPreviewDomain = `${simSlug}.${ROOT_DOMAIN}`;
 
@@ -79,7 +79,7 @@ export default function EduLinkLanding() {
               <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
                 Processo Assistido de Ponta a Ponta
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
                 Da entrega do Alvará à escola digital ativa em 4 passos
               </h2>
               <p className="text-sm text-stone-600">
@@ -123,7 +123,7 @@ export default function EduLinkLanding() {
               <span className="text-xs font-bold uppercase tracking-wider text-teal-300">
                 Pronto para o Ano Lectivo 2026/2027
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
                 Coloque a sua instituição online em .edu.ao esta semana
               </h2>
               <p className="text-sm text-teal-100/90">
@@ -136,7 +136,7 @@ export default function EduLinkLanding() {
                 type="button"
                 size="lg"
                 onClick={() => openDemoWithContext()}
-                className="bg-white text-stone-950 hover:bg-stone-100 font-extrabold"
+                className="bg-white text-stone-950 hover:bg-stone-100 font-bold"
               >
                 Agendar Demonstração
               </Button>

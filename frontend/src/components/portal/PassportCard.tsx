@@ -85,7 +85,7 @@ export default function PassportCard({
             <span className="text-[10px] uppercase font-semibold text-white/80 block">
               {isTeacher ? 'Docente Verificado' : 'Estudante Verificado'}
             </span>
-            <span className="text-lg font-extrabold tracking-tight text-white block">
+            <span className="text-lg font-bold tracking-tight text-white block">
               {passport.fullName}
             </span>
             <button
@@ -151,7 +151,7 @@ export default function PassportCard({
             </div>
           )}
           <span className="text-[10px] text-stone-600 font-medium text-center">
-            Assinado via JWT · Apresente na portaria ou estabelecimentos parceiros
+            Cartão digital verificável · Apresente na portaria ou estabelecimentos parceiros
           </span>
         </div>
       </div>

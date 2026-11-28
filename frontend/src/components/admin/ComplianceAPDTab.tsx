@@ -30,6 +30,7 @@ export default function ComplianceAPDTab({
   const [hasMinors, setHasMinors] = useState(true);
   const [apdRefNumber, setApdRefNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(Boolean(schoolId));
 
   const resetDossierFields = () => {
     setDirectorName('');
@@ -46,8 +47,10 @@ export default function ComplianceAPDTab({
       setDossier(null);
       setConsents([]);
       resetDossierFields();
+      setFetching(false);
       return;
     }
+    setFetching(true);
     try {
       const [dosData, conData] = await Promise.all([
         apiJson<{ results: APDDossier[] }>(`/compliance/dossiers/?school=${schoolId}`),
@@ -69,6 +72,8 @@ export default function ComplianceAPDTab({
       setConsents(conData.results || []);
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -172,7 +177,7 @@ export default function ComplianceAPDTab({
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-100 pb-4">
           <div>
             <h2 id="apd-form-heading" className="text-lg font-bold text-stone-900">
-              Blindagem Regulatória APD — Lei n.º 22/11 (Angola)
+              Conformidade Legal APD (Lei n.º 22/11)
             </h2>
             <p className="text-xs sm:text-sm text-stone-500">
               Instrução automática do dossiê de notificação/autorização prévia perante a Agência de
@@ -362,6 +367,7 @@ export default function ComplianceAPDTab({
         schoolId={schoolId}
         consents={consents}
         loading={loading}
+        fetching={fetching}
         onSetLoading={setLoading}
         onReload={loadCompliance}
         onFeedback={onFeedback}

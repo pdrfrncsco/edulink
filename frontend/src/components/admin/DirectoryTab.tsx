@@ -29,13 +29,16 @@ export default function DirectoryTab({
   const [users, setUsers] = useState<AcademicUser[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(Boolean(schoolId));
   const [confirmSuspendUser, setConfirmSuspendUser] = useState<AcademicUser | null>(null);
 
   const loadUsers = async () => {
     if (!schoolId) {
       setUsers([]);
+      setFetching(false);
       return;
     }
+    setFetching(true);
     try {
       const qs = new URLSearchParams({ school: schoolId });
       if (searchQuery.trim()) qs.set('search', searchQuery.trim());
@@ -43,6 +46,8 @@ export default function DirectoryTab({
       setUsers(data.results || []);
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -265,6 +270,7 @@ export default function DirectoryTab({
           getRowKey={(u) => u.id}
           caption="Lista de estudantes e professores da escola"
           labelledBy="directory-table-caption"
+          loading={fetching}
           emptyTitle={
             schoolId
               ? 'Nenhum utilizador encontrado para esta escola'

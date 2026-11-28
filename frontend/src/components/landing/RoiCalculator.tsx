@@ -49,7 +49,7 @@ export default function RoiCalculator({ onOpenDemo }: RoiCalculatorProps) {
             <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
               Simulador Financeiro em Kwanzas (AOA)
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
               Como transformar a EduLink em investimento de “Custo Zero”
             </h2>
             <p className="text-sm text-stone-600">
@@ -151,10 +151,10 @@ export default function RoiCalculator({ onOpenDemo }: RoiCalculatorProps) {
                 <span className="text-[11px] uppercase tracking-wider text-teal-300 font-bold block">
                   Plano Recomendado
                 </span>
-                <p className="text-xl font-extrabold">{roiMetrics.planName}</p>
+                <p className="text-xl font-bold">{roiMetrics.planName}</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-extrabold text-teal-300">
+                <p className="text-2xl font-bold text-teal-300">
                   {formatKz(roiMetrics.annualPrice)}
                 </p>
                 <span className="text-[11px] text-stone-400">por ano letivo</span>
@@ -164,7 +164,7 @@ export default function RoiCalculator({ onOpenDemo }: RoiCalculatorProps) {
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
                 <span className="text-stone-300 block">Custo diluído por aluno/ano</span>
-                <p className="text-lg font-extrabold text-white mt-1">
+                <p className="text-lg font-bold text-white mt-1">
                   {formatKz(roiMetrics.costPerStudentYear)}
                 </p>
                 <span className="text-[10px] text-teal-300">
@@ -174,7 +174,7 @@ export default function RoiCalculator({ onOpenDemo }: RoiCalculatorProps) {
 
               <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
                 <span className="text-stone-300 block">Poupança face a agência web</span>
-                <p className="text-lg font-extrabold text-emerald-300 mt-1">
+                <p className="text-lg font-bold text-emerald-300 mt-1">
                   +{formatKz(roiMetrics.agencySavingsMin)}
                 </p>
                 <span className="text-[10px] text-stone-300">Site + SSL + DNS incluídos</span>
@@ -196,7 +196,7 @@ export default function RoiCalculator({ onOpenDemo }: RoiCalculatorProps) {
                 </span>
                 <span
                   className={cn(
-                    'font-mono font-extrabold',
+                    'font-mono font-bold',
                     roiMetrics.netSurplus >= 0 ? 'text-emerald-300' : 'text-amber-300'
                   )}
                 >
@@ -211,7 +211,7 @@ export default function RoiCalculator({ onOpenDemo }: RoiCalculatorProps) {
               size="lg"
               fullWidth
               onClick={() => onOpenDemo()}
-              className="bg-teal-500 text-stone-950 hover:bg-teal-400 font-extrabold"
+              className="bg-teal-500 text-stone-950 hover:bg-teal-400 font-bold"
             >
               Pedir Proposta Personalizada para {calcStudents.toLocaleString('pt-AO')} Alunos
             </Button>

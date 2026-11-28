@@ -12,7 +12,7 @@ export default function OpsLayout({
       <header className="border-b border-stone-800 bg-stone-900 text-stone-100 sticky top-0 z-30">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
           <a href="/ops" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-stone-950 font-extrabold text-base shadow-sm group-hover:bg-amber-400 transition">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-stone-950 font-bold text-base shadow-sm group-hover:bg-amber-400 transition">
               E
             </div>
             <div className="flex items-baseline gap-2">

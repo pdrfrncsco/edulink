@@ -19,6 +19,7 @@ interface ParentalConsentsPanelProps {
   schoolId: string;
   consents: ParentalConsent[];
   loading: boolean;
+  fetching?: boolean;
   onSetLoading: (loading: boolean) => void;
   onReload: () => Promise<void>;
   onFeedback: (fb: FeedbackState | null) => void;
@@ -29,6 +30,7 @@ export default function ParentalConsentsPanel({
   schoolId,
   consents,
   loading,
+  fetching = false,
   onSetLoading,
   onReload,
   onFeedback,
@@ -299,6 +301,7 @@ export default function ParentalConsentsPanel({
         getRowKey={(c) => c.id}
         caption="Lista de termos de consentimento parental"
         labelledBy="consents-table-caption"
+        loading={fetching}
         emptyTitle="Nenhum termo gerado ainda"
         emptyDescription='Clique em "Gerar Termos em Lote" para criar autorizações parentais para os estudantes.'
       />

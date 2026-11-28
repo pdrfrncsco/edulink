@@ -1,5 +1,7 @@
 'use client';
 
+import MobileNavDrawer from './MobileNavDrawer';
+
 import React from 'react';
 import { LogOut, Menu, X } from 'lucide-react';
 import { Button, Card, StatusBadge, cn } from '@/components/ui';
@@ -150,11 +152,16 @@ export default function AdminSidebar({
         </Button>
       </Card>
 
-      {mobileNavOpen && (
-        <aside id="mobile-admin-nav" className="lg:hidden bg-white border border-stone-200 rounded-2xl p-4 shadow-sm">
-          {renderNavContent()}
-        </aside>
-      )}
+      <MobileNavDrawer
+        id="mobile-admin-nav"
+        open={mobileNavOpen}
+        ariaLabel="Painel institucional"
+        title={isPlatformAdmin ? 'EduLink Ops' : 'Secretaria Escolar'}
+        subtitle={activeSchool?.name}
+        onClose={onToggleMobileNav}
+      >
+        {renderNavContent()}
+      </MobileNavDrawer>
 
       {/* Desktop Sticky Sidebar */}
       <aside

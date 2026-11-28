@@ -135,7 +135,7 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
             <p>
               Pré-visualização sugerida:{' '}
               <strong className="font-mono">
-                {slugifySchool(demoSchool)}.{ROOT_DOMAIN}
+                {slugifySchool(demoSchool, 'sua-escola')}.{ROOT_DOMAIN}
               </strong>
             </p>
           </AlertBanner>
@@ -152,7 +152,7 @@ export default function DemoModal({ open, initialSchool, onClose }: DemoModalPro
               href={ADMIN_URL}
               className="min-h-[44px] flex items-center justify-center w-full text-center py-3 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition"
             >
-              Ou Criar Conta e Testar Já o Onboarding →
+              Ou Criar Conta e Iniciar Registo
             </a>
           </div>
         </div>

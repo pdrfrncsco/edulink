@@ -42,7 +42,7 @@ export const PERSONA_DATA: Record<
         desc: 'Importe 500 ou 2.000 alunos numa só ação. Quando uma matrícula é suspensa, os acessos em nuvem e o QR Code são revogados automaticamente.',
       },
       {
-        title: 'Blindagem Regulatória (APD — Lei n.º 22/11)',
+        title: 'Conformidade Legal (APD, Lei n.º 22/11)',
         desc: 'Geração automática do dossiê de notificação à Agência de Proteção de Dados e termos digitais de consentimento parental para alunos menores.',
       },
       {
@@ -78,7 +78,7 @@ export const PERSONA_DATA: Record<
   estudantes: {
     title: 'Para Estudantes e Encarregados de Educação',
     subtitle:
-      'Um Passaporte Académico Digital no telemóvel que funciona mesmo offline e abre portas para o ecossistema educativo global.',
+      'Um Passaporte Académico Digital no telemóvel que funciona mesmo offline e liga os estudantes às ferramentas educativas globais.',
     highlight: 'PWA leve otimizada para redes móveis 3G/4G em Angola',
     items: [
       {
@@ -87,7 +87,7 @@ export const PERSONA_DATA: Record<
       },
       {
         title: 'Cartão de Estudante Digital com QR Code',
-        desc: 'Assinado criptograficamente via JWT com validação instantânea na portaria ou em parceiros, mantendo o último cartão acessível offline.',
+        desc: 'Com assinatura digital segura para validação instantânea na portaria ou em parceiros, mantendo o último cartão acessível offline.',
       },
       {
         title: 'Acesso a Benefícios Globais',
@@ -146,7 +146,7 @@ export const PLANS = [
     featured: false,
     features: [
       'Multi-faculdade e departamentos ilimitados',
-      'SSO Institucional (SAML 2.0 / OIDC) Google + Microsoft Entra ID',
+      'Início de Sessão Único (Google e Microsoft)',
       'Dossiê público e submissão a SheerID, UNiDAYS e GitHub Campus',
       'API de integração com ERP Académico + Verificação POS/Portaria',
       'Acompanhamento dedicado de conformidade APD e AGT',
@@ -195,7 +195,7 @@ export const PROBLEM_HIGHLIGHTS = [
   },
   {
     tag: 'APD · Lei n.º 22/11',
-    title: 'Blindagem contra coimas',
+    title: 'Conformidade sem coimas',
     desc: 'Dossiê pronto para notificação à APD, política pública de privacidade e consentimentos parentais digitais.',
   },
   {

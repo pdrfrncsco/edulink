@@ -74,7 +74,7 @@ export default function SchoolOverviewPanel({
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <Card padding="sm">
           <span className="text-[11px] font-semibold uppercase text-stone-500">Estudantes Ativos</span>
-          <p className="text-2xl font-extrabold text-stone-900 mt-1">
+          <p className="text-2xl font-bold text-stone-900 mt-1">
             {activeSchool.total_students ?? 0}
           </p>
           <button
@@ -88,7 +88,7 @@ export default function SchoolOverviewPanel({
 
         <Card padding="sm">
           <span className="text-[11px] font-semibold uppercase text-stone-500">Docentes</span>
-          <p className="text-2xl font-extrabold text-stone-900 mt-1">
+          <p className="text-2xl font-bold text-stone-900 mt-1">
             {activeSchool.total_teachers ?? 0}
           </p>
           <span className="mt-2 block text-[11px] text-stone-500">
@@ -100,7 +100,7 @@ export default function SchoolOverviewPanel({
 
         <Card padding="sm">
           <span className="text-[11px] font-semibold uppercase text-stone-500">Dossiê Documental</span>
-          <p className="text-2xl font-extrabold text-stone-900 mt-1">
+          <p className="text-2xl font-bold text-stone-900 mt-1">
             {activeSchool.documents_uploaded_count ?? 0} / 4
           </p>
           <span className="mt-2 block text-[11px] font-mono text-stone-500 truncate">

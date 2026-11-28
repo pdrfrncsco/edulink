@@ -31,14 +31,17 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
     oidc_discovery_url: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(Boolean(schoolId));
 
   const loadData = async () => {
     if (!schoolId) {
       setIntegrations([]);
       setLogs([]);
       setSsoMetadata(null);
+      setFetching(false);
       return;
     }
+    setFetching(true);
     try {
       const [intData, logData, ssoData] = await Promise.all([
         apiJson<{ results: CloudIntegration[] }>(`/tenants/integrations/?school=${schoolId}`),
@@ -54,6 +57,8 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
       setSsoMetadata(ssoData);
     } catch (err: any) {
       onFeedback({ type: 'error', message: err.message });
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -159,7 +164,7 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
       );
       onFeedback({
         type: 'success',
-        message: `${res.message} (Task Celery: ${res.task_id})`,
+        message: `${res.message} (Pedido #${res.task_id})`,
       });
       setTimeout(loadData, 1500);
     } catch (err: any) {
@@ -188,7 +193,7 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
             loading={loading}
             onClick={handleBatchSync}
           >
-            Sincronizar Escola em Massa (Celery)
+            Sincronizar Toda a Escola
           </Button>
         </div>
 
@@ -353,7 +358,7 @@ export default function ProvisioningTab({ schoolId, onFeedback }: ProvisioningTa
         />
       )}
 
-      <ProvisioningLogsTable logs={logs} onRefresh={loadData} />
+      <ProvisioningLogsTable logs={logs} loading={fetching} onRefresh={loadData} />
     </div>
   );
 }

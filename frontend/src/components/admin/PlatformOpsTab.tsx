@@ -17,6 +17,7 @@ import {
 
 interface PlatformOpsTabProps {
   schools: School[];
+  schoolsLoading?: boolean;
   selectedSchoolId: string;
   onSelectSchool: (id: string) => void;
   onOperateSchool: (id: string) => void;
@@ -27,6 +28,7 @@ interface PlatformOpsTabProps {
 /** Platform Operator Backoffice orchestrating schools, RBAC accounts, docs, and flags. */
 export default function PlatformOpsTab({
   schools,
+  schoolsLoading = false,
   selectedSchoolId,
   onSelectSchool,
   onOperateSchool,
@@ -36,11 +38,14 @@ export default function PlatformOpsTab({
   const isLocalHostBrowser = useIsLocalHost();
   const [profiles, setProfiles] = useState<AdminUserProfile[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [fetchingProfiles, setFetchingProfiles] = useState(true);
+  const [fetchingDocs, setFetchingDocs] = useState(false);
   const [documents, setDocuments] = useState<OnboardingDocumentItem[]>([]);
 
   const selectedSchool = schools.find((s) => s.id === selectedSchoolId) || null;
 
   const loadProfiles = async () => {
+    setFetchingProfiles(true);
     try {
       const data = await apiJson<{ results?: AdminUserProfile[] } | AdminUserProfile[]>(
         '/auth/profiles/'
@@ -51,14 +56,18 @@ export default function PlatformOpsTab({
         type: 'error',
         message: err.message || 'Erro ao carregar contas da plataforma.',
       });
+    } finally {
+      setFetchingProfiles(false);
     }
   };
 
   const loadSchoolDocuments = async (schoolIdToLoad: string) => {
     if (!schoolIdToLoad) {
       setDocuments([]);
+      setFetchingDocs(false);
       return;
     }
+    setFetchingDocs(true);
     try {
       const docs = await apiJson<OnboardingDocumentItem[]>(
         `/tenants/${schoolIdToLoad}/documents/`
@@ -66,6 +75,8 @@ export default function PlatformOpsTab({
       setDocuments(Array.isArray(docs) ? docs : []);
     } catch {
       setDocuments([]);
+    } finally {
+      setFetchingDocs(false);
     }
   };
 
@@ -215,6 +226,7 @@ export default function PlatformOpsTab({
         selectedSchoolId={selectedSchoolId}
         isLocalHostBrowser={isLocalHostBrowser}
         busyId={busyId}
+        loading={schoolsLoading}
         onSelectSchool={onSelectSchool}
         onOperateSchool={onOperateSchool}
         onToggleSchoolActive={handleToggleSchoolActive}
@@ -224,6 +236,7 @@ export default function PlatformOpsTab({
         profiles={profiles}
         schools={schools}
         busyId={busyId}
+        loading={fetchingProfiles}
         onRefresh={loadProfiles}
         onUpdateProfile={handleUpdateProfile}
       />
@@ -233,6 +246,7 @@ export default function PlatformOpsTab({
           selectedSchool={selectedSchool}
           documents={documents}
           busyId={busyId}
+          loadingDocs={fetchingDocs}
           onReviewDocument={handleReviewDocument}
           onSavePipeline={handleSaveSchoolPipeline}
         />

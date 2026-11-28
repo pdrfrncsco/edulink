@@ -30,11 +30,11 @@ export default function LandingNavbar() {
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         <a href="#" className="flex items-center gap-2.5 min-h-[44px]">
-          <div className="w-9 h-9 rounded-xl bg-teal-700 text-white font-extrabold text-lg flex items-center justify-center shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-teal-700 text-white font-bold text-lg flex items-center justify-center shadow-sm">
             E
           </div>
           <div>
-            <span className="font-extrabold text-lg tracking-tight text-stone-900 block leading-none">
+            <span className="font-bold text-lg tracking-tight text-stone-900 block leading-none">
               EduLink
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-teal-700">

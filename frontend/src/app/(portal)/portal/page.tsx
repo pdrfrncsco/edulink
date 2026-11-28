@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { AlertBanner, Button, Card, StatusBadge, TabPanel } from '@/components/ui';
+import { AlertBanner, Button, Card, SkeletonCard, StatusBadge, TabPanel } from '@/components/ui';
 import AuthCard from '@/components/auth/AuthCard';
 import AccountTab from '@/components/portal/AccountTab';
 import BenefitsTab from '@/components/portal/BenefitsTab';
@@ -237,9 +237,10 @@ export default function PortalStudentPage() {
 
   if (!authReady) {
     return (
-      <p className="text-sm text-stone-500 py-12 text-center" role="status">
-        A carregar Passaporte Digital...
-      </p>
+      <div className="max-w-lg mx-auto py-8 space-y-4" role="status" aria-busy="true" aria-label="A carregar Passaporte Digital">
+        <SkeletonCard rows={4} />
+        <SkeletonCard rows={3} />
+      </div>
     );
   }
 

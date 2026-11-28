@@ -84,22 +84,36 @@ export default function middleware(req: NextRequest) {
     }
   }
 
-  // 4. Backoffice Interno EduLink (equipa operacional — /ops)
-  if (isOpsHost || (isRootHost && pathname.startsWith('/ops'))) {
+  // 4. Nos hosts da plataforma (raiz, ops.*, admin.*, portal.*), preservar rotas explícitas
+  //    (/sites/*, /ops/*, /admin/*, /portal/*) antes da reescrita por subdomínio
+  const isPlatformSurfaceHost = isRootHost || isOpsHost || isAdminHost || isPortalHost;
+  if (isPlatformSurfaceHost) {
+    if (pathname === '/sites' || pathname.startsWith('/sites/')) {
+      return NextResponse.next();
+    }
+    for (const prefix of ['/ops', '/admin', '/portal'] as const) {
+      if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
+        return rewritePreservingQuery(req, normalizePrefixedPath(pathname, prefix));
+      }
+    }
+  }
+
+  // 5. Backoffice Interno EduLink (equipa operacional — /ops)
+  if (isOpsHost) {
     return rewritePreservingQuery(req, normalizePrefixedPath(pathname, '/ops'));
   }
 
-  // 5. Portal Administrativo da Escola (/admin)
-  if (isAdminHost || (isRootHost && pathname.startsWith('/admin'))) {
+  // 6. Portal Administrativo da Escola (/admin)
+  if (isAdminHost) {
     return rewritePreservingQuery(req, normalizePrefixedPath(pathname, '/admin'));
   }
 
-  // 6. Portal PWA do Estudante / Professor (/portal)
-  if (isPortalHost || (isRootHost && pathname.startsWith('/portal'))) {
+  // 7. Portal PWA do Estudante / Professor (/portal)
+  if (isPortalHost) {
     return rewritePreservingQuery(req, normalizePrefixedPath(pathname, '/portal'));
   }
 
-  // 7. Domínio Raiz da Plataforma (edulink.ao ou localhost)
+  // 8. Domínio Raiz da Plataforma (edulink.ao ou localhost)
   if (isRootHost) {
     if (FALLBACK_ROOT_TO_ADMIN && pathname === '/') {
       return rewritePreservingQuery(req, '/admin');
@@ -108,7 +122,7 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 8. Sites Institucionais Multi-tenant:
+  // 9. Sites Institucionais Multi-tenant:
   //    - Demonstração instantânea: colegio-esperanca.edulink.ao ou colegio.localhost
   //    - Domínio oficial da escola: colegio-esperanca.edu.ao (ou .co.ao / .com)
   const suffix = pathname === '/' ? '' : pathname;

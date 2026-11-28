@@ -101,11 +101,10 @@ export function KeycloakSsoCard({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-stone-100 pb-4">
         <div>
           <h3 className="text-base font-bold text-stone-900">
-            Keycloak SSO (OIDC &amp; SAML 2.0 para Canva Educação)
+            Acesso Único Institucional (Canva e Portais)
           </h3>
           <p className="text-xs text-stone-500">
-            Identidade única institucional para portais EduLink e ativação SAML 2.0 no Canva para
-            Educação.
+            Identidade única institucional para portais EduLink e ativação no Canva para Educação.
           </p>
         </div>
         <Button
@@ -169,11 +168,16 @@ export function KeycloakSsoCard({
 
 interface ProvisioningLogsTableProps {
   logs: ProvisioningLog[];
+  loading?: boolean;
   onRefresh: () => void;
 }
 
 /** Auditable Google/Microsoft provisioning and revocation history table. */
-export function ProvisioningLogsTable({ logs, onRefresh }: ProvisioningLogsTableProps) {
+export function ProvisioningLogsTable({
+  logs,
+  loading = false,
+  onRefresh,
+}: ProvisioningLogsTableProps) {
   const columns: DataTableColumn<ProvisioningLog>[] = [
     {
       key: 'email',
@@ -242,6 +246,7 @@ export function ProvisioningLogsTable({ logs, onRefresh }: ProvisioningLogsTable
         getRowKey={(log) => log.id}
         caption="Logs auditáveis de provisionamento cloud"
         labelledBy="provisioning-logs-caption"
+        loading={loading}
         emptyTitle="Sem registos de provisionamento até ao momento"
       />
     </Card>

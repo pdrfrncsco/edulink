@@ -112,7 +112,7 @@ export default async function SchoolSitePage({
               />
             ) : (
               <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-xl shadow shrink-0"
+                className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl shadow shrink-0"
                 style={{ backgroundColor: brandColor, color: brandForeground }}
               >
                 {school.name.slice(0, 2).toUpperCase()}
@@ -158,8 +158,8 @@ export default async function SchoolSitePage({
             {school.domain ? ` • ${school.domain}` : ''}
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-stone-900 tracking-tight max-w-3xl">
-            {school.name} — Ensino de Qualidade e Identidade Académica Digital
+          <h2 className="text-2xl sm:text-4xl font-bold text-stone-900 tracking-tight max-w-3xl">
+            {school.name}: Ensino de Qualidade e Identidade Académica Digital
           </h2>
 
           <p className="text-stone-600 text-sm sm:text-lg max-w-2xl leading-relaxed">

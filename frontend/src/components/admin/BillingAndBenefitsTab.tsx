@@ -45,8 +45,11 @@ export default function BillingAndBenefitsTab({
   const [partners, setPartners] = useState<BenefitPartner[]>([]);
   const [offers, setOffers] = useState<BenefitOffer[]>([]);
   const [busy, setBusy] = useState(false);
+  const [fetchingCatalogs, setFetchingCatalogs] = useState(true);
+  const [fetchingBilling, setFetchingBilling] = useState(true);
 
   const loadGlobalCatalogs = async () => {
+    setFetchingCatalogs(true);
     try {
       const [planRes, partRes, offerRes] = await Promise.all([
         apiJson<ExtendedPlan[]>('/billing/plans/'),
@@ -61,10 +64,13 @@ export default function BillingAndBenefitsTab({
         type: 'error',
         message: err.message || 'Erro ao carregar planos e benefícios.',
       });
+    } finally {
+      setFetchingCatalogs(false);
     }
   };
 
   const loadSchoolBilling = async () => {
+    setFetchingBilling(true);
     try {
       const qs = schoolId ? `?school=${encodeURIComponent(schoolId)}` : '';
       const [subRes, payRes, invRes] = await Promise.all([
@@ -85,6 +91,8 @@ export default function BillingAndBenefitsTab({
         type: 'error',
         message: err.message || 'Erro ao carregar faturação da escola.',
       });
+    } finally {
+      setFetchingBilling(false);
     }
   };
 
@@ -138,6 +146,7 @@ export default function BillingAndBenefitsTab({
           subscriptions={subscriptions}
           payments={payments}
           busy={busy}
+          fetching={fetchingBilling}
           onSetBusy={setBusy}
           onReload={loadSchoolBilling}
           onFeedback={onFeedback}
@@ -149,6 +158,7 @@ export default function BillingAndBenefitsTab({
           invoices={invoices}
           isPlatformAdmin={isPlatformAdmin}
           busy={busy}
+          fetching={fetchingBilling}
           onSetBusy={setBusy}
           onFeedback={onFeedback}
         />
@@ -161,6 +171,7 @@ export default function BillingAndBenefitsTab({
             partners={partners}
             offers={offers}
             busy={busy}
+            fetching={fetchingCatalogs}
             onSetBusy={setBusy}
             onReload={loadGlobalCatalogs}
             onFeedback={onFeedback}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { Check } from 'lucide-react';
 import { AlertBanner, Button, Card, StatusBadge, cn } from '@/components/ui';
 import { authFetch } from '@/lib/auth';
 import { buildSchoolSiteHref } from '@/lib/siteUrls';
@@ -296,7 +297,14 @@ export default function OnboardingTab({ onSchoolCreated, onFeedback }: Onboardin
                       )}
                     >
                       <span className="block text-[10px] uppercase tracking-wider opacity-80">
-                        {isDone ? '✓ Concluído' : `Etapa ${item.id}`}
+                        {isDone ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Check className="h-3 w-3" aria-hidden="true" />
+                            Concluído
+                          </span>
+                        ) : (
+                          `Etapa ${item.id}`
+                        )}
                       </span>
                       <span className="truncate block">{item.title}</span>
                     </button>

@@ -3,7 +3,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
-import { AlertBanner, Button, Card, FormField, Input, Select, StatusBadge } from '@/components/ui';
+import { AlertBanner, Button, Card, FormField, Input, Select, SkeletonCard, StatusBadge } from '@/components/ui';
 import { API_BASE, ParentalConsent } from '@/components/admin/types';
 
 function ConsentContent() {
@@ -85,11 +85,7 @@ function ConsentContent() {
           </p>
         </div>
 
-        {loading && (
-          <p className="text-sm text-stone-500" role="status">
-            A carregar dados do termo...
-          </p>
-        )}
+        {loading && <SkeletonCard rows={4} />}
         {error && <AlertBanner tone="error">{error}</AlertBanner>}
         {successMessage && <AlertBanner tone="success">{successMessage}</AlertBanner>}
 
