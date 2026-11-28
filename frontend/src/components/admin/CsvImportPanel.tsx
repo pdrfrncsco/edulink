@@ -1,10 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Download, Upload } from 'lucide-react';
-import { Button, Card, FormField, Input, StatusBadge } from '@/components/ui';
+import React, { useRef, useState } from 'react';
+import { Download, RotateCcw, Upload } from 'lucide-react';
+import {
+  AlertBanner,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  FormField,
+  Input,
+} from '@/components/ui';
 import { authFetch } from '@/lib/auth';
 import { downloadTextBlob } from '@/lib/downloads';
+import {
+  analyzeDirectoryCsv,
+  buildSampleDirectoryCsv,
+  decodeCsvFile,
+  type CsvAnalysisResult,
+  type CsvImportStats,
+} from './directory/csvParser';
+import { CsvConfirmImportModal, CsvImportResultCard } from './directory/CsvConfirmAndResult';
+import CsvPreviewPanels from './directory/CsvPreviewPanels';
 import type { FeedbackState } from './types';
 
 interface CsvImportPanelProps {
@@ -15,7 +34,7 @@ interface CsvImportPanelProps {
   onImported: () => Promise<void>;
 }
 
-/** Batch CSV importer for Angola ERPs (KLASSE, SysPortal, Kacennu, Excel) with client preview. */
+/** Bulk CSV directory import panel with line-by-line pre-validation and safe confirmation modal. */
 export default function CsvImportPanel({
   schoolId,
   loading,
@@ -23,74 +42,82 @@ export default function CsvImportPanel({
   onFeedback,
   onImported,
 }: CsvImportPanelProps) {
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvPreview, setCsvPreview] = useState<{
-    delimiter: string;
-    headers: string[];
-    rowCount: number;
-    hasNameColumn: boolean;
-  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [academicYear, setAcademicYear] = useState('2026/2027');
-  const [csvStats, setCsvStats] = useState<Record<string, number> | null>(null);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [analysis, setAnalysis] = useState<CsvAnalysisResult | null>(null);
+  const [readError, setReadError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [csvStats, setCsvStats] = useState<CsvImportStats | null>(null);
+
+  const normalizedYear = academicYear.trim() || '2026/2027';
 
   const handleDownloadSampleCsv = () => {
-    const sample = [
-      'nome_completo;bi_ou_processo;tipo;classe_turma;ano_lectivo;telefone;email_pessoal',
-      'Manuel Domingos de Sousa;008942114LA042;ALUNO;11ª Classe - CFB;2026/2027;923112233;manuel.personal@gmail.com',
-      'Esperança Nzola Sebastião;007812930LA031;ALUNO;11ª Classe - CFB;2026/2027;945223344;esperanca.n@gmail.com',
-      'António Baptista Mukinda;001289456HA012;PROFESSOR;Departamento de Física;2026/2027;912887766;a.mukinda@gmail.com',
-    ].join('\n');
-    downloadTextBlob('\ufeff' + sample, 'turma_exemplo_angola.csv', 'text/csv;charset=utf-8;');
+    downloadTextBlob('\ufeff' + buildSampleDirectoryCsv(), 'turma_exemplo_angola.csv', 'text/csv;charset=utf-8;');
   };
 
-  const handleFileSelected = async (file: File | null) => {
+  const resetSelectedFile = () => {
+    setCsvFile(null);
+    setAnalysis(null);
+    setReadError(null);
+    setConfirmOpen(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setCsvStats(null);
+    setReadError(null);
+    setConfirmOpen(false);
+
+    if (!file) {
+      setCsvFile(null);
+      setAnalysis(null);
+      return;
+    }
+
     setCsvFile(file);
-    setCsvPreview(null);
-    if (!file) return;
     try {
-      const text = await file.text();
-      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-      if (lines.length === 0) return;
-      const headerLine = lines[0];
-      const delimiter = headerLine.split(';').length > headerLine.split(',').length ? ';' : ',';
-      const headers = headerLine.split(delimiter).map((h) => h.trim());
-      const normalized = headers.map((h) => h.toLowerCase());
-      const hasNameColumn = normalized.some((h) =>
-        ['nome_completo', 'nome', 'estudante', 'aluno', 'professor'].includes(h)
-      );
-      setCsvPreview({
-        delimiter,
-        headers,
-        rowCount: Math.max(0, lines.length - 1),
-        hasNameColumn,
+      const { text, encoding } = await decodeCsvFile(file);
+      const parsed = analyzeDirectoryCsv({
+        fileName: file.name,
+        fileSizeBytes: file.size,
+        text,
+        encoding,
+        defaultAcademicYear: normalizedYear,
       });
+      setAnalysis(parsed);
     } catch {
-      setCsvPreview(null);
+      setAnalysis(null);
+      setReadError(
+        'Não foi possível ler este ficheiro no navegador. Confirme que foi guardado como .csv e tente novamente.',
+      );
     }
   };
 
-  const handleCsvUpload = async (e: React.FormEvent) => {
+  const validCount = analysis && !analysis.structureError ? analysis.validRows.length : 0;
+  const canOpenConfirm = Boolean(
+    schoolId && csvFile && analysis && !analysis.structureError && validCount > 0 && !loading,
+  );
+
+  const handleRequestImport = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!schoolId) {
-      onFeedback({
-        type: 'error',
-        message: 'Selecione uma escola na barra superior antes de importar o CSV.',
-      });
-      return;
-    }
-    if (!csvFile) {
-      onFeedback({ type: 'error', message: 'Selecione um ficheiro CSV primeiro.' });
-      return;
-    }
+    if (!canOpenConfirm) return;
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmImport = async () => {
+    if (!schoolId || !csvFile) return;
 
     onSetLoading(true);
     onFeedback(null);
-    setCsvStats(null);
 
     const payload = new FormData();
     payload.append('school_id', schoolId);
     payload.append('file', csvFile);
-    payload.append('academic_year', academicYear);
+    payload.append('academic_year', normalizedYear);
 
     try {
       const res = await authFetch('/directory/upload-csv/', { method: 'POST', body: payload });
@@ -98,26 +125,30 @@ export default function CsvImportPanel({
       if (!res.ok) throw new Error(result.detail || JSON.stringify(result));
 
       setCsvStats(result.stats);
-      onFeedback({ type: 'success', message: `Importação processada para ${result.school}!` });
+      resetSelectedFile();
+      onFeedback({
+        type: 'success',
+        message: `Importação concluída para ${result.school}: ${result.stats?.created_users ?? 0} conta(s) nova(s) e ${result.stats?.updated_users ?? 0} atualizada(s).`,
+      });
       await onImported();
-    } catch (err: any) {
-      onFeedback({ type: 'error', message: err.message || 'Falha ao importar CSV.' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Falha ao importar CSV.';
+      setConfirmOpen(false);
+      onFeedback({ type: 'error', message });
     } finally {
       onSetLoading(false);
     }
   };
 
   return (
-    <Card padding="lg" className="space-y-6">
-      <div className="border-b border-stone-100 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <Card padding="md">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-4 border-b border-stone-200">
         <div>
-          <h2 id="csv-form-heading" className="text-lg font-bold text-stone-900">
-            Importação em Lote da Secretaria (CSV)
-          </h2>
-          <p className="text-xs sm:text-sm text-stone-500">
-            Carregue a listagem exportada do Kacennu, KLASSE, SysPortal ou Excel para gerar contas
-            institucionais <code>.edu.ao</code>.
-          </p>
+          <CardTitle>Importar lista de alunos e professores (CSV)</CardTitle>
+          <CardDescription>
+            Carregue a folha exportada do KLASSE, SysPortal, Kacennu ou Microsoft Excel. Cada linha
+            é verificada antes de gravar na escola.
+          </CardDescription>
         </div>
         <Button
           type="button"
@@ -125,107 +156,135 @@ export default function CsvImportPanel({
           size="sm"
           onClick={handleDownloadSampleCsv}
           leftIcon={<Download className="h-3.5 w-3.5" aria-hidden="true" />}
+          className="w-full sm:w-auto shrink-0 min-h-[44px] sm:min-h-9"
         >
-          Descarregar Modelo CSV
+          Baixar modelo CSV
         </Button>
-      </div>
+      </CardHeader>
 
-      <Card variant="muted" padding="sm" className="rounded-xl text-xs text-stone-600">
-        <span className="font-semibold block text-stone-800 uppercase mb-1">
-          Cabeçalhos suportados (<code>,</code> ou <code>;</code>):
-        </span>
-        <code className="block bg-white p-2.5 rounded border border-stone-200 font-mono text-[11px] overflow-x-auto text-teal-800">
-          nome_completo;bi_ou_processo;tipo;classe_turma;ano_lectivo;telefone;email_pessoal
-        </code>
-      </Card>
+      <CardContent className="pt-4 space-y-5">
+        {!analysis && !csvStats && (
+          <AlertBanner tone="info" title="Verificação segura antes de gravar">
+            Ao escolher o ficheiro, mostramos primeiro os erros linha-a-linha e uma amostra da
+            pauta. Contas já registadas com o mesmo BI ou processo são apenas atualizadas, mantendo
+            palavras-passe e acessos intactos.
+          </AlertBanner>
+        )}
 
-      <form
-        onSubmit={handleCsvUpload}
-        aria-labelledby="csv-form-heading"
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
-      >
-        <FormField id="csv-year" label="Ano Lectivo" required>
-          {({ id, describedBy, invalid }) => (
-            <Input
-              id={id}
-              name="academic_year"
-              type="text"
+        <form onSubmit={handleRequestImport} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+            <FormField
+              id="csv-academic-year"
+              label="Ano lectivo das matrículas"
+              hint="Usado quando a folha não tiver coluna ano_lectivo."
+              className="md:col-span-4"
+            >
+              {({ id, describedBy }) => (
+                <Input
+                  id={id}
+                  aria-describedby={describedBy}
+                  type="text"
+                  value={academicYear}
+                  onChange={(e) => setAcademicYear(e.target.value)}
+                  placeholder="2026/2027"
+                  className="min-h-[44px]"
+                />
+              )}
+            </FormField>
+
+            <FormField
+              id="csv-file-input"
+              label="Ficheiro da lista (.csv)"
               required
-              invalid={invalid}
-              aria-describedby={describedBy}
-              value={academicYear}
-              onChange={(e) => setAcademicYear(e.target.value)}
+              hint="Colunas aceites: nome_completo, bi_ou_processo, tipo, classe_turma, telefone, email_pessoal."
+              className="md:col-span-8"
+            >
+              {({ id, describedBy }) => (
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    id={id}
+                    aria-describedby={describedBy}
+                    type="file"
+                    accept=".csv,text/csv"
+                    onChange={handleFileChange}
+                    className="block w-full min-h-[44px] rounded-lg border border-stone-300 bg-white px-2.5 py-2 text-sm text-stone-700 file:mr-3 file:min-h-[34px] file:rounded-md file:border-0 file:bg-stone-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-stone-800 hover:file:bg-stone-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600/40"
+                  />
+                  {csvFile && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-stone-600">
+                      <span>
+                        Selecionado: <strong className="text-stone-900">{csvFile.name}</strong> (
+                        {Math.max(1, Math.round(csvFile.size / 1024))} KB)
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetSelectedFile}
+                        disabled={loading}
+                        leftIcon={<RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />}
+                        className="min-h-[44px] sm:min-h-8"
+                      >
+                        Trocar ficheiro
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </FormField>
+          </div>
+
+          {readError && (
+            <AlertBanner tone="error" title="Erro ao ler o ficheiro">
+              {readError}
+            </AlertBanner>
+          )}
+
+          {analysis && (
+            <CsvPreviewPanels
+              key={`${analysis.fileName}-${analysis.fileSizeBytes}-${analysis.totalDataRows}`}
+              analysis={analysis}
+              onDownloadSample={handleDownloadSampleCsv}
             />
           )}
-        </FormField>
 
-        <FormField id="csv-file" label="Ficheiro CSV" required>
-          {({ id, describedBy }) => (
-            <input
-              id={id}
-              name="file"
-              type="file"
-              accept=".csv,text/csv"
-              required
-              aria-describedby={describedBy}
-              onChange={(e) => handleFileSelected(e.target.files ? e.target.files[0] : null)}
-              className="edulink-input w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700"
-            />
-          )}
-        </FormField>
-
-        <Button
-          type="submit"
-          size="lg"
-          loading={loading}
-          disabled={!schoolId}
-          leftIcon={<Upload className="h-4 w-4" aria-hidden="true" />}
-        >
-          {loading ? 'Processando...' : 'Importar Alunos e Docentes'}
-        </Button>
-      </form>
-
-      {csvPreview && (
-        <Card variant="muted" padding="sm" className="rounded-xl space-y-2 text-xs">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-bold text-stone-800">
-              Pré-validação CSV: {csvPreview.rowCount} linha(s) · Separador{' '}
-              <code>{csvPreview.delimiter}</code>
-            </span>
-            <StatusBadge tone={csvPreview.hasNameColumn ? 'success' : 'error'}>
-              {csvPreview.hasNameColumn
-                ? 'Cabeçalho válido detetado'
-                : 'Aviso: coluna nome_completo/nome não encontrada'}
-            </StatusBadge>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-stone-200">
+            <p className="text-xs text-stone-600">
+              {!csvFile
+                ? 'Escolha um ficheiro .csv acima para pré-verificar os dados antes de importar.'
+                : analysis?.structureError || validCount === 0
+                  ? 'Corrija a estrutura indicada acima para desbloquear a importação.'
+                  : analysis?.skippedErrorRows.length
+                    ? `${validCount} registo(s) pronto(s) a gravar; ${analysis.skippedErrorRows.length} linha(s) sem nome serão ignoradas.`
+                    : `${validCount} registo(s) verificado(s) e pronto(s) para confirmar.`}
+            </p>
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              disabled={!canOpenConfirm}
+              loading={loading}
+              leftIcon={<Upload className="h-4 w-4" aria-hidden="true" />}
+              className="w-full sm:w-auto shrink-0 min-h-[44px]"
+            >
+              Rever e confirmar importação{validCount > 0 ? ` (${validCount})` : ''}
+            </Button>
           </div>
-          <p className="text-stone-600 font-mono truncate">
-            Colunas: {csvPreview.headers.join(' | ')}
-          </p>
-        </Card>
-      )}
+        </form>
 
-      {csvStats && (
-        <div className="border-t border-stone-200 pt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card variant="muted" padding="sm" className="rounded-xl text-center">
-            <span className="block text-xs text-stone-500">Linhas</span>
-            <span className="text-xl font-bold text-stone-900">{csvStats.total_rows}</span>
-          </Card>
-          <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-center">
-            <span className="block text-xs text-teal-700">Criados</span>
-            <span className="text-xl font-bold text-teal-800">{csvStats.created_users}</span>
-          </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-            <span className="block text-xs text-amber-700">Atualizados</span>
-            <span className="text-xl font-bold text-amber-800">{csvStats.updated_users}</span>
-          </div>
-          <Card variant="muted" padding="sm" className="rounded-xl text-center">
-            <span className="block text-xs text-stone-500">Matrículas</span>
-            <span className="text-xl font-bold text-stone-900">
-              {csvStats.created_enrollments}
-            </span>
-          </Card>
-        </div>
-      )}
+        {csvStats && (
+          <CsvImportResultCard stats={csvStats} onDismiss={() => setCsvStats(null)} />
+        )}
+      </CardContent>
+
+      <CsvConfirmImportModal
+        open={confirmOpen}
+        loading={loading}
+        academicYear={normalizedYear}
+        analysis={analysis}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmImport}
+      />
     </Card>
   );
 }
